@@ -335,10 +335,10 @@ export default function HomePage() {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_320px] xl:grid-cols-[300px_1fr_350px] gap-6 min-h-0 h-[calc(100vh-180px)] overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_320px] xl:grid-cols-[300px_1fr_350px] gap-6 items-start">
           
           {/* Left Sidebar */}
-          <div className="space-y-4 lg:sticky lg:top-4 self-start max-h-[calc(100vh-220px)] overflow-auto pr-1">
+          <div className="space-y-4 lg:sticky lg:top-6">
             {/* Sponsored Ads Carousel */}
             <OrkutCard>
               <OrkutCardHeader>
@@ -484,7 +484,8 @@ export default function HomePage() {
           </div>
 
           {/* Main Content - Postagens no meio */}
-          <div className="space-y-6 overflow-auto max-h-[calc(100vh-220px)] pr-1">
+          <div className="space-y-6 lg:pr-2">
+            {/* Limitador de altura para o feed não ultrapassar as laterais */}
             {/* Friends Recent Photos */}
             <OrkutCard>
               <OrkutCardContent>
@@ -592,7 +593,7 @@ export default function HomePage() {
           </div>
 
           {/* Right Sidebar */}
-          <div className="space-y-6 lg:sticky lg:top-4 self-start max-h-[calc(100vh-220px)] overflow-auto pl-1">
+          <div className="space-y-6 lg:sticky lg:top-6 lg:pl-2">
             {/* Radio Widget */}
             <RadioTatuapeWidget className="shadow-md" />
 

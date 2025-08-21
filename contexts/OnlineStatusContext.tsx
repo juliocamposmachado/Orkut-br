@@ -162,7 +162,7 @@ export const OnlineStatusProvider: React.FC<{ children: React.ReactNode }> = ({ 
     if (socket && isConnected) {
       const heartbeat = setInterval(() => {
         socket.emit('ping');
-      }, 60000); // Aumentar para 1 minuto para reduzir carga
+      }, 120000); // Aumentar para 2 minutos para reduzir carga ainda mais
 
       return () => clearInterval(heartbeat);
     }

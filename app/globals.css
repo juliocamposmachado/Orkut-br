@@ -185,3 +185,44 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;  /* Chrome, Safari and Opera */
 }
+
+/* Logo rainbow animation for new social network launch celebration */
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.bg-300% {
+  background-size: 300% 300%;
+}
+
+.animate-gradient {
+  animation: gradient 3s ease-in-out infinite;
+}
+
+/* Orkut logo special launch animation */
+.orkut-launch-logo {
+  background: linear-gradient(
+    45deg,
+    #ff0000,
+    #ff7f00,
+    #ffff00,
+    #00ff00,
+    #0000ff,
+    #4b0082,
+    #9400d3,
+    #ff1493
+  );
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient 2s ease-in-out infinite;
+}

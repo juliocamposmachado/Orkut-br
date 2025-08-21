@@ -40,7 +40,7 @@ import {
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import Link from 'next/link'
-import MyTunerWidget from '@/components/MyTunerWidget'
+import RadioTatuapeWidget from '@/components/RadioWidget'
 import { CommentsModal } from '@/components/posts/comments-modal'
 import { ShareModal } from '@/components/posts/share-modal'
 import { UserMoodDisplay } from '@/components/status/user-mood-display'
@@ -316,6 +316,25 @@ export default function HomePage() {
       <Navbar />
       
       <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Launch Celebration Banner */}
+        <div className="mb-6">
+          <div className="bg-gradient-to-r from-purple-600 via-blue-500 via-green-500 via-yellow-500 via-orange-500 to-red-500 p-1 rounded-xl shadow-lg animate-pulse">
+            <div className="bg-white rounded-lg p-4 text-center">
+              <div className="flex items-center justify-center space-x-3 mb-2">
+                <span className="text-3xl animate-bounce">🎉</span>
+                <h2 className="text-xl font-bold orkut-launch-logo">
+                  ORKUT ESTÁ DE VOLTA!
+                </h2>
+                <span className="text-3xl animate-bounce">🚀</span>
+              </div>
+              <p className="text-gray-600 text-sm">
+                A rede social que marcou época retorna com recursos modernos • 
+                <span className="font-semibold text-purple-600">Agora com rádio ao vivo, chamadas de voz e muito mais!</span>
+              </p>
+            </div>
+          </div>
+        </div>
+        
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_320px] xl:grid-cols-[300px_1fr_350px] gap-6 min-h-0">
           
           {/* Left Sidebar */}
@@ -674,7 +693,7 @@ export default function HomePage() {
           {/* Right Sidebar */}
           <div className="space-y-6">
             {/* Radio Widget */}
-            <MyTunerWidget className="shadow-md" />
+            <RadioTatuapeWidget className="shadow-md" />
 
             {/* Contacts/Friends Online */}
             <OrkutCard>

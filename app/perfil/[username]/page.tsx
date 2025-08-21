@@ -108,7 +108,7 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
           display_name: 'Julio Campos Machado',
           username: 'juliocamposmachado',
           email: 'julio@test.com',
-          photo_url: null,
+          photo_url: undefined,
           phone: '+5511992946628',
           bio: 'Desenvolvedor apaixonado por tecnologia e criador do Orkut Retrô.',
           location: 'São Paulo, SP',

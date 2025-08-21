@@ -96,9 +96,7 @@ export default function LoginPage() {
         // If account doesn't exist, create it with complete profile data
         await signUp(profile.email, profile.password, {
           username: profile.username,
-          displayName: profile.display_name,
-          bio: profile.bio,
-          photo_url: profile.photo_url
+          displayName: profile.display_name
         })
       }
 

@@ -44,8 +44,26 @@ export function Navbar() {
     { icon: Search, label: 'buscar', href: '/buscar' },
   ]
 
-  const handleNavClick = (href: string, label: string) => {
-    console.log(`Navegando para: ${href} (${label})`)
+  const handleNavClick = (href: string, label: string, event?: React.MouseEvent) => {
+    // Previne o comportamento padrão do Link se necessário
+    if (event) {
+      event.preventDefault()
+    }
+    console.log(`[Navbar] Navegando para: ${href} (${label})`)
+    console.log(`[Navbar] Profile state:`, { 
+      username: profile?.username, 
+      display_name: profile?.display_name,
+      id: profile?.id 
+    })
+    
+    try {
+      router.push(href)
+      console.log(`[Navbar] Navegação iniciada com sucesso para: ${href}`)
+    } catch (error) {
+      console.error(`[Navbar] Erro na navegação para ${href}:`, error)
+      // Fallback: try window.location if router fails
+      window.location.href = href
+    }
   }
 
   const handleSignOut = async () => {
@@ -78,7 +96,7 @@ export function Navbar() {
                   <Link 
                     key={item.href} 
                     href={item.href}
-                    onClick={() => handleNavClick(item.href, item.label)}
+                    onClick={(e) => handleNavClick(item.href, item.label, e)}
                     className={`group text-white hover:bg-white/30 transition-all duration-200 w-12 h-12 p-0 rounded-xl flex items-center justify-center relative z-10 cursor-pointer transform hover:scale-105 ${
                       isActive ? 'bg-white/30 border-b-2 border-white shadow-lg' : 'hover:shadow-md'
                     }`}
@@ -96,7 +114,7 @@ export function Navbar() {
             {/* Messages Icon */}
             <Link 
               href="/recados"
-              onClick={() => handleNavClick('/recados', 'mensagens')}
+              onClick={(e) => handleNavClick('/recados', 'mensagens', e)}
               className="group text-white hover:bg-white/30 w-10 h-10 p-0 rounded-full flex items-center justify-center transition-all duration-200 relative z-10 cursor-pointer transform hover:scale-105 hover:shadow-md"
               title="Mensagens"
             >
@@ -165,8 +183,8 @@ export function Navbar() {
             {/* Profile Avatar Only */}
             <Link 
               href={profile?.username ? `/perfil/${profile.username}` : '/perfil'} 
-              onClick={() => handleNavClick(profile?.username ? `/perfil/${profile.username}` : '/perfil', 'perfil')}
-              title={profile?.display_name}
+              onClick={(e) => handleNavClick(profile?.username ? `/perfil/${profile.username}` : '/perfil', 'perfil', e)}
+              title={profile?.display_name || 'Meu Perfil'}
               className="cursor-pointer transform hover:scale-105 transition-transform duration-200"
             >
               <Avatar className="h-10 w-10 border-2 border-white hover:border-white/80 hover:shadow-lg transition-all duration-200 cursor-pointer">
@@ -190,7 +208,7 @@ export function Navbar() {
               <Link 
                 key={item.href} 
                 href={item.href} 
-                onClick={() => handleNavClick(item.href, item.label)}
+                onClick={(e) => handleNavClick(item.href, item.label, e)}
                 className="cursor-pointer"
               >
                 <Button

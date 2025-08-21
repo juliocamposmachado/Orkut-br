@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context-fallback'
 import { Navbar } from '@/components/layout/navbar'
 import { OrkyAssistant } from '@/components/voice/orky-assistant'
-import { CreatePost } from '@/components/CreatePost'
+import { Feed } from '@/components/Feed'
 import { Footer } from '@/components/layout/footer'
 import { OrkutCard, OrkutCardContent, OrkutCardHeader } from '@/components/ui/orkut-card'
 import { Button } from '@/components/ui/button'
@@ -335,10 +335,10 @@ export default function HomePage() {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_320px] xl:grid-cols-[300px_1fr_350px] gap-6 min-h-0">
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_320px] xl:grid-cols-[300px_1fr_350px] gap-6 min-h-0 h-[calc(100vh-180px)] overflow-hidden">
           
           {/* Left Sidebar */}
-          <div className="space-y-4">
+          <div className="space-y-4 lg:sticky lg:top-4 self-start max-h-[calc(100vh-220px)] overflow-auto pr-1">
             {/* Sponsored Ads Carousel */}
             <OrkutCard>
               <OrkutCardHeader>
@@ -484,10 +484,7 @@ export default function HomePage() {
           </div>
 
           {/* Main Content - Postagens no meio */}
-          <div className="space-y-6">
-            {/* Post Composer */}
-            <CreatePost onPostCreated={loadFeed} />
-
+          <div className="space-y-6 overflow-auto max-h-[calc(100vh-220px)] pr-1">
             {/* Friends Recent Photos */}
             <OrkutCard>
               <OrkutCardContent>
@@ -590,108 +587,12 @@ export default function HomePage() {
               </OrkutCardContent>
             </OrkutCard>
 
-            {/* Feed Posts */}
-            {loadingPosts ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
-                <p className="text-purple-600">Carregando feed...</p>
-              </div>
-            ) : posts.length === 0 ? (
-              <OrkutCard>
-                <OrkutCardContent>
-                  <div className="text-center py-8">
-                    <p className="text-gray-600 mb-4">
-                      Seu feed está vazio! Que tal seguir alguns amigos ou comunidades?
-                    </p>
-                    <Button 
-                      className="bg-purple-500 hover:bg-purple-600"
-                      onClick={() => router.push('/buscar')}
-                    >
-                      Buscar Pessoas
-                    </Button>
-                  </div>
-                </OrkutCardContent>
-              </OrkutCard>
-            ) : (
-              posts.map((post) => (
-                <OrkutCard key={post.id}>
-                  <OrkutCardContent>
-                    <div className="flex space-x-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={post.author?.photo_url} alt={post.author?.display_name} />
-                        <AvatarFallback>
-                          {post.author?.display_name?.charAt(0)?.toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <h4 className="font-semibold text-gray-800">
-                            {post.author?.display_name}
-                          </h4>
-                          <span className="text-xs text-gray-500">
-                            {formatDistanceToNow(new Date(post.created_at), { 
-                              addSuffix: true,
-                              locale: ptBR 
-                            })}
-                          </span>
-                        </div>
-                        <p className="text-gray-700 mb-3">{post.content}</p>
-                        <div className="flex items-center space-x-4">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleLike(post.id)}
-                            className="text-purple-600 hover:bg-purple-50"
-                          >
-                            <Heart className="h-4 w-4 mr-1" />
-                            {post.likes_count || 0}
-                          </Button>
-                          <CommentsModal 
-                            postId={post.id}
-                            commentsCount={post.comments_count || 0}
-                            onCommentsCountChange={(count) => {
-                              setPosts(prev => prev.map(p => 
-                                p.id === post.id 
-                                  ? { ...p, comments_count: count }
-                                  : p
-                              ))
-                            }}
-                          >
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="text-purple-600 hover:bg-purple-50"
-                            >
-                              <MessageCircle className="h-4 w-4 mr-1" />
-                              {post.comments_count || 0}
-                            </Button>
-                          </CommentsModal>
-                          <ShareModal 
-                            postId={post.id}
-                            postContent={post.content}
-                            postAuthor={post.author}
-                            onPostShared={loadFeed}
-                          >
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="text-purple-600 hover:bg-purple-50"
-                            >
-                              <Share className="h-4 w-4 mr-1" />
-                              Compartilhar
-                            </Button>
-                          </ShareModal>
-                        </div>
-                      </div>
-                    </div>
-                  </OrkutCardContent>
-                </OrkutCard>
-              ))
-            )}
+            {/* Feed Posts - Agora usando o componente Feed que inclui DJ Orky */}
+            <Feed />
           </div>
 
           {/* Right Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-6 lg:sticky lg:top-4 self-start max-h-[calc(100vh-220px)] overflow-auto pl-1">
             {/* Radio Widget */}
             <RadioTatuapeWidget className="shadow-md" />
 

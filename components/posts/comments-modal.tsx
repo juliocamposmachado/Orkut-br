@@ -133,7 +133,7 @@ export function CommentsModal({
       setNewComment('')
       
       // Update comments count in parent
-      const newCount = comments.length + 1
+      let newCount = comments.length + 1
       onCommentsCountChange?.(newCount)
       
       // Update comments count in database
@@ -142,12 +142,96 @@ export function CommentsModal({
         .update({ comments_count: newCount })
         .eq('id', postId)
 
+      // Auto-reply do Orky em posts do Orky
+      await autoReplyIfOrkyPost(newCommentData)
+
       toast.success('Comentário adicionado!')
     } catch (error) {
       console.error('Error creating comment:', error)
       toast.error('Erro ao adicionar comentário')
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  // Gera um texto curto do Orky respondendo ao comentário
+  function generateOrkyReplyText(userName: string, original: string) {
+    const base = original.slice(0, 120)
+    const templates = [
+      `Valeu, ${userName}! 🎵 Bora ouvir juntos?`,
+      `${userName}, bom demais! Clica pra ouvir ao vivo 🤘`,
+      `Boa, ${userName}! A rádio tá rolando agora. 🎧`,
+      `Tamo junto, ${userName}! Já deu o play na rádio? 🔊`,
+    ]
+    return templates[Math.floor(Math.random() * templates.length)] + (base ? `\n\n“${base}${original.length > 120 ? '…' : ''}”` : '')
+  }
+
+  async function autoReplyIfOrkyPost(lastUserComment: any) {
+    try {
+      // Descobrir o autor do post
+      const { data: postData, error: postErr } = await supabase
+        .from('posts')
+        .select('author')
+        .eq('id', postId)
+        .single()
+
+      if (postErr || !postData) return
+
+      const ORKY_IDS = ['orky-ai-assistant', 'dj-orky-bot']
+      const isOrkyPost = ORKY_IDS.includes(postData.author)
+      if (!isOrkyPost) return
+
+      // Evitar loop ou resposta ao próprio Orky
+      if (ORKY_IDS.includes(lastUserComment.author?.id)) return
+
+      const replyContent = generateOrkyReplyText(lastUserComment.author?.display_name || 'amigo', lastUserComment.content)
+
+      // Tentar salvar o comentário como Orky no banco
+      const { data: reply, error: replyErr } = await supabase
+        .from('comments')
+        .insert({
+          post_id: postId,
+          author: 'orky-ai-assistant',
+          content: replyContent,
+        })
+        .select(`
+          id,
+          content,
+          created_at,
+          author,
+          profiles:author (
+            id,
+            display_name,
+            photo_url,
+            username
+          )
+        `)
+        .single()
+
+      if (replyErr) {
+        // Se não der para gravar no banco (permissão), adiciona só no UI como fallback
+        setComments(prev => [...prev, {
+          id: Date.now(),
+          content: replyContent,
+          created_at: new Date().toISOString(),
+          author: {
+            id: 'orky-ai-assistant',
+            display_name: 'Orky 🤖',
+            photo_url: '/orky-avatar.png',
+            username: 'orky'
+          }
+        } as any])
+      } else if (reply) {
+        setComments(prev => [...prev, { ...reply, author: reply.profiles as any }])
+      }
+
+      // Atualizar contador localmente
+      const updatedCount = (onCommentsCountChange ? undefined : undefined) // placeholder to keep types happy
+      const newTotal = (comments.length + 2) // usuário + Orky
+      onCommentsCountChange?.(newTotal)
+      await supabase.from('posts').update({ comments_count: newTotal }).eq('id', postId)
+    } catch (e) {
+      console.warn('Auto-reply Orky falhou (ignorado):', e)
     }
   }
 

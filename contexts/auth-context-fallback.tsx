@@ -151,7 +151,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signUp = async (
     email: string, 
     password: string, 
-    userData: { username: string, displayName: string }
+    userData: { username: string, displayName: string, bio?: string, photo_url?: string }
   ) => {
     // Simulate signup for fallback mode
     // Generate a proper UUID for compatibility with Supabase
@@ -166,8 +166,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       username: userData.username,
       display_name: userData.displayName,
       created_at: new Date().toISOString(),
-      photo_url: null,
-      bio: null,
+      photo_url: userData.photo_url || null,
+      bio: userData.bio || null,
       location: null,
       birthday: null,
       relationship: null,

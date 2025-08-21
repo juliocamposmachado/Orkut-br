@@ -68,75 +68,89 @@ export const FriendsProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setLoading(true);
       setError(null);
 
-      // Carregar amigos
-      const { data: friendsData, error: friendsError } = await supabase
-        .from('friends_view')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('friendship_date', { ascending: false });
+      // Tentar carregar do Supabase primeiro
+      try {
+        // Carregar amigos
+        const { data: friendsData, error: friendsError } = await supabase
+          .from('friends_view')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('friendship_date', { ascending: false });
 
-      if (friendsError) throw friendsError;
-      setFriends(friendsData || []);
+        if (!friendsError && friendsData) {
+          setFriends(friendsData || []);
+        }
 
-      // Carregar solicitações recebidas (pendentes)
-      const { data: receivedData, error: receivedError } = await supabase
-        .from('friendships')
-        .select(`
-          *,
-          requester:requester_id (
-            name,
-            username,
-            avatar_url
-          )
-        `)
-        .eq('addressee_id', user.id)
-        .eq('status', 'pending');
+        // Carregar solicitações recebidas (pendentes)
+        const { data: receivedData, error: receivedError } = await supabase
+          .from('friendships')
+          .select(`
+            *,
+            requester:requester_id (
+              name,
+              username,
+              avatar_url
+            )
+          `)
+          .eq('addressee_id', user.id)
+          .eq('status', 'pending');
 
-      if (receivedError) throw receivedError;
+        if (!receivedError && receivedData) {
+          const formattedReceived = receivedData?.map(req => ({
+            ...req,
+            requester_name: req.requester?.name || '',
+            requester_username: req.requester?.username || '',
+            requester_avatar: req.requester?.avatar_url || null,
+            addressee_name: (user as any).user_metadata?.name || '',
+            addressee_username: (user as any).user_metadata?.username || '',
+            addressee_avatar: (user as any).user_metadata?.avatar_url || null
+          })) || [];
 
-      const formattedReceived = receivedData?.map(req => ({
-        ...req,
-        requester_name: req.requester?.name || '',
-        requester_username: req.requester?.username || '',
-        requester_avatar: req.requester?.avatar_url || null,
-        addressee_name: (user as any).user_metadata?.name || '',
-        addressee_username: (user as any).user_metadata?.username || '',
-        addressee_avatar: (user as any).user_metadata?.avatar_url || null
-      })) || [];
+          setPendingRequests(formattedReceived);
+        }
 
-      setPendingRequests(formattedReceived);
+        // Carregar solicitações enviadas (pendentes)
+        const { data: sentData, error: sentError } = await supabase
+          .from('friendships')
+          .select(`
+            *,
+            addressee:addressee_id (
+              name,
+              username,
+              avatar_url
+            )
+          `)
+          .eq('requester_id', user.id)
+          .eq('status', 'pending');
 
-      // Carregar solicitações enviadas (pendentes)
-      const { data: sentData, error: sentError } = await supabase
-        .from('friendships')
-        .select(`
-          *,
-          addressee:addressee_id (
-            name,
-            username,
-            avatar_url
-          )
-        `)
-        .eq('requester_id', user.id)
-        .eq('status', 'pending');
+        if (!sentError && sentData) {
+          const formattedSent = sentData?.map(req => ({
+            ...req,
+            requester_name: (user as any).user_metadata?.name || '',
+            requester_username: (user as any).user_metadata?.username || '',
+            requester_avatar: (user as any).user_metadata?.avatar_url || null,
+            addressee_name: req.addressee?.name || '',
+            addressee_username: req.addressee?.username || '',
+            addressee_avatar: req.addressee?.avatar_url || null
+          })) || [];
 
-      if (sentError) throw sentError;
-
-      const formattedSent = sentData?.map(req => ({
-        ...req,
-        requester_name: (user as any).user_metadata?.name || '',
-        requester_username: (user as any).user_metadata?.username || '',
-        requester_avatar: (user as any).user_metadata?.avatar_url || null,
-        addressee_name: req.addressee?.name || '',
-        addressee_username: req.addressee?.username || '',
-        addressee_avatar: req.addressee?.avatar_url || null
-      })) || [];
-
-      setSentRequests(formattedSent);
+          setSentRequests(formattedSent);
+        }
+      } catch (supabaseError) {
+        console.log('Supabase indisponível, usando dados fallback para amigos');
+        // Fallback: usar dados vazios
+        setFriends([]);
+        setPendingRequests([]);
+        setSentRequests([]);
+      }
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao carregar amigos');
       console.error('Erro ao carregar amigos:', err);
+      // Fallback em caso de erro
+      setFriends([]);
+      setPendingRequests([]);
+      setSentRequests([]);
     } finally {
       setLoading(false);
     }

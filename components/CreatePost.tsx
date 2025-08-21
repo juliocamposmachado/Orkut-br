@@ -18,26 +18,63 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const [content, setContent] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
+  // Check if we have valid Supabase configuration
+  const hasSupabaseConfig = process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://placeholder.supabase.co'
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!content.trim() || !user) return
 
     setIsLoading(true)
     try {
-      const { data, error } = await supabase
-        .from('posts')
-        .insert({
-          content: content.trim(),
-          author: user.id
-        })
-        .select()
+      if (hasSupabaseConfig) {
+        // Use real Supabase if configured
+        const { data, error } = await supabase
+          .from('posts')
+          .insert({
+            content: content.trim(),
+            author: user.id
+          })
+          .select()
 
-      if (error) {
-        throw error
+        if (error) {
+          throw error
+        }
+      } else {
+        // Fallback: simulate post creation for development
+        console.log('Creating post in fallback mode:', {
+          content: content.trim(),
+          author: user.id,
+          author_name: profile?.display_name
+        })
+        
+        // Store posts locally for development
+        const existingPosts = JSON.parse(localStorage.getItem('orkut_posts') || '[]')
+        const newPost = {
+          id: Date.now(),
+          content: content.trim(),
+          author: user.id,
+          author_name: profile?.display_name || 'Unknown',
+          author_photo: profile?.photo_url,
+          visibility: 'public',
+          likes_count: 0,
+          comments_count: 0,
+          created_at: new Date().toISOString()
+        }
+        
+        existingPosts.unshift(newPost)
+        localStorage.setItem('orkut_posts', JSON.stringify(existingPosts))
+        
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
+        console.log('Post created successfully in fallback mode:', newPost)
       }
 
       setContent('')
       onPostCreated?.()
+      alert('Post publicado com sucesso!')
     } catch (error: any) {
       console.error('Error creating post:', error)
       alert(`Erro ao criar post: ${error.message || 'Erro desconhecido'}`)

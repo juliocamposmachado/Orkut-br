@@ -45,6 +45,7 @@ import { CommentsModal } from '@/components/posts/comments-modal'
 import { ShareModal } from '@/components/posts/share-modal'
 import { UserMoodDisplay } from '@/components/status/user-mood-display'
 import { SponsoredCarousel } from '@/components/ads/sponsored-carousel'
+import { MarqueeBanner } from '@/components/ui/marquee-banner'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -316,81 +317,8 @@ export default function HomePage() {
       <Navbar />
       
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Compact Ticker Banner */}
-        <div className="mb-4">
-          <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg p-3 shadow-md overflow-hidden">
-            <div className="flex items-center justify-between text-white text-sm">
-              <div className="flex items-center space-x-2">
-                <span className="text-yellow-300 animate-pulse">🔥</span>
-                <span className="font-semibold">ORKUT 2.0 - Rádio ao Vivo • Chamadas de Voz • Feed Inteligente</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-green-300">●</span>
-                <span className="text-xs opacity-90">Online agora</span>
-              </div>
-            </div>
-            <div className="text-xs text-purple-100 mt-1 opacity-90">
-              Funcionalidades: DJ Orky, Comunidades, Perfis Personalizados, Chat em Tempo Real
-            </div>
-          </div>
-        </div>
-
-        {/* Live Activity Notifications */}
-        <div className="mb-4">
-          <div className="bg-white rounded-lg border border-purple-200 shadow-sm overflow-hidden">
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-4 py-2 border-b border-purple-100">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium text-gray-700">Atividades Recentes</span>
-              </div>
-            </div>
-            <div className="p-3 space-y-2 max-h-24 overflow-hidden">
-              {[
-                { 
-                  user: 'Mariana Santos', 
-                  action: 'curtiu uma foto de Carlos Eduardo', 
-                  time: '2 min', 
-                  icon: '❤️' 
-                },
-                { 
-                  user: 'DJ Orky', 
-                  action: 'postou sobre a música tocando agora', 
-                  time: '5 min', 
-                  icon: '🎵' 
-                },
-                { 
-                  user: 'Ana Paula', 
-                  action: 'entrou na comunidade "Nostalgia 2000s"', 
-                  time: '8 min', 
-                  icon: '🏠' 
-                },
-                { 
-                  user: 'Roberto Silva', 
-                  action: 'começou a escutar a Rádio Tatuapé', 
-                  time: '12 min', 
-                  icon: '📻' 
-                }
-              ].map((activity, idx) => (
-                <div key={idx} className="flex items-center space-x-2 text-xs text-gray-600 hover:bg-purple-50 p-1 rounded transition-colors">
-                  <span className="text-sm">{activity.icon}</span>
-                  <span className="flex-1">
-                    <span className="font-medium text-purple-700">{activity.user}</span>
-                    <span className="mx-1">{activity.action}</span>
-                  </span>
-                  <span className="text-gray-400">{activity.time}</span>
-                </div>
-              ))}
-            </div>
-            <div className="bg-gray-50 px-4 py-2 border-t border-gray-100">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500">Atualizado agora</span>
-                <button className="text-xs text-purple-600 hover:text-purple-800 font-medium">
-                  Ver todas →
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* AI-Powered Marquee Banner */}
+        <MarqueeBanner className="mb-4" />
         
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_320px] xl:grid-cols-[300px_1fr_350px] gap-6 items-start">
           
@@ -500,20 +428,6 @@ export default function HomePage() {
               </OrkutCardContent>
             </OrkutCard>
 
-            {/* Recent Activity */}
-            <OrkutCard>
-              <OrkutCardHeader>
-                <div className="flex items-center space-x-2">
-                  <Clock className="h-4 w-4" />
-                  <span className="text-gray-600 text-sm font-medium">Atividade recente</span>
-                </div>
-              </OrkutCardHeader>
-              <OrkutCardContent>
-                <div className="text-center py-4 text-gray-500">
-                  <p className="text-sm">Nenhuma atividade recente</p>
-                </div>
-              </OrkutCardContent>
-            </OrkutCard>
 
             {/* Top Friends */}
             <OrkutCard>

@@ -1,25 +1,33 @@
 import { createClient } from '@supabase/supabase-js'
 
-// Fallback values for build time
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
+// Configurar Supabase apenas se as variáveis estiverem disponíveis
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-// Only check for real values in browser or when actually needed
-if (typeof window !== 'undefined' && (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)) {
-  console.warn('Missing Supabase environment variables')
+// Só criar cliente se as variáveis estiverem configuradas corretamente
+const createSupabaseClient = () => {
+  if (!supabaseUrl || !supabaseAnonKey || 
+      supabaseUrl.includes('placeholder') || 
+      supabaseUrl.includes('your_') ||
+      !supabaseUrl.startsWith('https://')) {
+    console.warn('Supabase não configurado - usando cliente mock')
+    return null
+  }
+  
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 2,
+      },
+    },
+  })
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 2,
-    },
-  },
-})
+export const supabase = createSupabaseClient()
 
 export type Database = {
   public: {

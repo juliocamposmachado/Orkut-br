@@ -11,12 +11,25 @@
   "functions": {
     "pages/api/signaling.js": {
       "maxDuration": 30
+    },
+    "app/api/orky/generate-post/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/orky/reply-comment/route.ts": {
+      "maxDuration": 20
+    },
+    "app/api/gemini/messages/route.ts": {
+      "maxDuration": 20
     }
   },
   "crons": [
     {
       "path": "/api/cron/radio-posts",
       "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/orky-posts",
+      "schedule": "0 */3 * * *"
     }
   ],
   "headers": [

@@ -4,8 +4,10 @@ import { Inter } from 'next/font/google';
 import { AuthProvider } from '@/contexts/enhanced-auth-context';
 import { VoiceProvider } from '@/contexts/voice-context';
 import { OnlineStatusProvider } from '@/contexts/OnlineStatusContext';
+import { WebRTCProvider } from '@/contexts/webrtc-context';
 import { Toaster } from '@/components/ui/sonner';
 import { StructuredData } from '@/components/seo/structured-data';
+import { CallManager } from '@/components/calls/call-manager';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -117,10 +119,13 @@ export default function RootLayout({
         <StructuredData />
         <AuthProvider>
           <OnlineStatusProvider>
-            <VoiceProvider>
-              {children}
-              <Toaster />
-            </VoiceProvider>
+            <WebRTCProvider>
+              <VoiceProvider>
+                {children}
+                <CallManager />
+                <Toaster />
+              </VoiceProvider>
+            </WebRTCProvider>
           </OnlineStatusProvider>
         </AuthProvider>
       </body>

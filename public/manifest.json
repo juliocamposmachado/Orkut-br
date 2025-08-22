@@ -10,6 +10,22 @@
   "scope": "/",
   "lang": "pt-BR",
   "categories": ["social", "lifestyle", "entertainment"],
+  "permissions": [
+    "camera",
+    "microphone",
+    "display-capture",
+    "notifications",
+    "push"
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
   "icons": [
     {
       "src": "/favicon.svg",

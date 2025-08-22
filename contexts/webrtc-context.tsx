@@ -284,9 +284,25 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
   }
   
   const getUserMedia = async (callType: 'audio' | 'video'): Promise<MediaStream> => {
-    const constraints = {
-      audio: true,
-      video: callType === 'video'
+    // Detectar se é mobile
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    const constraints: MediaStreamConstraints = {
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+        // Mobile optimizations
+        sampleRate: isMobile ? 22050 : 44100,
+        channelCount: 1
+      },
+      video: callType === 'video' ? {
+        width: isMobile ? { ideal: 640, max: 1280 } : { ideal: 1280, max: 1920 },
+        height: isMobile ? { ideal: 480, max: 720 } : { ideal: 720, max: 1080 },
+        frameRate: isMobile ? { ideal: 15, max: 30 } : { ideal: 30, max: 60 },
+        facingMode: isMobile ? 'user' : undefined, // Front camera preferida no mobile
+        aspectRatio: 16/9
+      } : false
     }
     
     try {
@@ -294,11 +310,43 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
       
       if (localVideoRef.current && callType === 'video') {
         localVideoRef.current.srcObject = stream
+        
+        // Mobile: auto-play e configurações
+        if (isMobile) {
+          localVideoRef.current.playsInline = true
+          localVideoRef.current.muted = true
+        }
       }
       
       return stream
     } catch (error) {
       console.error('Error getting user media:', error)
+      
+      // Fallback para mobile com permissões limitadas
+      if (isMobile && callType === 'video') {
+        try {
+          const fallbackStream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: {
+              width: { ideal: 320, max: 640 },
+              height: { ideal: 240, max: 480 },
+              frameRate: { ideal: 10, max: 15 }
+            }
+          })
+          
+          if (localVideoRef.current) {
+            localVideoRef.current.srcObject = fallbackStream
+            localVideoRef.current.playsInline = true
+            localVideoRef.current.muted = true
+          }
+          
+          return fallbackStream
+        } catch (fallbackError) {
+          console.error('Fallback media error:', fallbackError)
+          throw fallbackError
+        }
+      }
+      
       throw error
     }
   }

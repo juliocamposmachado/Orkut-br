@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWebRTC } from '@/contexts/webrtc-context';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +24,24 @@ export const CallButtons: React.FC<CallButtonsProps> = ({
   const { startAudioCall, startVideoCall, callState } = useWebRTC();
   const isCallActive = callState.isInCall;
   const [isLoading, setIsLoading] = useState<'audio' | 'video' | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check if device is mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent
+      const mobileRegex = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i
+      const isTouch = 'ontouchstart' in window
+      const isSmallScreen = window.innerWidth <= 768
+      
+      setIsMobile(mobileRegex.test(userAgent) || isTouch || isSmallScreen)
+    }
+
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   const handleAudioCall = async () => {
     if (isCallActive || !isOnline) return;
@@ -53,28 +71,30 @@ export const CallButtons: React.FC<CallButtonsProps> = ({
 
   const isDisabled = !isOnline || isCallActive;
 
-  // Dynamic sizing
+  // Dynamic sizing - adjust for mobile
   const sizeClasses = {
-    small: 'w-8 h-8',
-    medium: 'w-10 h-10',
-    large: 'w-12 h-12'
+    small: isMobile ? 'w-10 h-10' : 'w-8 h-8',
+    medium: isMobile ? 'w-12 h-12' : 'w-10 h-10',
+    large: isMobile ? 'w-14 h-14' : 'w-12 h-12'
   }
 
   const iconSizes = {
-    small: 'h-4 w-4',
-    medium: 'h-5 w-5', 
-    large: 'h-6 w-6'
+    small: isMobile ? 'h-5 w-5' : 'h-4 w-4',
+    medium: isMobile ? 'h-6 w-6' : 'h-5 w-5', 
+    large: isMobile ? 'h-7 w-7' : 'h-6 w-6'
   }
 
   return (
-    <div className={`flex items-center gap-2 ${
-      layout === 'vertical' ? 'flex-col' : 'flex-row'
+    <div className={`flex items-center ${
+      layout === 'vertical' ? 'flex-col gap-3' : 'flex-row'
+    } ${
+      isMobile ? 'gap-3' : 'gap-2'
     }`}>
       {/* Audio Call Button */}
       <Button
         onClick={handleAudioCall}
         disabled={isDisabled || isLoading !== null}
-        size="sm"
+        size={isMobile ? 'default' : 'sm'}
         className={`
           ${sizeClasses[size]} 
           rounded-full 
@@ -87,7 +107,17 @@ export const CallButtons: React.FC<CallButtonsProps> = ({
           shadow-lg hover:shadow-xl
           border-2 border-white/20
           group
+          ${
+            isMobile 
+              ? 'active:scale-90 touch-manipulation min-h-[48px] min-w-[48px]' 
+              : ''
+          }
         `}
+        style={{
+          // Ensure touch-friendly size on mobile
+          minHeight: isMobile ? '48px' : undefined,
+          minWidth: isMobile ? '48px' : undefined
+        }}
         title={
           !isOnline 
             ? `${userName} está offline`
@@ -107,7 +137,7 @@ export const CallButtons: React.FC<CallButtonsProps> = ({
       <Button
         onClick={handleVideoCall}
         disabled={isDisabled || isLoading !== null}
-        size="sm"
+        size={isMobile ? 'default' : 'sm'}
         className={`
           ${sizeClasses[size]} 
           rounded-full 
@@ -120,7 +150,17 @@ export const CallButtons: React.FC<CallButtonsProps> = ({
           shadow-lg hover:shadow-xl
           border-2 border-white/20
           group
+          ${
+            isMobile 
+              ? 'active:scale-90 touch-manipulation min-h-[48px] min-w-[48px]' 
+              : ''
+          }
         `}
+        style={{
+          // Ensure touch-friendly size on mobile
+          minHeight: isMobile ? '48px' : undefined,
+          minWidth: isMobile ? '48px' : undefined
+        }}
         title={
           !isOnline 
             ? `${userName} está offline`
@@ -138,8 +178,10 @@ export const CallButtons: React.FC<CallButtonsProps> = ({
 
       {/* Labels (se habilitado) */}
       {showLabels && (
-        <div className={`text-xs text-gray-600 ${
-          layout === 'vertical' ? 'text-center' : 'ml-2'
+        <div className={`text-gray-600 ${
+          layout === 'vertical' ? 'text-center' : isMobile ? 'ml-3' : 'ml-2'
+        } ${
+          isMobile ? 'text-sm' : 'text-xs'
         }`}>
           <div>Áudio | Vídeo</div>
         </div>
@@ -149,9 +191,13 @@ export const CallButtons: React.FC<CallButtonsProps> = ({
       {!isOnline && (
         <Badge 
           variant="secondary" 
-          className="ml-2 bg-gray-100 text-gray-600 text-xs"
+          className={`bg-gray-100 text-gray-600 ${
+            isMobile ? 'ml-3 text-sm px-2 py-1' : 'ml-2 text-xs'
+          }`}
         >
-          <div className="w-2 h-2 rounded-full bg-gray-400 mr-1" />
+          <div className={`rounded-full bg-gray-400 mr-1 ${
+            isMobile ? 'w-2.5 h-2.5' : 'w-2 h-2'
+          }`} />
           Offline
         </Badge>
       )}
@@ -160,9 +206,13 @@ export const CallButtons: React.FC<CallButtonsProps> = ({
       {isCallActive && (
         <Badge 
           variant="default" 
-          className="ml-2 bg-green-100 text-green-700 text-xs animate-pulse"
+          className={`bg-green-100 text-green-700 animate-pulse ${
+            isMobile ? 'ml-3 text-sm px-2 py-1' : 'ml-2 text-xs'
+          }`}
         >
-          <div className="w-2 h-2 rounded-full bg-green-500 mr-1" />
+          <div className={`rounded-full bg-green-500 mr-1 ${
+            isMobile ? 'w-2.5 h-2.5' : 'w-2 h-2'
+          }`} />
           Em chamada
         </Badge>
       )}

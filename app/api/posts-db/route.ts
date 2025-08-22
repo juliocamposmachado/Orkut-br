@@ -13,6 +13,7 @@ interface Post {
   comments_count: number
   created_at: string
   is_dj_post?: boolean
+  shares_count?: number
 }
 
 // Dados em memória como fallback (para desenvolvimento)
@@ -26,6 +27,7 @@ let memoryPosts: Post[] = [
     visibility: "public",
     likes_count: 25,
     comments_count: 8,
+    shares_count: 12,
     created_at: new Date(Date.now() - 1000).toISOString(),
     is_dj_post: false
   }
@@ -47,6 +49,7 @@ export async function GET(request: NextRequest) {
           visibility,
           likes_count,
           comments_count,
+          shares_count,
           created_at,
           is_dj_post
         `)
@@ -66,6 +69,7 @@ export async function GET(request: NextRequest) {
             visibility: "public",
             likes_count: 0,
             comments_count: 0,
+            shares_count: 0,
             is_dj_post: false
           }
           memoryPosts.unshift({
@@ -111,7 +115,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { content, author, author_name, author_photo, visibility = 'public', is_dj_post = false } = body
+  const { content, author, author_name, author_photo, visibility = 'public', is_dj_post = false, shares_count = 0 } = body
 
     // Validações básicas
     if (!content || !author || !author_name) {
@@ -138,6 +142,7 @@ export async function POST(request: NextRequest) {
       visibility,
       likes_count: 0,
       comments_count: 0,
+      shares_count: 0,
       created_at: new Date().toISOString(),
       is_dj_post
     }
@@ -158,6 +163,7 @@ export async function POST(request: NextRequest) {
             visibility: newPost.visibility,
             likes_count: newPost.likes_count,
             comments_count: newPost.comments_count,
+            shares_count: newPost.shares_count,
             is_dj_post: newPost.is_dj_post
           })
           .select()

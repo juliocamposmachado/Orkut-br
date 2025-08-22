@@ -55,6 +55,12 @@ interface UserProfile {
   birth_date?: string;
 }
 
+interface FriendItem {
+  id: string;
+  name: string;
+  avatar?: string;
+}
+
 const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
   const { user: currentUser } = useAuth();
   
@@ -64,6 +70,13 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
   const [friendshipStatus, setFriendshipStatus] = useState<string>('none');
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const [actionLoading, setActionLoading] = useState<string>('');
+  const [friends, setFriends] = useState<FriendItem[]>(() =>
+    Array.from({ length: 8 }).map((_, idx) => ({
+      id: `placeholder-${idx}`,
+      name: `Amigo ${idx + 1}`,
+      avatar: `https://images.pexels.com/photos/${220000 + idx}/pexels-photo-${220000 + idx}.jpeg?auto=compress&cs=tinysrgb&w=80`
+    }))
+  );
   
   // Fallback para status online
   const isOnline = true;
@@ -85,8 +98,14 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
       await new Promise(resolve => setTimeout(resolve, 1000));
       setFriendshipStatus('pending');
       
+      // Simular resposta automática após 3 segundos para demonstração
+      setTimeout(() => {
+        setFriendshipStatus('accepted');
+        alert(`🎉 ${profile.display_name} aceitou seu pedido de amizade! Agora vocês são amigos e ele aparecerá no seu Top 10 Amigos.`);
+      }, 3000);
+      
       // Notificação visual
-      alert('Pedido de amizade enviado com sucesso!');
+      alert('Pedido de amizade enviado com sucesso! Aguardando resposta...');
     } catch (error) {
       console.error('Erro ao enviar pedido de amizade:', error);
       alert('Erro ao enviar pedido de amizade. Tente novamente.');
@@ -241,6 +260,18 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
       setFriendshipStatus(status);
     }
   }, [profile?.id, currentUser?.id, getFriendshipStatus, isOwnProfile]);
+
+  // Quando amizade for aceita, adicionar ao Top 10 Amigos
+  useEffect(() => {
+    if (friendshipStatus === 'accepted' && profile) {
+      setFriends(prev => {
+        // já existe?
+        if (prev.some(f => f.id === profile.id)) return prev;
+        const updated = [{ id: profile.id, name: profile.display_name, avatar: profile.photo_url }, ...prev];
+        return updated.slice(0, 10);
+      });
+    }
+  }, [friendshipStatus, profile]);
   const canViewPhone = isOwnProfile || 
     (profile?.privacy_settings?.phone_visibility === 'public') ||
     (profile?.privacy_settings?.phone_visibility === 'friends' && friendshipStatus === 'accepted');
@@ -711,14 +742,14 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
               </OrkutCardHeader>
               <OrkutCardContent>
                 <div className="grid grid-cols-2 gap-3">
-                  {Array.from({ length: 8 }).map((_, idx) => (
-                    <div key={idx} className="text-center">
+                  {friends.map((friend, idx) => (
+                    <div key={friend.id || idx} className="text-center">
                       <img 
-                        src={`https://images.pexels.com/photos/${220000 + idx}/pexels-photo-${220000 + idx}.jpeg?auto=compress&cs=tinysrgb&w=80`}
-                        alt={`Amigo ${idx + 1}`}
-                        className="w-12 h-12 rounded-full mx-auto mb-1 object-cover hover:opacity-80 transition-opacity cursor-pointer border-2 border-purple-200"
+                        src={friend.avatar || `https://images.pexels.com/photos/${220000 + idx}/pexels-photo-${220000 + idx}.jpeg?auto=compress&cs=tinysrgb&w=80`}
+                        alt={friend.name}
+                        className="w-12 h-12 rounded-full mx-auto mb-1 object-cover hover:opacity-90 transition-opacity cursor-pointer border-2 border-purple-200"
                       />
-                      <p className="text-xs text-gray-600 truncate">Amigo {idx + 1}</p>
+                      <p className="text-xs text-gray-600 truncate">{friend.name}</p>
                     </div>
                   ))}
                 </div>

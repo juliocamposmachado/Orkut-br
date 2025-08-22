@@ -75,7 +75,7 @@ export default function FriendsPage() {
   }, [searchTerm])
 
   const loadFriends = async () => {
-    if (!user) return
+    if (!user || !supabase) return
 
     try {
       const { data, error } = await supabase
@@ -113,7 +113,7 @@ export default function FriendsPage() {
   }
 
   const loadRequests = async () => {
-    if (!user) return
+    if (!user || !supabase) return
 
     try {
       // Pending requests (received)
@@ -163,7 +163,7 @@ export default function FriendsPage() {
   }
 
   const searchUsers = async () => {
-    if (!searchTerm.trim() || !user) return
+    if (!searchTerm.trim() || !user || !supabase) return
 
     setSearching(true)
     try {
@@ -179,6 +179,8 @@ export default function FriendsPage() {
       // Check friendship status for each user
       const usersWithStatus = await Promise.all(
         (data || []).map(async (searchUser) => {
+          if (!supabase) return { ...searchUser, status: null, created_at: new Date().toISOString() }
+          
           const { data: friendship } = await supabase
             .from('friendships')
             .select('status')
@@ -202,7 +204,7 @@ export default function FriendsPage() {
   }
 
   const sendFriendRequest = async (friendId: string) => {
-    if (!user) return
+    if (!user || !supabase) return
 
     try {
       const { error } = await supabase
@@ -227,7 +229,7 @@ export default function FriendsPage() {
   }
 
   const acceptFriendRequest = async (friendId: string) => {
-    if (!user) return
+    if (!user || !supabase) return
 
     try {
       const { error } = await supabase
@@ -246,7 +248,7 @@ export default function FriendsPage() {
   }
 
   const rejectFriendRequest = async (friendId: string) => {
-    if (!user) return
+    if (!user || !supabase) return
 
     try {
       const { error } = await supabase
@@ -264,7 +266,7 @@ export default function FriendsPage() {
   }
 
   const removeFriend = async (friendId: string) => {
-    if (!user || !confirm('Tem certeza que deseja remover este amigo?')) return
+    if (!user || !supabase || !confirm('Tem certeza que deseja remover este amigo?')) return
 
     try {
       const { error } = await supabase

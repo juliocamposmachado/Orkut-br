@@ -29,7 +29,9 @@ import {
   Star,
   Eye,
   UserPlus,
-  Clock
+  Clock,
+  UserCheck,
+  Send
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -60,6 +62,8 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [friendshipStatus, setFriendshipStatus] = useState<string>('none');
+  const [isFollowing, setIsFollowing] = useState<boolean>(false);
+  const [actionLoading, setActionLoading] = useState<string>('');
   
   // Fallback para status online
   const isOnline = true;
@@ -69,6 +73,62 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
   const getFriendshipStatus = (userId: string) => {
     // Fallback simples - sempre retorna 'none'
     return 'none';
+  };
+
+  // Função para enviar pedido de amizade
+  const handleFriendRequest = async () => {
+    if (!profile?.id || !currentUser?.id) return;
+    
+    setActionLoading('friend');
+    try {
+      // Simular envio do pedido de amizade
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setFriendshipStatus('pending');
+      
+      // Notificação visual
+      alert('Pedido de amizade enviado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao enviar pedido de amizade:', error);
+      alert('Erro ao enviar pedido de amizade. Tente novamente.');
+    } finally {
+      setActionLoading('');
+    }
+  };
+
+  // Função para seguir/deixar de seguir
+  const handleFollow = async () => {
+    if (!profile?.id || !currentUser?.id) return;
+    
+    setActionLoading('follow');
+    try {
+      // Simular ação de seguir
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setIsFollowing(!isFollowing);
+      
+      // Notificação visual
+      alert(isFollowing ? 'Você não está mais seguindo este usuário.' : 'Agora você está seguindo este usuário!');
+    } catch (error) {
+      console.error('Erro ao seguir/deixar de seguir:', error);
+      alert('Erro na operação. Tente novamente.');
+    } finally {
+      setActionLoading('');
+    }
+  };
+
+  // Função para cancelar pedido de amizade
+  const handleCancelFriendRequest = async () => {
+    if (!profile?.id || !currentUser?.id) return;
+    
+    setActionLoading('cancel');
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      setFriendshipStatus('none');
+      alert('Pedido de amizade cancelado.');
+    } catch (error) {
+      console.error('Erro ao cancelar pedido:', error);
+    } finally {
+      setActionLoading('');
+    }
   };
 
   useEffect(() => {
@@ -250,6 +310,90 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                   
                   {/* Action Buttons */}
                   <div className="space-y-2">
+                    {/* Botões de Amizade e Seguir - apenas para outros perfis */}
+                    {!isOwnProfile && (
+                      <>
+                        {/* Botão de Amizade */}
+                        {friendshipStatus === 'none' && (
+                          <Button 
+                            size="sm" 
+                            className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold shadow-md transition-all"
+                            onClick={handleFriendRequest}
+                            disabled={actionLoading === 'friend'}
+                          >
+                            {actionLoading === 'friend' ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                            ) : (
+                              <UserPlus className="h-4 w-4 mr-2" />
+                            )}
+                            Pedir Amizade
+                          </Button>
+                        )}
+                        
+                        {friendshipStatus === 'pending' && (
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="w-full border-orange-300 text-orange-600 hover:bg-orange-50"
+                            onClick={handleCancelFriendRequest}
+                            disabled={actionLoading === 'cancel'}
+                          >
+                            {actionLoading === 'cancel' ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-600 mr-2" />
+                            ) : (
+                              <Clock className="h-4 w-4 mr-2" />
+                            )}
+                            Pedido Enviado
+                          </Button>
+                        )}
+                        
+                        {friendshipStatus === 'accepted' && (
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="w-full border-green-300 text-green-600 hover:bg-green-50 cursor-default"
+                            disabled
+                          >
+                            <UserCheck className="h-4 w-4 mr-2" />
+                            Amigos
+                          </Button>
+                        )}
+                        
+                        {/* Botão de Seguir */}
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          className={`w-full transition-all ${
+                            isFollowing 
+                              ? 'border-blue-300 bg-blue-50 text-blue-600 hover:bg-blue-100' 
+                              : 'border-gray-300 text-gray-700 hover:bg-gray-50'
+                          }`}
+                          onClick={handleFollow}
+                          disabled={actionLoading === 'follow'}
+                        >
+                          {actionLoading === 'follow' ? (
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
+                          ) : isFollowing ? (
+                            <UserCheck className="h-4 w-4 mr-2" />
+                          ) : (
+                            <UserPlus className="h-4 w-4 mr-2" />
+                          )}
+                          {isFollowing ? 'Seguindo' : 'Seguir'}
+                        </Button>
+                        
+                        {/* Botão de Enviar Mensagem */}
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          className="w-full border-purple-300 text-purple-700 hover:bg-purple-50"
+                        >
+                          <Send className="h-4 w-4 mr-2" />
+                          Enviar Mensagem
+                        </Button>
+                      </>
+                    )}
+                    
+                    {/* Botões de Chamada - para todos */}
                     <Button 
                       size="sm" 
                       variant="outline" 

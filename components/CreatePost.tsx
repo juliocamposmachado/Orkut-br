@@ -49,7 +49,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           author_name: profile?.display_name
         })
         
-        const response = await fetch('/api/posts', {
+        const response = await fetch('/api/posts-db', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

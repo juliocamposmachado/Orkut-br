@@ -216,7 +216,7 @@ RESPONDA APENAS COM O TEXTO DO POST, SEM ASPAS OU FORMATAÇÃO EXTRA.
 
     try {
       // Tentar salvar na API global primeiro
-      const response = await fetch('/api/posts', {
+      const response = await fetch('/api/posts-db', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

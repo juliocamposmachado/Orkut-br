@@ -14,7 +14,7 @@ export function Feed() {
       console.log('🔄 Carregando posts da API global...')
       
       // Carregar posts da API global
-      const response = await fetch('/api/posts', {
+      const response = await fetch('/api/posts-db', {
         method: 'GET',
         cache: 'no-store' // Sempre buscar dados frescos
       })

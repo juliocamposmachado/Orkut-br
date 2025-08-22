@@ -136,11 +136,6 @@ export default function SearchPage() {
     saveRecentSearch(query)
 
     try {
-      if (!supabase) {
-        console.error('Supabase não está configurado')
-        return
-      }
-      
       // Search users
       const { data: usersData, error: usersError } = await supabase
         .from('profiles')

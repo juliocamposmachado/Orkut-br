@@ -1,17 +1,60 @@
 import { createClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
 // Configurar Supabase apenas se as variáveis estiverem disponíveis
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
+// Cliente mock para quando Supabase não está configurado
+const createMockClient = (): SupabaseClient => {
+  const mockFunction = () => Promise.resolve({ data: null, error: new Error('Supabase não configurado') })
+  
+  return {
+    from: () => ({
+      select: () => mockFunction(),
+      insert: () => mockFunction(),
+      update: () => mockFunction(),
+      delete: () => mockFunction(),
+      upsert: () => mockFunction(),
+      eq: () => ({ select: () => mockFunction() }),
+      single: () => mockFunction(),
+      or: () => ({ select: () => mockFunction() }),
+      neq: () => ({ select: () => mockFunction() }),
+      limit: () => ({ select: () => mockFunction() }),
+      order: () => ({ select: () => mockFunction() }),
+      ilike: () => ({ select: () => mockFunction() })
+    }),
+    auth: {
+      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      signInWithPassword: () => mockFunction(),
+      signUp: () => mockFunction(),
+      signOut: () => mockFunction(),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
+    },
+    storage: {
+      from: () => ({
+        upload: () => mockFunction(),
+        getPublicUrl: () => ({ data: { publicUrl: '' } })
+      })
+    },
+    channel: () => ({
+      on: () => ({}),
+      subscribe: () => ({}),
+      unsubscribe: () => ({})
+    }),
+    removeChannel: () => {},
+    rpc: () => mockFunction()
+  } as any
+}
+
 // Só criar cliente se as variáveis estiverem configuradas corretamente
-const createSupabaseClient = () => {
+const createSupabaseClient = (): SupabaseClient => {
   if (!supabaseUrl || !supabaseAnonKey || 
       supabaseUrl.includes('placeholder') || 
       supabaseUrl.includes('your_') ||
       !supabaseUrl.startsWith('https://')) {
     console.warn('Supabase não configurado - usando cliente mock')
-    return null
+    return createMockClient()
   }
   
   return createClient(supabaseUrl, supabaseAnonKey, {

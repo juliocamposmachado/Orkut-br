@@ -24,9 +24,10 @@ production
 ### 2. Configurar Google OAuth no Supabase:
 - Authentication → Providers → Google
 - Enable: ON
-- Client ID: `orkut`
-- Client Secret: `julio78451200`
+- Client ID: `35840253095-e0ho0qmq7q1mtv451kc6820dr68r01os.apps.googleusercontent.com`
+- Client Secret: `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`
 - Redirect URL: `https://woyyikaztjrhqzgvbhmn.supabase.co/auth/v1/callback`
+- Ignore nonce verification: OFF (deixar desmarcado)
 
 ## 🎯 Arquitetura de Deployment:
 

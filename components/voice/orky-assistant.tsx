@@ -18,7 +18,7 @@ import {
   Users
 } from 'lucide-react'
 import { useVoice } from '@/contexts/voice-context'
-import { useAuth } from '@/contexts/auth-context-fallback'
+import { useAuth } from '@/contexts/enhanced-auth-context'
 import { geminiConcierge, GeminiAction } from '@/lib/gemini'
 import { useRouter } from 'next/navigation'
 

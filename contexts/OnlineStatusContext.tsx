@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { useAuth } from './auth-context-fallback';
+import { useAuth } from '@/contexts/enhanced-auth-context'
 
 interface OnlineUser {
   userId: string;

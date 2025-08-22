@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { voiceService } from '@/lib/voice'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from './auth-context-fallback'
+import { useAuth } from '@/contexts/enhanced-auth-context'
 
 interface VoiceContextType {
   isVoiceEnabled: boolean

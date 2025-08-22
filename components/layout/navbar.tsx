@@ -27,7 +27,7 @@ import {
   Menu,
   MoreHorizontal
 } from 'lucide-react'
-import { useAuth } from '@/contexts/auth-context-fallback'
+import { useAuth } from '@/contexts/enhanced-auth-context'
 import { useVoice } from '@/contexts/voice-context'
 import { NotificationsDropdown } from '@/components/notifications/notifications-dropdown'
 

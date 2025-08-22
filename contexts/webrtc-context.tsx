@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react'
-import { useAuth } from './auth-context-fallback'
+import { useAuth } from '@/contexts/enhanced-auth-context'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/contexts/auth-context-fallback';
+import { useAuth } from '@/contexts/enhanced-auth-context'
 import { Eye, EyeOff, User, Mail, Lock, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 

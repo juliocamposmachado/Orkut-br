@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/auth-context-fallback';
+import { useAuth } from '@/contexts/enhanced-auth-context'
 import { EditProfileForm } from '@/components/EditProfileForm';
 import { Settings, ArrowLeft, User } from 'lucide-react';
 import Link from 'next/link';

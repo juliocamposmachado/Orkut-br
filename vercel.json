@@ -22,16 +22,6 @@
       "maxDuration": 20
     }
   },
-  "crons": [
-    {
-      "path": "/api/cron/radio-posts",
-      "schedule": "0 14 * * *"
-    },
-    {
-      "path": "/api/cron/orky-posts",
-      "schedule": "0 14 * * *"
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",

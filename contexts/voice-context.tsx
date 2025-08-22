@@ -44,7 +44,7 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
 
   // Setup notification listener
   useEffect(() => {
-    if (user && isVoiceEnabled) {
+    if (user && isVoiceEnabled && supabase) {
       const channel = supabase
         .channel(`notifications-${user.id}`)
         .on('postgres_changes',
@@ -69,14 +69,28 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
   const loadVoiceSettings = async () => {
     if (!user) return
 
-    const { data } = await supabase
-      .from('settings')
-      .select('voice_enabled')
-      .eq('profile_id', user.id)
-      .single()
+    if (supabase) {
+      try {
+        const { data } = await supabase
+          .from('settings')
+          .select('voice_enabled')
+          .eq('profile_id', user.id)
+          .single()
 
-    if (data?.voice_enabled) {
-      setIsVoiceEnabled(true)
+        if (data?.voice_enabled) {
+          setIsVoiceEnabled(true)
+        }
+      } catch (error) {
+        console.warn('Erro ao carregar configurações de voz do Supabase (usando localStorage):', error)
+        // Fallback para localStorage
+        const voiceEnabled = localStorage.getItem('voice_enabled') === 'true'
+        setIsVoiceEnabled(voiceEnabled)
+      }
+    } else {
+      // Modo desenvolvimento/fallback - usar localStorage diretamente
+      console.log('Supabase não configurado, usando localStorage para configurações de voz')
+      const voiceEnabled = localStorage.getItem('voice_enabled') === 'true'
+      setIsVoiceEnabled(voiceEnabled)
     }
   }
 
@@ -116,13 +130,18 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
     try {
       const newValue = !isVoiceEnabled
 
-      // Update settings in database
-      await supabase
-        .from('settings')
-        .upsert({ 
-          profile_id: user.id, 
-          voice_enabled: newValue 
-        })
+      // Update settings in database or localStorage
+      if (supabase) {
+        await supabase
+          .from('settings')
+          .upsert({ 
+            profile_id: user.id, 
+            voice_enabled: newValue 
+          })
+      } else {
+        // Fallback para localStorage
+        localStorage.setItem('voice_enabled', newValue.toString())
+      }
 
       setIsVoiceEnabled(newValue)
 
@@ -139,6 +158,10 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
       }
     } catch (error) {
       console.error('Error toggling voice:', error)
+      // Fallback em caso de erro
+      const newValue = !isVoiceEnabled
+      localStorage.setItem('voice_enabled', newValue.toString())
+      setIsVoiceEnabled(newValue)
     }
   }
 

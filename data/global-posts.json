@@ -1,0 +1,110 @@
+[
+  {
+    "id": 1755853593412.3474,
+    "content": "🎵 Tocando agora: Remastered_1 - Bugs! Que nostalgia! 💜",
+    "author": "dj-orky-bot",
+    "author_name": "DJ Orky 🎵",
+    "author_photo": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=150&h=150&fit=crop&crop=face",
+    "visibility": "public",
+    "likes_count": 0,
+    "comments_count": 0,
+    "created_at": "2025-08-22T09:06:33.412Z",
+    "is_dj_post": true
+  },
+  {
+    "id": 1755853538048.2751,
+    "content": "🎵 Tocando agora: Butterflies - Foo Fighters! Que nostalgia! 💜",
+    "author": "dj-orky-bot",
+    "author_name": "DJ Orky 🎵",
+    "author_photo": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=150&h=150&fit=crop&crop=face",
+    "visibility": "public",
+    "likes_count": 0,
+    "comments_count": 0,
+    "created_at": "2025-08-22T09:05:38.048Z",
+    "is_dj_post": true
+  },
+  {
+    "id": 1755853526076.4487,
+    "content": "Galera da Rádio Orkut! Butterflies tocando agora! Bora dançar! 🎶✨",
+    "author": "dj-orky-bot",
+    "author_name": "DJ Orky 🎵",
+    "author_photo": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=150&h=150&fit=crop&crop=face",
+    "visibility": "public",
+    "likes_count": 0,
+    "comments_count": 0,
+    "created_at": "2025-08-22T09:05:26.076Z",
+    "is_dj_post": true
+  },
+  {
+    "id": 1755853511827.1362,
+    "content": "Foo Fighters - Butterflies 🎵 Música boa não tem idade! 💖",
+    "author": "dj-orky-bot",
+    "author_name": "DJ Orky 🎵",
+    "author_photo": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=150&h=150&fit=crop&crop=face",
+    "visibility": "public",
+    "likes_count": 0,
+    "comments_count": 0,
+    "created_at": "2025-08-22T09:05:11.827Z",
+    "is_dj_post": true
+  },
+  {
+    "id": 1755853500544.6606,
+    "content": "Foo Fighters - Butterflies 🎵 Música boa não tem idade! 💖",
+    "author": "dj-orky-bot",
+    "author_name": "DJ Orky 🎵",
+    "author_photo": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=150&h=150&fit=crop&crop=face",
+    "visibility": "public",
+    "likes_count": 0,
+    "comments_count": 0,
+    "created_at": "2025-08-22T09:05:00.544Z",
+    "is_dj_post": true
+  },
+  {
+    "id": 1755852966363.4644,
+    "content": "oieeeeeeeeeeeeeeeeeeeeeeeeeee",
+    "author": "a9d1e868-8300-4673-9ceb-c4336fc8301d",
+    "author_name": "juliocamposmachado",
+    "author_photo": null,
+    "visibility": "public",
+    "likes_count": 0,
+    "comments_count": 0,
+    "created_at": "2025-08-22T08:56:06.363Z",
+    "is_dj_post": false
+  },
+  {
+    "id": 1755852952295.1257,
+    "content": "Britney Spears - (I Got That) Boom Boom 🎵 Música boa não tem idade! 💖",
+    "author": "dj-orky-bot",
+    "author_name": "DJ Orky 🎵",
+    "author_photo": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=150&h=150&fit=crop&crop=face",
+    "visibility": "public",
+    "likes_count": 0,
+    "comments_count": 0,
+    "created_at": "2025-08-22T08:55:52.295Z",
+    "is_dj_post": true
+  },
+  {
+    "id": 1692784200000,
+    "content": "🎉 Bem-vindos ao novo sistema de feed global do Orkut! Agora todos podem ver as postagens uns dos outros! 🌍✨",
+    "author": "system",
+    "author_name": "Sistema Orkut",
+    "author_photo": "https://images.unsplash.com/photo-1551434678-e076c223a692?w=150&h=150&fit=crop&crop=face",
+    "visibility": "public",
+    "likes_count": 25,
+    "comments_count": 8,
+    "created_at": "2025-08-22T08:30:00.000Z",
+    "is_dj_post": false
+  },
+  {
+    "id": 1692784140000,
+    "content": "🎵 Tocando agora: I Want It That Way - Backstreet Boys 🎵 Quem mais ama essa música? Nostalgia total! 💜",
+    "author": "dj-orky-bot",
+    "author_name": "DJ Orky 🎵",
+    "author_photo": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=150&h=150&fit=crop&crop=face",
+    "visibility": "public",
+    "likes_count": 42,
+    "comments_count": 15,
+    "created_at": "2025-08-22T08:29:00.000Z",
+    "is_dj_post": true
+  }
+]

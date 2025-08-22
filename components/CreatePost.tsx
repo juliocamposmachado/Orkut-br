@@ -42,34 +42,42 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           throw error
         }
       } else {
-        // Fallback: simulate post creation for development
-        console.log('Creating post in fallback mode:', {
+        // Use global API endpoint for posts
+        console.log('Creating post via global API:', {
           content: content.trim(),
           author: user.id,
           author_name: profile?.display_name
         })
         
-        // Store posts locally for development
-        const existingPosts = JSON.parse(localStorage.getItem('orkut_posts') || '[]')
-        const newPost = {
-          id: Date.now(),
-          content: content.trim(),
-          author: user.id,
-          author_name: profile?.display_name || 'Unknown',
-          author_photo: profile?.photo_url,
-          visibility: 'public',
-          likes_count: 0,
-          comments_count: 0,
-          created_at: new Date().toISOString()
+        const response = await fetch('/api/posts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            content: content.trim(),
+            author: user.id,
+            author_name: profile?.display_name || 'Unknown',
+            author_photo: profile?.photo_url,
+            visibility: 'public'
+          })
+        })
+        
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Erro ao criar post')
         }
         
-        existingPosts.unshift(newPost)
+        const result = await response.json()
+        console.log('✅ Post criado com sucesso via API global:', result.post)
+        
+        // Também manter no localStorage para compatibilidade com DJ Orky
+        const existingPosts = JSON.parse(localStorage.getItem('orkut_posts') || '[]')
+        existingPosts.unshift(result.post)
         localStorage.setItem('orkut_posts', JSON.stringify(existingPosts))
         
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 500))
-        
-        console.log('Post created successfully in fallback mode:', newPost)
+        // Dispara evento para o Feed atualizar
+        window.dispatchEvent(new CustomEvent('new-post-created', { detail: result.post }))
       }
 
       setContent('')

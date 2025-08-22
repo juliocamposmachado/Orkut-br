@@ -6,7 +6,7 @@
   "devCommand": "npm run dev",
   "regions": ["iad1"],
   "env": {
-    "CLIENT_URL": "https://orkut-br.vercel.app"
+    "CLIENT_URL": "https://orkut-br-oficial.vercel.app"
   },
   "functions": {
     "pages/api/signaling.js": {

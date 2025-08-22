@@ -202,7 +202,7 @@ RESPONDA APENAS COM O TEXTO DO POST, SEM ASPAS OU FORMATAÇÃO EXTRA.
     const content = await this.generateDJPost()
     
     const newPost: DJPost = {
-      id: Date.now(),
+      id: Date.now() + Math.random(), // ID único
       content,
       author: DJ_ORKY_PROFILE.id,
       author_name: DJ_ORKY_PROFILE.display_name,
@@ -214,23 +214,69 @@ RESPONDA APENAS COM O TEXTO DO POST, SEM ASPAS OU FORMATAÇÃO EXTRA.
       is_dj_post: true
     }
 
-    // Salva no localStorage junto com os outros posts
-    const existingPosts = JSON.parse(localStorage.getItem('orkut_posts') || '[]')
-    existingPosts.unshift(newPost) // Adiciona no topo
-    
-    // Manter apenas os últimos 100 posts
-    if (existingPosts.length > 100) {
-      existingPosts.splice(100)
+    try {
+      // Tentar salvar na API global primeiro
+      const response = await fetch('/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: newPost.content,
+          author: newPost.author,
+          author_name: newPost.author_name,
+          author_photo: newPost.author_photo,
+          visibility: newPost.visibility,
+          is_dj_post: true
+        })
+      })
+      
+      if (response.ok) {
+        const result = await response.json()
+        console.log('✅ DJ Orky post salvo na API global:', result.post.content)
+        
+        // Usar o post retornado pela API
+        const savedPost = { ...result.post, likes_count: newPost.likes_count, comments_count: newPost.comments_count }
+        
+        // Também manter no localStorage para compatibilidade
+        const existingPosts = JSON.parse(localStorage.getItem('orkut_posts') || '[]')
+        existingPosts.unshift(savedPost)
+        
+        if (existingPosts.length > 100) {
+          existingPosts.splice(100)
+        }
+        
+        localStorage.setItem('orkut_posts', JSON.stringify(existingPosts))
+        
+        // Dispara evento para atualizar o feed
+        window.dispatchEvent(new CustomEvent('new-post-created', { detail: savedPost }))
+        
+        return savedPost
+      } else {
+        throw new Error('Falha ao salvar na API global')
+      }
+    } catch (error) {
+      console.error('❌ Erro ao salvar DJ post na API global:', error)
+      console.log('🔄 Usando localStorage como fallback...')
+      
+      // Fallback para localStorage
+      const existingPosts = JSON.parse(localStorage.getItem('orkut_posts') || '[]')
+      existingPosts.unshift(newPost) // Adiciona no topo
+      
+      // Manter apenas os últimos 100 posts
+      if (existingPosts.length > 100) {
+        existingPosts.splice(100)
+      }
+      
+      localStorage.setItem('orkut_posts', JSON.stringify(existingPosts))
+      
+      console.log('✅ DJ Orky post criado (localStorage):', newPost.content)
+      
+      // Dispara evento para atualizar o feed
+      window.dispatchEvent(new CustomEvent('new-post-created', { detail: newPost }))
+      
+      return newPost
     }
-    
-    localStorage.setItem('orkut_posts', JSON.stringify(existingPosts))
-    
-    console.log('✅ DJ Orky post criado:', newPost.content)
-    
-    // Dispara evento para atualizar o feed
-    window.dispatchEvent(new CustomEvent('new-post-created', { detail: newPost }))
-    
-    return newPost
   }
 
   // Inicia o sistema automático de posts

@@ -6,7 +6,7 @@
 
 Uma recriação moderna do clássico Orkut, construída with tecnologias atuais e design nostálgico.
 
-🔗 **Demo ao vivo:** https://orkut-akfk261jn-astridnielsen-labs-projects.vercel.app
+🔗 **Demo ao vivo:** https://orkut-br-julio-cesar-campos-machados-projects.vercel.app
 
 ## ✨ Funcionalidades
 
@@ -177,6 +177,16 @@ node setup-database-direct.js
 - Variáveis de ambiente já configuradas
 
 ## 📝 Changelog
+
+### v2.2.0 - Correções de Produção & Deploy (22/01/2025)
+- ✅ **Supabase null checks** implementados em todos os componentes
+- ✅ **Verificações de produção** adicionadas nos cronjobs
+- ✅ **Deploy duplo resolvido** - GitHub Integration otimizada
+- ✅ **Build errors eliminados** - Supabase undefined errors corrigidos
+- ✅ **Orky Bot aprimorado** com verificações robustas
+- ✅ **Production-ready** com error handling completo
+- ✅ **Node.js 22.x** compatibility confirmada
+- ✅ **Execution policies** contornadas no Windows
 
 ### v2.1.0 - Performance & UX Improvements
 - ✅ **Correção de loops infinitos** nos contextos

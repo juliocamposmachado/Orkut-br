@@ -50,11 +50,30 @@ export async function GET(request: NextRequest) {
           created_at,
           is_dj_post
         `)
+        .eq('visibility', 'public')
         .order('created_at', { ascending: false })
         .limit(100)
 
       if (!error && data) {
         console.log(`✅ Posts carregados do Supabase: ${data.length}`)
+        // Se não temos posts no banco, criar um post de boas-vindas
+        if (data.length === 0) {
+          const welcomePost = {
+            content: "🎉 Bem-vindos ao feed global! Sistema funcionando perfeitamente! Agora todas as publicações aparecem para todos os usuários! 🌍✨",
+            author: "system",
+            author_name: "Sistema Orkut",
+            author_photo: "https://images.unsplash.com/photo-1551434678-e076c223a692?w=150&h=150&fit=crop&crop=face",
+            visibility: "public",
+            likes_count: 0,
+            comments_count: 0,
+            is_dj_post: false
+          }
+          memoryPosts.unshift({
+            id: Date.now(),
+            ...welcomePost,
+            created_at: new Date().toISOString()
+          } as Post)
+        }
         return NextResponse.json({
           success: true,
           posts: data,

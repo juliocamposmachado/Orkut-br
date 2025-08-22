@@ -16,7 +16,10 @@ export function Feed() {
       // Carregar posts da API global
       const response = await fetch('/api/posts-db', {
         method: 'GET',
-        cache: 'no-store' // Sempre buscar dados frescos
+        cache: 'no-store', // Sempre buscar dados frescos
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
       })
       
       if (!response.ok) {
@@ -26,7 +29,7 @@ export function Feed() {
       const data = await response.json()
       
       if (data.success && Array.isArray(data.posts)) {
-        console.log(`✅ ${data.posts.length} posts carregados da API global`)
+        console.log(`✅ ${data.posts.length} posts carregados da API global (${data.source})`)
         
         // Manter os posts ordenados por data (mais recente primeiro)
         const sortedPosts = data.posts.sort((a: Post, b: Post) => 
@@ -35,8 +38,10 @@ export function Feed() {
         
         setPosts(sortedPosts.slice(0, 50)) // Limitar a 50 posts
         
-        // Também sincronizar com localStorage para compatibilidade
+        // Sincronizar com localStorage
         localStorage.setItem('orkut_posts', JSON.stringify(sortedPosts))
+        
+        console.log('🌍 Feed global atualizado com', sortedPosts.length, 'posts')
       } else {
         console.warn('⚠️ API global retornou formato inesperado, usando localStorage como fallback')
         loadPostsFromLocalStorage()

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/contexts/auth-context-fallback'
+import { useAuth } from '@/contexts/enhanced-auth-context'
+import { EmailVerificationBanner } from '@/components/auth/email-verification-banner'
 import { Navbar } from '@/components/layout/navbar'
 import { OrkyAssistant } from '@/components/voice/orky-assistant'
 import { Feed } from '@/components/Feed'
@@ -317,6 +318,9 @@ export default function HomePage() {
       <Navbar />
       
       <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Email Verification Banner */}
+        <EmailVerificationBanner />
+        
         {/* AI-Powered Marquee Banner */}
         <MarqueeBanner className="mb-4" />
         

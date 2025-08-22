@@ -9,10 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/contexts/auth-context-fallback';
+import { useAuth } from '@/contexts/enhanced-auth-context';
+import { ForgotPasswordModal } from '@/components/auth/forgot-password-modal';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Eye, EyeOff } from 'lucide-react';
 import publicProfiles from '@/lib/seed-public-profiles.json';
 
 export default function LoginPage() {
@@ -21,7 +23,10 @@ export default function LoginPage() {
   const [username, setUsername] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const { signIn, signUp } = useAuth()
+  const [showPassword, setShowPassword] = useState(false)
+  const [showSignupPassword, setShowSignupPassword] = useState(false)
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false)
+  const { signIn, signUp, emailVerificationSent } = useAuth()
   const router = useRouter()
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -150,16 +155,40 @@ export default function LoginPage() {
                       className="border-purple-300 focus:ring-purple-500"
                     />
                   </div>
-                  <div>
+                  <div className="relative">
                     <Input
-                      type="password"
+                      type={showPassword ? 'text' : 'password'}
                       placeholder="Senha"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="border-purple-300 focus:ring-purple-500"
+                      className="border-purple-300 focus:ring-purple-500 pr-10"
                     />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-1 top-1/2 transform -translate-y-1/2 p-1 h-auto"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-gray-500" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-gray-500" />
+                      )}
+                    </Button>
                   </div>
+                  
+                  <div className="text-right">
+                    <button
+                      type="button"
+                      onClick={() => setForgotPasswordOpen(true)}
+                      className="text-sm text-purple-600 hover:text-purple-800 underline"
+                    >
+                      Esqueceu a senha?
+                    </button>
+                  </div>
+                  
                   <Button
                     type="submit"
                     disabled={isLoading}
@@ -202,15 +231,28 @@ export default function LoginPage() {
                       className="border-purple-300 focus:ring-purple-500"
                     />
                   </div>
-                  <div>
+                  <div className="relative">
                     <Input
-                      type="password"
-                      placeholder="Senha"
+                      type={showSignupPassword ? 'text' : 'password'}
+                      placeholder="Senha (mín. 6 caracteres)"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
-                      className="border-purple-300 focus:ring-purple-500"
+                      className="border-purple-300 focus:ring-purple-500 pr-10"
                     />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-1 top-1/2 transform -translate-y-1/2 p-1 h-auto"
+                      onClick={() => setShowSignupPassword(!showSignupPassword)}
+                    >
+                      {showSignupPassword ? (
+                        <EyeOff className="h-4 w-4 text-gray-500" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-gray-500" />
+                      )}
+                    </Button>
                   </div>
                   <Button
                     type="submit"
@@ -344,6 +386,12 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+      
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal 
+        open={forgotPasswordOpen} 
+        onOpenChange={setForgotPasswordOpen}
+      />
     </div>
   )
 }

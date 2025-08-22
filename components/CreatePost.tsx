@@ -28,63 +28,54 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
 
     setIsLoading(true)
     try {
-      if (hasSupabaseConfig) {
-        // Use real Supabase if configured
-        const { data, error } = await supabase
-          .from('posts')
-          .insert({
-            content: content.trim(),
-            author: user.id
-          })
-          .select()
-
-        if (error) {
-          throw error
-        }
-      } else {
-        // Use global API endpoint for posts
-        console.log('Creating post via global API:', {
+      // SEMPRE usar a API global para garantir que todos vejam o post
+      console.log('🚀 Criando post via API global:', {
+        content: content.trim(),
+        author: user.id,
+        author_name: profile?.display_name
+      })
+      
+      const response = await fetch('/api/posts-db', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           content: content.trim(),
           author: user.id,
-          author_name: profile?.display_name
+          author_name: profile?.display_name || 'Usuário',
+          author_photo: profile?.photo_url || null,
+          visibility: 'public', // Sempre público para feed global
+          is_dj_post: false
         })
-        
-        const response = await fetch('/api/posts-db', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            content: content.trim(),
-            author: user.id,
-            author_name: profile?.display_name || 'Unknown',
-            author_photo: profile?.photo_url,
-            visibility: 'public'
-          })
-        })
-        
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.error || 'Erro ao criar post')
-        }
-        
-        const result = await response.json()
-        console.log('✅ Post criado com sucesso via API global:', result.post)
-        
-        // Também manter no localStorage para compatibilidade com DJ Orky
-        const existingPosts = JSON.parse(localStorage.getItem('orkut_posts') || '[]')
-        existingPosts.unshift(result.post)
-        localStorage.setItem('orkut_posts', JSON.stringify(existingPosts))
-        
-        // Dispara evento para o Feed atualizar
-        window.dispatchEvent(new CustomEvent('new-post-created', { detail: result.post }))
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Erro ao criar post')
       }
-
+      
+      const result = await response.json()
+      console.log('✅ Post criado com sucesso no feed global:', result.post)
+      
+      // Sincronizar com localStorage para compatibilidade
+      const existingPosts = JSON.parse(localStorage.getItem('orkut_posts') || '[]')
+      existingPosts.unshift(result.post)
+      // Manter apenas os 100 posts mais recentes no localStorage
+      const trimmedPosts = existingPosts.slice(0, 100)
+      localStorage.setItem('orkut_posts', JSON.stringify(trimmedPosts))
+      
+      // Dispara evento para o Feed atualizar
+      window.dispatchEvent(new CustomEvent('new-post-created', { detail: result.post }))
+      
       setContent('')
       onPostCreated?.()
-      alert('Post publicado com sucesso!')
+      
+      // Feedback visual melhor
+      console.log('🎉 Post publicado no feed global! Todos os usuários poderão ver.')
+      
     } catch (error: any) {
-      console.error('Error creating post:', error)
+      console.error('❌ Erro ao criar post:', error)
       alert(`Erro ao criar post: ${error.message || 'Erro desconhecido'}`)
     } finally {
       setIsLoading(false)

@@ -34,6 +34,7 @@ interface AuthContextType {
   emailVerificationSent: boolean
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string, userData: { username: string, displayName: string }) => Promise<void>
+  signInWithGoogle: () => Promise<void>
   signOut: () => Promise<void>
   updateProfile: (updates: Partial<Profile>) => Promise<void>
   sendPasswordReset: (email: string) => Promise<void>
@@ -237,6 +238,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       setUser(mockUser)
       setProfile(mockProfile)
+    }
+  }
+
+  const signInWithGoogle = async () => {
+    if (isSupabaseConfigured()) {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
+        }
+      })
+
+      if (error) {
+        console.error('Error signing in with Google:', error)
+        throw new Error('Erro ao fazer login com Google. Tente novamente.')
+      }
+
+      // The redirect will be handled automatically by Supabase
+    } else {
+      throw new Error('Login com Google não disponível no modo offline')
     }
   }
 
@@ -452,6 +477,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     emailVerificationSent,
     signIn,
     signUp,
+    signInWithGoogle,
     signOut,
     updateProfile,
     sendPasswordReset,

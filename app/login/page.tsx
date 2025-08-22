@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Eye, EyeOff } from 'lucide-react';
 import publicProfiles from '@/lib/seed-public-profiles.json';
+import { FcGoogle } from 'react-icons/fc';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -26,7 +27,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showSignupPassword, setShowSignupPassword] = useState(false)
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false)
-  const { signIn, signUp, emailVerificationSent } = useAuth()
+  const { signIn, signUp, signInWithGoogle, emailVerificationSent } = useAuth()
   const router = useRouter()
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -110,6 +111,17 @@ export default function LoginPage() {
     } catch (error: any) {
       toast.error(`Erro ao fazer login: ${error.message}`)
     } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleGoogleLogin = async () => {
+    setIsLoading(true)
+    try {
+      await signInWithGoogle()
+      toast.success('Redirecionando para o Google...')
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao fazer login com Google')
       setIsLoading(false)
     }
   }
@@ -264,6 +276,22 @@ export default function LoginPage() {
                 </form>
               </TabsContent>
             </Tabs>
+
+            {/* Google Login */}
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              <Button
+                onClick={handleGoogleLogin}
+                disabled={isLoading}
+                variant="outline"
+                className="w-full border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2.5"
+              >
+                <FcGoogle className="mr-3 text-xl" />
+                Continuar com Google
+              </Button>
+              <p className="text-xs text-gray-500 mt-2 text-center">
+                Rápido, seguro e sem senhas para lembrar! 🚀
+              </p>
+            </div>
 
             {/* Demo Accounts */}
             <div className="mt-6 pt-6 border-t border-gray-200">

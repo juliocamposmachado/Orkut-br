@@ -62,6 +62,10 @@ export async function GET() {
     console.log('📝 Orky: Criando post no feed...');
     const postContent = formatRadioPost(musicContext, aiComment);
     
+    if (!supabase) {
+      throw new Error('Supabase não está configurado');
+    }
+    
     const { data: newPost, error: postError } = await supabase
       .from('posts')
       .insert({
@@ -106,6 +110,10 @@ export async function GET() {
 // Função para garantir que o perfil do Orky existe
 async function ensureOrkyProfile() {
   try {
+    if (!supabase) {
+      throw new Error('Supabase não está configurado');
+    }
+    
     // Verificar se perfil já existe
     const { data: existingProfile, error: checkError } = await supabase
       .from('profiles')

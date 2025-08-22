@@ -6,12 +6,16 @@
 
 Uma recriação moderna do clássico Orkut, construída with tecnologias atuais e design nostálgico.
 
-🔗 **Demo ao vivo:** https://orkut-br-julio-cesar-campos-machados-projects.vercel.app
+🔗 **Demo ao vivo:** https://orkut-br-oficial.vercel.app
 
 ## ✨ Funcionalidades
 
 ### 🎯 **Implementado:**
-- ✅ Sistema de autenticação (login/cadastro)
+- ✅ **Sistema de autenticação completo (LOGIN FUNCIONAL!)**
+  - 🔐 Login com Google OAuth 2.0 funcionando 100%
+  - 🔑 Autenticação tradicional (email/senha)
+  - 👤 Criação automática de perfis
+  - 🔒 Integração total com Supabase Auth
 - ✅ Perfis de usuário com criação automática
 - ✅ Comunidades com dados demo
 - ✅ Interface nostálgica do Orkut
@@ -177,6 +181,16 @@ node setup-database-direct.js
 - Variáveis de ambiente já configuradas
 
 ## 📝 Changelog
+
+### v2.3.0 - Google OAuth 2.0 Funcionando! (22/08/2025)
+- 🎉 **LOGIN COM GOOGLE OAUTH 100% FUNCIONAL!**
+- ✅ **Autenticação Google** integrada e testada em produção
+- ✅ **Redirect URLs** configuradas corretamente no Supabase
+- ✅ **Google Cloud Console** totalmente configurado
+- ✅ **Páginas legais** criadas (/privacy e /terms)
+- ✅ **Variáveis de ambiente** otimizadas para produção/desenvolvimento
+- ✅ **Deploy inteligente** com URLs dinâmicas
+- ✅ **Integração perfeita** Supabase + Google + Vercel
 
 ### v2.2.0 - Correções de Produção & Deploy (22/01/2025)
 - ✅ **Supabase null checks** implementados em todos os componentes

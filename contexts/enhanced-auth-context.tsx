@@ -152,7 +152,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setProfile({
           ...data,
           email_confirmed: !!user.email_confirmed_at,
-          email_confirmed_at: user.email_confirmed_at
+          email_confirmed_at: user.email_confirmed_at || null
         })
       } else {
         // Create profile if it doesn't exist
@@ -347,7 +347,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setProfile({
           ...data,
           email_confirmed: !!user.email_confirmed_at,
-          email_confirmed_at: user.email_confirmed_at
+          email_confirmed_at: user.email_confirmed_at || null
         })
       }
     } catch (error) {
@@ -435,7 +435,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setProfile({
           ...profile,
           email_confirmed: true,
-          email_confirmed_at: user.email_confirmed_at
+          email_confirmed_at: user.email_confirmed_at || null
         })
       }
       

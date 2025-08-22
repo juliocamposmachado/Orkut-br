@@ -242,11 +242,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   const signInWithGoogle = async () => {
+    console.log('🔍 [DEBUG] signInWithGoogle chamada')
+    console.log('🔍 [DEBUG] isSupabaseConfigured:', isSupabaseConfigured())
+    
+    // Determinar a URL de redirect correta
+    const getRedirectUrl = () => {
+      // Em desenvolvimento, usar localhost
+      if (process.env.NODE_ENV === 'development') {
+        return 'http://localhost:3000/'
+      }
+      
+      // Em produção, usar a URL configurada nas variáveis de ambiente
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://orkut-br-oficial.vercel.app/'
+      return siteUrl.endsWith('/') ? siteUrl : `${siteUrl}/`
+    }
+    
+    const redirectUrl = getRedirectUrl()
+    console.log('🔍 [DEBUG] Redirect URL:', redirectUrl)
+    
     if (isSupabaseConfigured()) {
+      console.log('🔍 [DEBUG] Iniciando signInWithOAuth...')
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: redirectUrl,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -254,13 +274,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
       })
 
+      console.log('🔍 [DEBUG] signInWithOAuth response:', { data, error })
+
       if (error) {
-        console.error('Error signing in with Google:', error)
-        throw new Error('Erro ao fazer login com Google. Tente novamente.')
+        console.error('❌ [ERROR] Error signing in with Google:', error)
+        throw new Error(`Erro ao fazer login com Google: ${error.message}`)
       }
 
+      console.log('✅ [SUCCESS] Google OAuth iniciado com sucesso')
       // The redirect will be handled automatically by Supabase
     } else {
+      console.error('❌ [ERROR] Supabase não configurado')
       throw new Error('Login com Google não disponível no modo offline')
     }
   }

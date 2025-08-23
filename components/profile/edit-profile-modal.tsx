@@ -151,9 +151,9 @@ export function EditProfileModal({ open, onOpenChange }: EditProfileModalProps) 
 
         if (error) {
           console.error('Supabase update error:', error)
-          // Continue with fallback update
+          throw new Error(`Erro no banco de dados: ${error.message}`)
         } else {
-          toast.success('Perfil atualizado com sucesso!')
+          console.log('✅ Perfil atualizado no Supabase com sucesso')
         }
       } catch (dbError) {
         console.error('Database error:', dbError)
@@ -171,9 +171,15 @@ export function EditProfileModal({ open, onOpenChange }: EditProfileModalProps) 
       
       toast.success('Perfil atualizado!')
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating profile:', error)
-      toast.error('Erro ao atualizar perfil. Tente novamente.')
+      
+      // Mostrar erro mais específico
+      if (error?.message) {
+        toast.error(`Erro: ${error.message}`)
+      } else {
+        toast.error('Erro ao atualizar perfil. Tente novamente.')
+      }
     } finally {
       setLoading(false)
     }

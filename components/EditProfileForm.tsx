@@ -67,9 +67,9 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({
 
       if (data) {
         setFormData({
-          name: data.name || '',
+          name: data.display_name || data.name || '',
           username: data.username || '',
-          email: data.email || '',
+          email: data.email || user?.email || '',
           phone: data.phone || '',
           whatsapp_enabled: data.whatsapp_enabled ?? true,
           privacy_settings: data.privacy_settings || {
@@ -201,7 +201,7 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({
       const { error } = await supabase
         .from('profiles')
         .update({
-          name: formData.name.trim(),
+          display_name: formData.name.trim(),
           username: formData.username.trim(),
           email: formData.email.trim(),
           phone: formData.phone.replace(/\D/g, '') || null,

@@ -106,6 +106,30 @@ export default function CommunitiesPage() {
     setFilteredCommunities(filtered)
   }
 
+  const createEpicCommunity = async () => {
+    try {
+      const response = await fetch('/api/create-epic-community', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      
+      const result = await response.json()
+      
+      if (result.success) {
+        alert(`🎉 ${result.message}\n\n🎭 A primeira comunidade oficial do Novo Orkut foi criada!\n\n📜 Post épico sobre a saga OAuth foi adicionado!`)
+        // Recarregar comunidades
+        loadCommunities()
+      } else {
+        alert(`❌ Erro: ${result.error}`)
+      }
+    } catch (error) {
+      console.error('Erro ao criar comunidade épica:', error)
+      alert('❌ Erro ao criar comunidade épica!')
+    }
+  }
+
   const handleJoinCommunity = async (communityId: number) => {
     if (!user) return
 
@@ -158,10 +182,18 @@ export default function CommunitiesPage() {
                 Encontre pessoas que compartilham seus interesses
               </p>
             </div>
-            <Button className="bg-purple-500 hover:bg-purple-600 mt-4 md:mt-0">
-              <Plus className="h-4 w-4 mr-2" />
-              Criar Comunidade
-            </Button>
+            <div className="flex space-x-2 mt-4 md:mt-0">
+              <Button 
+                onClick={() => createEpicCommunity()}
+                className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white font-bold"
+              >
+                🎭 Criar "NÃO É CULPA NOSSA!"
+              </Button>
+              <Button className="bg-purple-500 hover:bg-purple-600">
+                <Plus className="h-4 w-4 mr-2" />
+                Criar Comunidade
+              </Button>
+            </div>
           </div>
 
           {/* Search and Filters */}

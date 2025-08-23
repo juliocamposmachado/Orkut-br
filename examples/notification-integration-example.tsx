@@ -84,7 +84,7 @@ export function PostActionsExample({ post, onUpdate }: PostActionsProps) {
           {
             id: user.id,
             name: profile.display_name,
-            photo: profile.photo_url,
+            photo: profile.photo_url || undefined,
             username: profile.username
           },
           {
@@ -151,7 +151,7 @@ export function PostActionsExample({ post, onUpdate }: PostActionsProps) {
           {
             id: user.id,
             name: profile.display_name,
-            photo: profile.photo_url,
+            photo: profile.photo_url || undefined,
             username: profile.username
           },
           {
@@ -213,7 +213,7 @@ export function PostActionsExample({ post, onUpdate }: PostActionsProps) {
           {
             id: user.id,
             name: profile.display_name,
-            photo: profile.photo_url,
+            photo: profile.photo_url || undefined,
             username: profile.username
           },
           {
@@ -315,7 +315,7 @@ export const sendFriendRequestNotification = async (
     await notificationService.sendFriendRequestNotification({
       id: fromUser.id,
       name: fromUser.display_name,
-      photo: fromUser.photo_url,
+      photo: fromUser.photo_url || undefined,
       username: fromUser.username
     })
 

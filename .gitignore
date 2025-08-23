@@ -35,8 +35,36 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-.vercel
+# Arquivos de desenvolvimento e documentação
+*.sql
+*.md
+!README.md
+!CHANGELOG.md
+*.js
+!next.config.js
+!postcss.config.js
+*.html
+*.txt
+*.ps1
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.crt
+*.m3u
+*.json
+!package.json
+!package-lock.json
+!components.json
+!tsconfig.json
+!vercel.json
+.bolt/
+docs/
+sql/
 
-.vercel
-
-.vercel
+# Arquivos específicos do projeto que não são necessários no repo
+orkut-signature.png
+redes*sociais.jpg
+painel*fotos.png
+UnGbDaPWA9.jpg
+*.tsbuildinfo

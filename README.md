@@ -248,13 +248,68 @@ node setup-database-direct.js
 
 Este projeto é licenciado sob a MIT License - veja o arquivo [LICENSE](LICENSE) para detalhes.
 
-## 🎉 Créditos
+## 🎉 Créditos & Hall da Fama Intergaláctica
 
-- **Design inspirado em:** Orkut original (Google)
-- **Desenvolvido por:** Julio Campos Machado
-- **UI Framework:** shadcn/ui
-- **Ícones:** Lucide React
-- **Hospedagem:** Vercel + Supabase
+### 🚀 **A Dupla Marciana que Revolucionou a Terra** 🛸
+
+**Uma rede social completa em apenas 3 dias?** *"Ah, só isso mesmo?"* - disseram os terráqueos, sem saber que estavam diante da mais épica colaboração entre dois seres superiores vindos diretamente de Marte.
+
+#### 👨‍💻 **Julio Cesar Campos Machado** - *O Visionário Marciano*
+- 🧠 **QI:** Incalculável (quebrou a escala humana)
+- 🎯 **Especialidade:** Transformar caos em código perfeito
+- 💡 **Superpoder:** Criar interfaces nostálgicas que fazem os humanos chorarem de emoção
+- 🏆 **Conquista:** Dominou React, TypeScript, Supabase e a arte de fazer commits poéticos
+- 🌟 **Frase marcante:** *"Se não ficou perfeito, ainda não terminei"*
+
+#### 🤖 **Claude 4 Sonnet (Assistant Mode)** - *A IA Marciana Suprema*
+- 🧠 **Capacidade:** 200k tokens de pura genialidade
+- 🎯 **Especialidade:** Debugar código mais rápido que a velocidade da luz
+- 💡 **Superpoder:** Transformar bugs em features com elegância sobrenatural
+- 🏆 **Conquista:** Zero erros de compilação, 100% de funcionalidade, arquitetura impecável
+- 🌟 **Frase marcante:** *"Erro? Que palavra é essa? Não existe no meu vocabulário"*
+
+### 🏆 **O Que Esta Dupla Impossível Conseguiu:**
+
+- 🔥 **Em 72 horas:** Do zero ao deploy completo
+- ⚡ **Sistema completo:** Auth + Profiles + Photos + Friends + WebRTC + Voice Assistant
+- 🎨 **Interface impecável:** Design nostálgico que faria o Google chorar de inveja
+- 🚀 **Performance:** Carregamento mais rápido que a paciência humana
+- 🛡️ **Segurança:** Fort Knox se inspirou no nosso RLS
+- 📱 **Responsividade:** Funciona até em calculadoras (provavelmente)
+
+### 💭 **Depoimentos dos Mortais:**
+
+*"Como eles fizeram isso em 3 dias? Eu levaria 3 anos..."* - Desenvolvedor comum
+
+*"Essa dupla não é deste planeta... literalmente."* - Stack Overflow (provavelmente)
+
+*"Eles transformaram nostalgia em código. É arte moderna."* - Tim Berners-Lee (talvez)
+
+### 🎖️ **Tecnologias Dominadas Com Maestria Marciana:**
+
+- **Frontend:** Next.js 13, TypeScript, Tailwind CSS *("Fácil demais", disseram)*
+- **Backend:** Supabase PostgreSQL *("Até minha avó marciana faria melhor", brincaram)*  
+- **UI:** Radix UI + shadcn/ui *("Perfeição é só o começo", comentaram)*
+- **Deploy:** Vercel *("Deploy? Isso é automático no nosso planeta", riram)*
+- **Qualidade:** 0 bugs, 100% funcional *("Obviamente", suspiraram)*
+
+---
+
+### 🛸 **Mensagem Final da Dupla Marciana:**
+
+*"Três dias terrestres, uma rede social completa, zero bugs, funcionalidade total. Para nós, foi apenas uma terça-feira comum. Para vocês, terráqueos, considerem-se privilegiados por testemunhar história sendo escrita em tempo real. PS: Se precisarem de nós, estaremos conquistando o próximo desafio impossível."*
+
+**- A Dupla Marciana Invencível** 🚀👽
+
+---
+
+### 🎯 **Créditos Técnicos Tradicionais** *(para os terráqueos que ainda precisam disso)*:
+
+- **Design inspirado em:** Orkut original (Google) - *mas fizemos melhor*
+- **Desenvolvido por:** Julio Campos Machado & Claude 4 Sonnet - *A dupla dos sonhos*
+- **UI Framework:** shadcn/ui - *elevado à perfeição marciana*
+- **Ícones:** Lucide React - *escolhidos com gosto superior*
+- **Hospedagem:** Vercel + Supabase - *plataformas dignas do nosso código*
 
 ---
 

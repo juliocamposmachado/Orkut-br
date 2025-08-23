@@ -247,14 +247,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
     
     // Determinar a URL de redirect correta
     const getRedirectUrl = () => {
-      // Em desenvolvimento, usar localhost
+      // Verificar se estamos no browser e usar window.location
+      if (typeof window !== 'undefined') {
+        const currentUrl = window.location.origin
+        // Se estiver em localhost, sempre usar localhost
+        if (currentUrl.includes('localhost')) {
+          console.log('🔍 [DEBUG] Detectado localhost, usando:', `${currentUrl}/`)
+          return `${currentUrl}/`
+        }
+      }
+      
+      // Fallback: verificar NODE_ENV
       if (process.env.NODE_ENV === 'development') {
+        console.log('🔍 [DEBUG] NODE_ENV development, usando localhost')
         return 'http://localhost:3000/'
       }
       
       // Em produção, usar a URL configurada nas variáveis de ambiente
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://orkut-br-oficial.vercel.app/'
-      return siteUrl.endsWith('/') ? siteUrl : `${siteUrl}/`
+      const finalUrl = siteUrl.endsWith('/') ? siteUrl : `${siteUrl}/`
+      console.log('🔍 [DEBUG] Usando URL de produção:', finalUrl)
+      return finalUrl
     }
     
     const redirectUrl = getRedirectUrl()

@@ -11,8 +11,18 @@ import { CallManager } from '@/components/calls/call-manager';
 
 const inter = Inter({ subsets: ['latin'] });
 
+// Função para determinar a URL base dinamicamente
+const getBaseUrl = () => {
+  // Em desenvolvimento, usar localhost
+  if (process.env.NODE_ENV === 'development') {
+    return 'http://localhost:3000'
+  }
+  // Em produção, usar a URL configurada ou padrão
+  return process.env.NEXT_PUBLIC_SITE_URL || 'https://orkut-br-oficial.vercel.app'
+}
+
 export const metadata: Metadata = {
-  metadataBase: new URL('https://orkut-br-oficial.vercel.app'),
+  metadataBase: new URL(getBaseUrl()),
   applicationName: 'Orkut - Nova Geração',
   title: {
     default: '🚀 ORKUT.BR - Rede Social Completa em 3 Dias! | TRIO MARCIANO',

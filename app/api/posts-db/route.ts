@@ -36,57 +36,57 @@ let memoryPosts: Post[] = [
 // GET - Buscar todos os posts
 export async function GET(request: NextRequest) {
   try {
-    if (supabase) {
-      // Tentar buscar do Supabase primeiro
-      const { data, error } = await supabase
-        .from('posts')
-        .select(`
-          id,
-          content,
-          author,
-          author_name,
-          author_photo,
-          visibility,
-          likes_count,
-          comments_count,
-          shares_count,
-          created_at,
-          is_dj_post
-        `)
-        .eq('visibility', 'public')
-        .order('created_at', { ascending: false })
-        .limit(100)
+    // Verificar se Supabase está configurado corretamente
+    const hasValidSupabase = process.env.NEXT_PUBLIC_SUPABASE_URL && 
+      !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder') &&
+      process.env.NEXT_PUBLIC_SUPABASE_URL.startsWith('https://') &&
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    
+    if (hasValidSupabase && supabase) {
+      try {
+        console.log('🔄 Tentando carregar posts do Supabase...')
+        
+        // Tentar buscar do Supabase primeiro
+        const { data, error } = await supabase
+          .from('posts')
+          .select(`
+            id,
+            content,
+            author,
+            author_name,
+            author_photo,
+            visibility,
+            likes_count,
+            comments_count,
+            created_at,
+            is_dj_post
+          `)
+          .eq('visibility', 'public')
+          .order('created_at', { ascending: false })
+          .limit(100)
 
-      if (!error && data) {
-        console.log(`✅ Posts carregados do Supabase: ${data.length}`)
-        // Se não temos posts no banco, criar um post de boas-vindas
-        if (data.length === 0) {
-          const welcomePost = {
-            content: "🎉 Bem-vindos ao feed global! Sistema funcionando perfeitamente! Agora todas as publicações aparecem para todos os usuários! 🌍✨",
-            author: "system",
-            author_name: "Sistema Orkut",
-            author_photo: "https://images.unsplash.com/photo-1551434678-e076c223a692?w=150&h=150&fit=crop&crop=face",
-            visibility: "public",
-            likes_count: 0,
-            comments_count: 0,
-            shares_count: 0,
-            is_dj_post: false
-          }
-          memoryPosts.unshift({
-            id: Date.now(),
-            ...welcomePost,
-            created_at: new Date().toISOString()
-          } as Post)
+        if (!error && data) {
+          console.log(`✅ Posts carregados do Supabase: ${data.length}`)
+          
+          // Adicionar shares_count aos posts do Supabase (compatibilidade)
+          const postsWithShares = data.map(post => ({ ...post, shares_count: 0 }))
+          
+          return NextResponse.json({
+            success: true,
+            posts: postsWithShares,
+            total: postsWithShares.length,
+            source: 'database'
+          })
+        } else {
+          console.warn('⚠️ Erro no Supabase:', error?.message || 'Erro desconhecido')
+          console.warn('⚠️ Código do erro:', error?.code)
+          throw new Error(`Supabase: ${error?.message || 'Erro desconhecido'}`)
         }
-        return NextResponse.json({
-          success: true,
-          posts: data,
-          total: data.length,
-          source: 'database'
-        })
-      } else {
-        console.warn('⚠️ Erro no Supabase, usando fallback:', error?.message)
+      } catch (supabaseError) {
+        console.warn('⚠️ Supabase falhou, usando fallback para memória:', supabaseError)
       }
+    } else {
+      console.warn('⚠️ Supabase não configurado corretamente, usando memória')
     }
 
     // Fallback para memória
@@ -150,9 +150,17 @@ export async function POST(request: NextRequest) {
     let savedPost = newPost
     let source = 'memory'
 
-    if (supabase) {
+    // Verificar se Supabase está configurado corretamente
+    const hasValidSupabase = process.env.NEXT_PUBLIC_SUPABASE_URL && 
+      !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder') &&
+      process.env.NEXT_PUBLIC_SUPABASE_URL.startsWith('https://') &&
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    if (hasValidSupabase && supabase) {
       // Tentar salvar no Supabase primeiro
       try {
+        console.log(`🔄 Tentando salvar post no Supabase: ${author_name}`)
+        
         const { data, error } = await supabase
           .from('posts')
           .insert({
@@ -163,23 +171,25 @@ export async function POST(request: NextRequest) {
             visibility: newPost.visibility,
             likes_count: newPost.likes_count,
             comments_count: newPost.comments_count,
-            shares_count: newPost.shares_count,
             is_dj_post: newPost.is_dj_post
           })
           .select()
           .single()
 
         if (!error && data) {
-          savedPost = data as Post
+          savedPost = { ...data, shares_count: 0 } as Post // Adicionar shares_count para compatibilidade
           source = 'database'
           console.log(`✅ Post salvo no Supabase: ${author_name} - "${content.substring(0, 50)}..."`)
         } else {
-          console.warn('⚠️ Erro ao salvar no Supabase, usando fallback:', error?.message)
-          throw error
+          console.warn('⚠️ Erro ao salvar no Supabase:', error?.message || 'Erro desconhecido')
+          console.warn('⚠️ Código do erro:', error?.code)
+          throw new Error(`Supabase: ${error?.message || 'Erro desconhecido'}`)
         }
       } catch (supabaseError) {
         console.warn('⚠️ Fallback para memória devido erro Supabase:', supabaseError)
       }
+    } else {
+      console.warn('⚠️ Supabase não configurado, salvando em memória')
     }
 
     // Se não conseguiu salvar no Supabase, salvar na memória

@@ -56,6 +56,20 @@ export function NotificationsDropdown() {
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
 
+  // Escutar eventos de atualização de notificações
+  useEffect(() => {
+    const handleNotificationUpdate = (event: any) => {
+      const { notifications: updatedNotifications } = event.detail
+      setNotifications(updatedNotifications)
+      setUnreadCount(updatedNotifications.filter((n: Notification) => !n.read).length)
+    }
+
+    window.addEventListener('notificationUpdate', handleNotificationUpdate)
+    return () => {
+      window.removeEventListener('notificationUpdate', handleNotificationUpdate)
+    }
+  }, [])
+
   // Load notifications from localStorage (fallback system)
   const loadNotifications = () => {
     if (!user) return

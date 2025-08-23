@@ -7,7 +7,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/enhanced-auth-context'
 import { EditProfileForm } from '@/components/EditProfileForm';
-import { Settings, ArrowLeft, User } from 'lucide-react';
+import { NotificationSettings } from '@/components/notifications/notification-settings';
+import { Settings, ArrowLeft, User, Bell } from 'lucide-react';
 import Link from 'next/link';
 
 const ConfiguracoesPage: React.FC = () => {
@@ -38,7 +39,7 @@ const ConfiguracoesPage: React.FC = () => {
   const tabs = [
     { id: 'perfil' as const, label: 'Perfil', icon: User },
     { id: 'privacidade' as const, label: 'Privacidade', icon: Settings },
-    { id: 'notificacoes' as const, label: 'Notificações', icon: Settings }
+    { id: 'notificacoes' as const, label: 'Notificações', icon: Bell }
   ];
 
   return (
@@ -130,18 +131,17 @@ const ConfiguracoesPage: React.FC = () => {
             )}
 
             {activeTab === 'notificacoes' && (
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h2 className="text-xl font-bold text-gray-800 mb-4">
-                  Notificações
-                </h2>
-                <div className="space-y-6">
-                  <div className="text-center py-8 text-gray-500">
-                    <p>Configurações de notificações em breve.</p>
-                    <p className="text-sm mt-2">
-                      Em desenvolvimento: notificações push, email e configurações de chamadas.
-                    </p>
-                  </div>
+              <div>
+                <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+                  <h2 className="text-xl font-bold text-gray-800 mb-2">
+                    Configurações de Notificações
+                  </h2>
+                  <p className="text-gray-600 mb-6">
+                    Personalize como e quando você quer receber notificações sobre atividades na sua rede social.
+                  </p>
                 </div>
+                
+                <NotificationSettings />
               </div>
             )}
           </div>

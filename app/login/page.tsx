@@ -291,6 +291,27 @@ export default function LoginPage() {
               <p className="text-xs text-gray-500 mt-2 text-center">
                 Rápido, seguro e sem senhas para lembrar! 🚀
               </p>
+              
+              {/* Google's Fault Disclaimer */}
+              <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex items-start space-x-2">
+                  <span className="text-yellow-600 text-lg">⚠️</span>
+                  <div className="flex-1">
+                    <p className="text-xs text-yellow-700 font-medium mb-1">
+                      <strong>Sobre o nome esquisito na tela do Google:</strong>
+                    </p>
+                    <p className="text-xs text-yellow-600 leading-relaxed">
+                      Se aparecer "woyyikaztjrhqzgvbhmn.supabase.co" na tela de login, 
+                      <strong className="text-yellow-700"> NÃO É CULPA NOSSA!</strong> 😅 
+                      O Google que insiste em usar esse nome técnico bizarro. 
+                      Pode clicar em "Continuar" tranquilo que funciona perfeitamente! 🚀
+                    </p>
+                    <p className="text-xs text-yellow-500 mt-1 italic">
+                      💡 Dica: Culpe o Google, não a gente! 🤷‍♂️
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Demo Accounts */}

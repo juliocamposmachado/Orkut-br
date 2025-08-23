@@ -34,6 +34,7 @@ import {
   Send
 } from 'lucide-react';
 import Link from 'next/link';
+import { getUserPhotos, getRecentPhotos, getDefaultPhotos } from '@/data/profile-photos';
 
 interface UserProfile {
   id: string;
@@ -77,6 +78,11 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
       avatar: `https://images.pexels.com/photos/${220000 + idx}/pexels-photo-${220000 + idx}.jpeg?auto=compress&cs=tinysrgb&w=80`
     }))
   );
+  
+  // Fotos do usuário baseadas no perfil
+  const userPhotos = profile ? getUserPhotos(profile.username) : null;
+  const displayPhotos = userPhotos?.photos || getDefaultPhotos();
+  const recentPhotos = getRecentPhotos(6);
   
   // Fallback para status online
   const isOnline = true;
@@ -479,13 +485,18 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
               </OrkutCardHeader>
               <OrkutCardContent>
                 <div className="grid grid-cols-3 gap-2">
-                  {Array.from({ length: 6 }).map((_, idx) => (
-                    <div key={idx} className="aspect-square bg-gray-200 rounded-md overflow-hidden">
+                  {recentPhotos.slice(0, 6).map((photo, idx) => (
+                    <div key={photo.id || idx} className="aspect-square bg-gray-200 rounded-md overflow-hidden group relative">
                       <img 
-                        src={`https://images.pexels.com/photos/${1000000 + idx}/pexels-photo-${1000000 + idx}.jpeg?auto=compress&cs=tinysrgb&w=100`}
-                        alt={`Foto ${idx + 1}`}
+                        src={photo.url}
+                        alt={photo.title}
                         className="w-full h-full object-cover hover:opacity-80 transition-opacity cursor-pointer"
                       />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 flex items-end">
+                        <div className="text-white text-xs p-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          {photo.title}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -597,18 +608,33 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
               <OrkutCardHeader>
                 <div className="flex items-center space-x-2">
                   <Camera className="h-4 w-4" />
-                  <span>Fotos (0)</span>
+                  <span>Fotos ({displayPhotos.length})</span>
                 </div>
               </OrkutCardHeader>
               <OrkutCardContent>
                 <div className="grid grid-cols-3 gap-2">
-                  {Array.from({ length: 6 }).map((_, idx) => (
-                    <div key={idx} className="aspect-square bg-gray-200 rounded-md overflow-hidden">
+                  {displayPhotos.slice(0, 6).map((photo, idx) => (
+                    <div key={photo.id || idx} className="aspect-square bg-gray-200 rounded-md overflow-hidden group relative">
                       <img 
-                        src={`https://images.pexels.com/photos/${400000 + idx}/pexels-photo-${400000 + idx}.jpeg?auto=compress&cs=tinysrgb&w=100`}
-                        alt={`Foto ${idx + 1}`}
-                        className="w-full h-full object-cover hover:opacity-80 transition-opacity cursor-pointer"
+                        src={photo.url}
+                        alt={photo.title}
+                        className="w-full h-full object-cover hover:opacity-90 transition-all duration-200 cursor-pointer group-hover:scale-105"
                       />
+                      {/* Overlay com informações */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-end">
+                        <div className="text-white p-2 w-full">
+                          <p className="text-xs font-medium truncate">{photo.title}</p>
+                          {photo.description && (
+                            <p className="text-[10px] text-gray-300 truncate">{photo.description}</p>
+                          )}
+                        </div>
+                      </div>
+                      {/* Badge da categoria */}
+                      {photo.category && (
+                        <div className="absolute top-1 right-1 bg-purple-500 text-white text-[8px] px-1 py-0.5 rounded opacity-0 group-hover:opacity-90 transition-opacity">
+                          {photo.category}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -617,7 +643,7 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                   size="sm" 
                   className="w-full mt-3 border-purple-300 text-purple-700 hover:bg-purple-50"
                 >
-                  Ver Todas as Fotos
+                  Ver Todas as {displayPhotos.length} Fotos
                 </Button>
               </OrkutCardContent>
             </OrkutCard>

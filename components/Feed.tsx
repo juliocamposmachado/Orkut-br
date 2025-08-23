@@ -93,7 +93,7 @@ export function Feed() {
         )
         
         // Se não há posts reais, usar demos + posts do DJ
-        if (sortedPosts.length === 0 || sortedPosts.every(p => p.is_dj_post)) {
+        if (sortedPosts.length === 0 || sortedPosts.every((p: Post) => p.is_dj_post)) {
           setPosts([...sortedPosts, ...demoPosts])
         } else {
           setPosts(sortedPosts.slice(0, 50))
@@ -132,7 +132,7 @@ export function Feed() {
       try {
         // Verificar se DJ Orky precisa ser inicializado
         const storedPosts = JSON.parse(localStorage.getItem('orkut_posts') || '[]')
-        const hasDjPosts = storedPosts.some((p: Post) => p.is_dj_post)
+        const hasDjPosts = storedPosts.some((p: any) => p.is_dj_post)
         
         if (!hasDjPosts) {
           console.log('🎵 Inicializando DJ Orky...')

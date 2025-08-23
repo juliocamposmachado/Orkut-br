@@ -12,12 +12,12 @@ import { CallManager } from '@/components/calls/call-manager';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://orkut-864g4zydz-astridnielsen-labs-projects.vercel.app'),
+  metadataBase: new URL('https://orkut-br-oficial.vercel.app'),
   title: {
-    default: 'Orkut Retrô - A rede social que você ama | by Julio Campos Machado',
-    template: '%s | Orkut Retrô - Like Look Solutions'
+    default: '🚀 ORKUT.BR - Rede Social Completa em 3 Dias! | TRIO MARCIANO',
+    template: '%s | Orkut.br - Revolução Nostálgica'
   },
-  description: 'Reviva os momentos especiais do Orkut com recursos modernos de voz e chamadas. Desenvolvido por Julio Campos Machado da Like Look Solutions. Conecte-se com amigos, participe de comunidades e viva a nostalgia dos anos 2000.',
+  description: '🔥 FEITO HISTÓRICO: Rede social completa criada em apenas 72 HORAS! Login Google, fotos, amizades, WebRTC - tudo funcionando 100%. Criado pelo TRIO MARCIANO: Julio Cesar + Claude AI + Warp Terminal. Nostalgia dos anos 2000 + tecnologia moderna!',
   keywords: [
     'orkut', 'rede social', 'nostalgia', 'amigos', 'comunidades', 'recados', 'fotos',
     'anos 2000', 'social network', 'brasil', 'orkut retrô', 'orkut clone',
@@ -43,23 +43,23 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'pt_BR',
-    url: 'https://orkut-864g4zydz-astridnielsen-labs-projects.vercel.app',
-    siteName: 'Orkut Retrô',
-    title: 'Orkut Retrô - A rede social que você ama',
-    description: 'Reviva os momentos especiais do Orkut com recursos modernos. Desenvolvido por Julio Campos Machado da Like Look Solutions.',
+    url: 'https://orkut-br-oficial.vercel.app',
+    siteName: 'ORKUT.BR - FEITO HISTÓRICO',
+    title: '🚀🔥 ORKUT.BR - Rede Social Completa em 3 Dias! TRIO MARCIANO',
+    description: 'FEITO HISTÓRICO: Rede social completa criada em 72 HORAS! Login Google, fotos, amizades, WebRTC. Criado pelo TRIO MARCIANO: Julio Cesar + Claude AI + Warp Terminal. 100% funcional!',
     images: [{
-      url: '/redes-sociais.jpg',
+      url: '/divulgar-orkut.png',
       width: 1200,
       height: 630,
-      alt: 'Orkut Retrô - A rede social nostálgica'
+      alt: 'ORKUT.BR - Rede Social Completa em 3 Dias - TRIO MARCIANO'
     }]
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Orkut Retrô - A rede social que você ama',
-    description: 'Reviva os momentos especiais do Orkut com recursos modernos. Desenvolvido por Julio Campos Machado.',
-    images: ['/redes-sociais.jpg'],
-    creator: '@orkutretro'
+    title: '🚀 ORKUT.BR - Rede Social Completa em 3 Dias!',
+    description: 'FEITO HISTÓRICO: 72 horas para criar uma rede social completa! TRIO MARCIANO em ação: Julio + Claude + Warp. 100% funcional!',
+    images: ['/divulgar-orkut.png'],
+    creator: '@juliocamposmachado'
   },
   viewport: {
     width: 'device-width',
@@ -113,7 +113,7 @@ export default function RootLayout({
         <meta name="company" content="Like Look Solutions" />
         <meta name="contact" content="juliocamposmachado@gmail.com" />
         <meta name="phone" content="+5511992946628" />
-        <link rel="canonical" href="https://orkut-864g4zydz-astridnielsen-labs-projects.vercel.app" />
+        <link rel="canonical" href="https://orkut-br-oficial.vercel.app" />
       </head>
       <body className={inter.className}>
         <StructuredData />

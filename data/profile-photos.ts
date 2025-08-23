@@ -81,7 +81,7 @@ export const profilePhotosData: UserPhotoCollection[] = [
       },
       {
         id: 'radio-2',
-        url: 'https://images.pexels.com/photos/159613/ghettoblaster-radio-recorder-boombox-159613.jpeg?auto=compress&cs=tinysrgb&w=300',
+        url: 'https://images.pexels.com/photos/3756519/pexels-photo-3756519.jpeg?auto=compress&cs=tinysrgb&w=300',
         title: 'Radio Vintage',
         description: 'Equipamentos clássicos',
         category: 'vintage'

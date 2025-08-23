@@ -25,7 +25,8 @@ import {
   Globe,
   Bell,
   Menu,
-  MoreHorizontal
+  MoreHorizontal,
+  Heart
 } from 'lucide-react'
 import { useAuth } from '@/contexts/enhanced-auth-context'
 import { useVoice } from '@/contexts/voice-context'
@@ -165,6 +166,12 @@ export function Navbar() {
                       <span>Ativar Assistente de Voz</span>
                     </>
                   )}
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/homenagem" className="w-full">
+                    <Heart className="mr-2 h-4 w-4 text-red-500" />
+                    <span>🕊️ Em Memória de Helen Vitai</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/configuracoes" className="w-full">

@@ -1,11 +1,14 @@
 'use client'
 
+import { useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { OrkutCard, OrkutCardContent, OrkutCardHeader } from "@/components/ui/orkut-card"
 import { Button } from "@/components/ui/button"
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { MessageCircle, ThumbsUp, Star, Share2 } from "lucide-react"
+import { MessageCircle, Heart, Star, Share2, Globe, Users } from "lucide-react"
+import { useAuth } from '@/contexts/enhanced-auth-context'
+import { toast } from 'sonner'
 
 export interface Post {
   id: number | string
@@ -26,13 +29,56 @@ interface PostCardProps {
 }
 
 export function PostCard({ post }: PostCardProps) {
-  const timeAgo = formatDistanceToNow(new Date(post.created_at), {
+  const { user } = useAuth()
+  const [isLiking, setIsLiking] = useState(false)
+  const [currentPost, setCurrentPost] = useState(post)
+  const [hasUserLiked, setHasUserLiked] = useState(false)
+  const timeAgo = formatDistanceToNow(new Date(currentPost.created_at), {
     addSuffix: true,
     locale: ptBR
   })
 
-  // Calcular nível de engajamento (0-100)
-  const totalEngagement = (post.likes_count || 0) + (post.comments_count || 0) + (post.shares_count || 0)
+  // Função para curtir o post
+  const handleLike = async () => {
+    if (!user || isLiking) return
+    
+    setIsLiking(true)
+    try {
+      const response = await fetch('/api/posts-db', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          post_id: currentPost.id,
+          action: 'like',
+          user_id: user.id
+        })
+      })
+      
+      if (response.ok) {
+        const result = await response.json()
+        if (result.success) {
+          setCurrentPost(prev => ({
+            ...prev,
+            likes_count: prev.likes_count + 1
+          }))
+          setHasUserLiked(true)
+          toast.success('Post curtido! ❤️')
+        }
+      } else {
+        throw new Error('Erro ao curtir post')
+      }
+    } catch (error) {
+      console.error('Erro ao curtir post:', error)
+      toast.error('Erro ao curtir post')
+    } finally {
+      setIsLiking(false)
+    }
+  }
+
+  // Calcular nível de engajamento (0-100) usando currentPost
+  const totalEngagement = (currentPost.likes_count || 0) + (currentPost.comments_count || 0) + (currentPost.shares_count || 0)
   const engagementLevel = Math.min(100, totalEngagement * 2) // Cada interação vale 2 pontos, máximo 100
   
   // Definir cor do termômetro baseado no nível
@@ -54,29 +100,47 @@ export function PostCard({ post }: PostCardProps) {
   }
 
   return (
-    <OrkutCard className={`mb-4 ${post.is_dj_post ? 'border-2 border-purple-300 shadow-[0_0_0_3px_rgba(168,85,247,0.15)]' : ''}`}>
+    <OrkutCard className={`mb-4 ${currentPost.is_dj_post ? 'border-2 border-purple-300 shadow-[0_0_0_3px_rgba(168,85,247,0.15)]' : ''}`}>
       <OrkutCardHeader>
-        <div className="flex items-center space-x-3">
-          <Avatar className="h-10 w-10">
-            <AvatarImage src={post.author_photo || undefined} alt={post.author_name} />
-            <AvatarFallback>{post.author_name.charAt(0).toUpperCase()}</AvatarFallback>
-          </Avatar>
-          <div>
-            <div className="flex items-center gap-2">
-               <h3 className="font-medium text-gray-800">{post.author_name}</h3>
-               {post.is_dj_post && (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">
-                    <Star className="h-3 w-3 text-purple-700" /> DJ Orky Oficial
-                  </span>
-               )}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={currentPost.author_photo || undefined} alt={currentPost.author_name} />
+              <AvatarFallback>{currentPost.author_name.charAt(0).toUpperCase()}</AvatarFallback>
+            </Avatar>
+            <div>
+              <div className="flex items-center gap-2">
+                 <h3 className="font-medium text-gray-800">{currentPost.author_name}</h3>
+                 {currentPost.is_dj_post && (
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">
+                      <Star className="h-3 w-3 text-purple-700" /> DJ Orky Oficial
+                    </span>
+                 )}
+              </div>
+              <div className="flex items-center space-x-2">
+                <p className="text-sm text-gray-600">{timeAgo}</p>
+                <span className="text-gray-400">•</span>
+                <div className="flex items-center space-x-1">
+                  {currentPost.visibility === 'public' ? (
+                    <>
+                      <Globe className="h-3 w-3 text-gray-500" />
+                      <span className="text-xs text-gray-500">Público</span>
+                    </>
+                  ) : (
+                    <>
+                      <Users className="h-3 w-3 text-gray-500" />
+                      <span className="text-xs text-gray-500">Amigos</span>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
-            <p className="text-sm text-gray-600">{timeAgo}</p>
           </div>
         </div>
       </OrkutCardHeader>
       <OrkutCardContent>
-        <p className="text-gray-800 whitespace-pre-wrap">{post.content}</p>
-        {post.is_dj_post && (
+        <p className="text-gray-800 whitespace-pre-wrap">{currentPost.content}</p>
+        {currentPost.is_dj_post && (
           <div className="mt-3">
             <button
               onClick={() => window.open('https://radiotatuapefm.radiostream321.com/', '_blank', 'noopener,noreferrer')}
@@ -131,17 +195,25 @@ export function PostCard({ post }: PostCardProps) {
 
         <div className="flex items-center justify-between mt-4 text-gray-600">
           <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="sm" className="flex items-center space-x-1 hover:text-blue-600 transition-colors">
-              <ThumbsUp className="h-4 w-4" />
-              <span>{post.likes_count || 0}</span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className={`flex items-center space-x-1 transition-colors ${
+                hasUserLiked ? 'text-red-500 hover:text-red-600' : 'hover:text-red-500'
+              }`}
+              onClick={handleLike}
+              disabled={isLiking || !user}
+            >
+              <Heart className={`h-4 w-4 ${hasUserLiked ? 'fill-current' : ''}`} />
+              <span>{currentPost.likes_count || 0}</span>
             </Button>
-            <Button variant="ghost" size="sm" className="flex items-center space-x-1 hover:text-green-600 transition-colors">
+            <Button variant="ghost" size="sm" className="flex items-center space-x-1 hover:text-blue-600 transition-colors">
               <MessageCircle className="h-4 w-4" />
-              <span>{post.comments_count || 0}</span>
+              <span>{currentPost.comments_count || 0}</span>
             </Button>
             <Button variant="ghost" size="sm" className="flex items-center space-x-1 hover:text-purple-600 transition-colors">
               <Share2 className="h-4 w-4" />
-              <span>{post.shares_count || 0}</span>
+              <span>{currentPost.shares_count || 0}</span>
             </Button>
           </div>
           

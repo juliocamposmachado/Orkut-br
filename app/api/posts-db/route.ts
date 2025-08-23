@@ -33,9 +33,15 @@ let memoryPosts: Post[] = [
   }
 ]
 
-// GET - Buscar todos os posts
+// GET - Buscar todos os posts (feed global)
 export async function GET(request: NextRequest) {
   try {
+    // Obter user_id dos parâmetros da query para filtrar posts de amigos
+    const url = new URL(request.url)
+    const user_id = url.searchParams.get('user_id')
+    
+    console.log('🔄 Carregando feed global para usuário:', user_id || 'anônimo')
+    
     // Verificar se Supabase está configurado corretamente
     const hasValidSupabase = process.env.NEXT_PUBLIC_SUPABASE_URL && 
       !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder') &&
@@ -46,8 +52,8 @@ export async function GET(request: NextRequest) {
       try {
         console.log('🔄 Tentando carregar posts do Supabase...')
         
-        // Tentar buscar do Supabase primeiro
-        const { data, error } = await supabase
+        // Query para buscar posts públicos + posts de amigos (se user_id fornecido)
+        let query = supabase
           .from('posts')
           .select(`
             id,
@@ -61,7 +67,16 @@ export async function GET(request: NextRequest) {
             created_at,
             is_dj_post
           `)
-          .eq('visibility', 'public')
+          
+        // Se temos user_id, buscar posts públicos + posts de amigos
+        if (user_id) {
+          query = query.or(`visibility.eq.public,and(visibility.eq.friends,author.eq.${user_id})`)
+        } else {
+          // Se não temos user_id, apenas posts públicos
+          query = query.eq('visibility', 'public')
+        }
+        
+        const { data, error } = await query
           .order('created_at', { ascending: false })
           .limit(100)
 

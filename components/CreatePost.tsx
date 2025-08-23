@@ -7,7 +7,13 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { supabase } from '@/lib/supabase'
-import { Camera, Image, Smile, Send } from 'lucide-react'
+import { Camera, Image, Smile, Send, Globe, Users, ChevronDown } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 interface CreatePostProps {
   onPostCreated?: () => void
@@ -17,6 +23,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const { user, profile } = useAuth()
   const [content, setContent] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [visibility, setVisibility] = useState<'public' | 'friends'>('public')
 
   // Check if we have valid Supabase configuration
   const hasSupabaseConfig = process.env.NEXT_PUBLIC_SUPABASE_URL && 
@@ -45,7 +52,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           author: user.id,
           author_name: profile?.display_name || 'Usuário',
           author_photo: profile?.photo_url || null,
-          visibility: 'public', // Sempre público para feed global
+          visibility: visibility, // Configurável pelo usuário
           is_dj_post: false
         })
       })
@@ -142,9 +149,57 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
             </div>
             
             <div className="flex items-center space-x-2">
+              {/* Seletor de Privacidade */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                  >
+                    {visibility === 'public' ? (
+                      <>
+                        <Globe className="h-4 w-4 mr-2" />
+                        Público
+                      </>
+                    ) : (
+                      <>
+                        <Users className="h-4 w-4 mr-2" />
+                        Amigos
+                      </>
+                    )}
+                    <ChevronDown className="h-3 w-3 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuItem 
+                    onClick={() => setVisibility('public')}
+                    className={visibility === 'public' ? 'bg-purple-50' : ''}
+                  >
+                    <Globe className="h-4 w-4 mr-2" />
+                    <div>
+                      <p className="font-medium">Público</p>
+                      <p className="text-xs text-gray-500">Todos os usuários do site podem ver</p>
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setVisibility('friends')}
+                    className={visibility === 'friends' ? 'bg-purple-50' : ''}
+                  >
+                    <Users className="h-4 w-4 mr-2" />
+                    <div>
+                      <p className="font-medium">Amigos</p>
+                      <p className="text-xs text-gray-500">Apenas seus amigos podem ver</p>
+                    </div>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
               <span className="text-xs text-gray-500">
                 {content.length}/500
               </span>
+              
               <Button
                 type="submit"
                 disabled={!content.trim() || isLoading}

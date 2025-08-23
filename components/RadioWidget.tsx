@@ -107,7 +107,11 @@ const RadioTatuapeWidget: React.FC<RadioWidgetProps> = ({
             <img 
               src="/logo-radio-tatuape-fm.png" 
               alt="Rádio Tatuapé FM" 
-              className="relative w-12 h-12 rounded-full object-contain"
+              className="relative w-12 h-12 rounded-full object-cover"
+              onError={(e) => {
+                console.log('Erro ao carregar logo da rádio');
+                e.currentTarget.style.display = 'none';
+              }}
             />
           </div>
           <div className="flex-1">

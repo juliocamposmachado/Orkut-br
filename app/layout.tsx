@@ -13,6 +13,7 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://orkut-br-oficial.vercel.app'),
+  applicationName: 'Orkut - Nova Geração',
   title: {
     default: '🚀 ORKUT.BR - Rede Social Completa em 3 Dias! | TRIO MARCIANO',
     template: '%s | Orkut.br - Revolução Nostálgica'
@@ -104,7 +105,7 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Orkut Retrô" />
+        <meta name="apple-mobile-web-app-title" content="Orkut - Nova Geração" />
         
         {/* Developer and Company Info */}
         <meta name="author" content="Julio Campos Machado" />

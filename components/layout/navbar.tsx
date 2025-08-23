@@ -123,18 +123,7 @@ export function Navbar() {
             </Link>
 
             {/* Notifications */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-white hover:bg-white/20 w-10 h-10 p-0 rounded-full relative"
-              title="Notificações"
-            >
-              <Bell className="h-5 w-5" />
-              {/* Notification badge */}
-              <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
-                <span className="text-xs font-bold text-white">3</span>
-              </div>
-            </Button>
+            <NotificationsDropdown />
 
             {/* Menu Options */}
             <DropdownMenu>

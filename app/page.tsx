@@ -390,22 +390,22 @@ export default function HomePage() {
                   <div 
                     className="relative cursor-pointer group"
                     onClick={() => {
-                      // Abre no miniplayer do YouTube
-                      const miniplayerUrl = 'https://www.youtube.com/playlist?list=PLkm4QB9CKklpa5tej_S5yL-VM59O7mshE&feature=miniplayer'
-                      const windowFeatures = 'width=480,height=270,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no,status=no'
+                      // Abre no miniplayer do YouTube - janela maior para mostrar melhor a capa
+                      const miniplayerUrl = 'https://www.youtube.com/playlist?list=PLkm4QB9CKklpa5tej_S5yL-VM59O7mshE'
+                      const windowFeatures = 'width=800,height=600,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=yes,status=no'
                       window.open(miniplayerUrl, 'YouTubeMiniPlayer', windowFeatures)
                     }}
                   >
                     <div className="relative w-full aspect-video">
                       <img 
-                        src="https://img.youtube.com/vi/videoseries?list=PLkm4QB9CKklpa5tej_S5yL-VM59O7mshE/maxresdefault.jpg"
+                        src="https://i.ytimg.com/vi/qFLw26BjDZs/maxresdefault.jpg"
                         alt="Juliette Psicose - Voices of The Forgotten"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={(e) => {
                           // Fallback para HQ se maxres não carregar
                           const target = e.currentTarget
                           if (target.src.includes('maxresdefault')) {
-                            target.src = 'https://img.youtube.com/vi/videoseries?list=PLkm4QB9CKklpa5tej_S5yL-VM59O7mshE/hqdefault.jpg'
+                            target.src = 'https://i.ytimg.com/vi/qFLw26BjDZs/hqdefault.jpg'
                           }
                         }}
                       />

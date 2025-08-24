@@ -227,27 +227,45 @@ export default function CommunityPage() {
   }
 
   const createPost = async () => {
-    if (!user || !newPost.trim() || !isMember) return
+    if (!user || !newPost.trim() || !isMember) {
+      toast.error('Você precisa estar logado e ser membro da comunidade para postar')
+      return
+    }
 
     setIsPosting(true)
     try {
-      const { error } = await supabase
+      console.log('Criando post:', {
+        community_id: parseInt(communityId),
+        author_id: user.id,
+        content: newPost.trim(),
+        user: user,
+        communityId: communityId
+      })
+
+      const { data, error } = await supabase
         .from('community_posts')
         .insert({
           community_id: parseInt(communityId),
           author_id: user.id,
           content: newPost.trim(),
+          likes_count: 0,
+          comments_count: 0,
           created_at: new Date().toISOString()
         })
+        .select()
 
-      if (error) throw error
+      if (error) {
+        console.error('Supabase error:', error)
+        throw error
+      }
 
+      console.log('Post criado com sucesso:', data)
       setNewPost('')
       toast.success('Post criado com sucesso!')
       loadPosts()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating post:', error)
-      toast.error('Erro ao criar post')
+      toast.error(`Erro ao criar post: ${error.message || 'Erro desconhecido'}`)
     } finally {
       setIsPosting(false)
     }

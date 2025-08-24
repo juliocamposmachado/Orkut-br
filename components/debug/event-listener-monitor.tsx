@@ -70,7 +70,8 @@ export function EventListenerMonitor() {
           // Esta é uma aproximação - não há forma direta de contar listeners
           // Vamos usar uma heurística baseada em atributos e propriedades
           const hasOnEvent = (element as any)[`on${eventType}`] !== undefined
-          const hasDataEvent = element.getAttribute && element.getAttribute(`data-${eventType}`)
+          const hasDataEvent = ('getAttribute' in element) && 
+            (element as HTMLElement).getAttribute(`data-${eventType}`)
           
           if (hasOnEvent || hasDataEvent) {
             elements.push(selector)

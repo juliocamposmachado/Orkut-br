@@ -47,6 +47,7 @@ import { ShareModal } from '@/components/posts/share-modal'
 import { UserMoodDisplay } from '@/components/status/user-mood-display'
 import { SponsoredCarousel } from '@/components/ads/sponsored-carousel'
 import { MarqueeBanner } from '@/components/ui/marquee-banner'
+import { AddTestUserDialog } from '@/components/AddTestUserDialog'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -374,30 +375,24 @@ export default function HomePage() {
               </OrkutCardContent>
             </OrkutCard>
 
-            {/* Shortcuts */}
+            {/* Minhas Playlists */}
             <OrkutCard>
               <OrkutCardHeader>
-                <span className="text-gray-600 text-sm font-medium">Seus atalhos</span>
+                <span className="text-gray-600 text-sm font-medium">Minhas Playlists</span>
               </OrkutCardHeader>
               <OrkutCardContent>
                 <div className="space-y-1">
-                  <div className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer">
-                    <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center text-white text-sm font-bold">
-                      💻
+                  <div 
+                    className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer group"
+                    onClick={() => window.open('https://www.youtube.com/playlist?list=PLkm4QB9CKklpa5tej_S5yL-VM59O7mshE', '_blank')}
+                  >
+                    <div className="w-8 h-8 bg-red-600 rounded-lg flex items-center justify-center text-white text-sm font-bold group-hover:bg-red-700 transition-colors">
+                      ▶️
                     </div>
-                    <span className="text-gray-700 text-sm">Programadores BR</span>
-                  </div>
-                  <div className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer">
-                    <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white text-sm font-bold">
-                      🎵
+                    <div className="flex-1">
+                      <span className="text-gray-700 text-sm font-medium block">Juliette Psicose</span>
+                      <span className="text-gray-500 text-xs">Voices of The Forgotten</span>
                     </div>
-                    <span className="text-gray-700 text-sm">Música dos Anos 2000</span>
-                  </div>
-                  <div className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer">
-                    <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center text-white text-sm font-bold">
-                      😂
-                    </div>
-                    <span className="text-gray-700 text-sm">Humor e Diversão</span>
                   </div>
                 </div>
               </OrkutCardContent>

@@ -139,8 +139,8 @@ const SmartMusicCard: React.FC = () => {
   useEffect(() => {
     updateMusicCard()
     
-    // Atualizar a cada 2 minutos
-    const interval = setInterval(updateMusicCard, 2 * 60 * 1000)
+    // Atualizar sincronizado com RadioWidget - intervalo otimizado
+    const interval = setInterval(updateMusicCard, 90000) // 90s (1.5min)
     
     return () => clearInterval(interval)
   }, [])

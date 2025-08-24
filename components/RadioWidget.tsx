@@ -86,8 +86,8 @@ const RadioTatuapeWidget: React.FC<RadioWidgetProps> = ({
   useEffect(() => {
     fetchData(); // Busca inicial
     
-    // Atualiza com mais frequência para dar sensação de tempo real
-    const interval = setInterval(fetchData, 60000); // 60s
+    // Atualiza sincronizado com DJ Orky - intervalo otimizado
+    const interval = setInterval(fetchData, 90000); // 90s (1.5min)
     
     return () => clearInterval(interval);
   }, []); // Remove fetchData dependency to prevent infinite loop

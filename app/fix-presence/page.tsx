@@ -10,11 +10,21 @@ import { Users, CheckCircle, AlertCircle, RefreshCw, Database } from 'lucide-rea
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 
+interface OnlineUser {
+  user_id: string
+  is_online: boolean
+  last_seen: string
+  profiles: {
+    display_name: string
+    username: string
+  }[]
+}
+
 export default function FixPresencePage() {
   const { user, profile } = useAuth()
   const [isFixing, setIsFixing] = useState(false)
   const [presenceStatus, setPresenceStatus] = useState<'checking' | 'exists' | 'missing' | 'error'>('checking')
-  const [onlineUsers, setOnlineUsers] = useState([])
+  const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([])
 
   useEffect(() => {
     if (user) {

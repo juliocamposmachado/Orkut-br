@@ -191,7 +191,7 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
     
     setLoadingPosts(true);
     try {
-      console.log('🔍 Carregando posts do usuário:', profile?.display_name || currentUser?.display_name);
+      console.log('🔍 Carregando posts do usuário:', profile?.display_name || profile?.username || 'usuário');
       
       const response = await fetch(`/api/posts-db`, {
         method: 'GET',

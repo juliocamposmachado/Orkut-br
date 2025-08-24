@@ -150,30 +150,81 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
     if (!user) return
     
     try {
-      const { data, error } = await supabase
+      console.log('🔍 Carregando usuários online...')
+      
+      // Primeiro, buscar users presence
+      const { data: presenceData, error: presenceError } = await supabase
         .from('user_presence')
-        .select(`
-          user_id,
-          is_online,
-          profiles!inner(username, display_name, photo_url)
-        `)
+        .select('user_id, is_online, last_seen')
         .eq('is_online', true)
         .neq('user_id', user.id)
-        .gte('last_seen', new Date(Date.now() - 5 * 60 * 1000).toISOString()) // Active in last 5 minutes
+        .gte('last_seen', new Date(Date.now() - 5 * 60 * 1000).toISOString())
       
-      if (error) throw error
+      if (presenceError) {
+        console.error('❌ Erro ao buscar presença:', presenceError)
+        setOnlineUsers([])
+        return
+      }
       
-      const users: WebRTCUser[] = data.map((item: any) => ({
-        id: item.user_id,
-        username: item.profiles.username,
-        display_name: item.profiles.display_name,
-        photo_url: item.profiles.photo_url,
-        isOnline: item.is_online
-      }))
+      console.log('✅ Presenças encontradas:', presenceData?.length || 0)
       
-      setOnlineUsers(users)
+      if (!presenceData || presenceData.length === 0) {
+        console.log('😕 Nenhum usuário online encontrado')
+        setOnlineUsers([])
+        return
+      }
+      
+      // Depois, buscar profiles separadamente
+      const userIds = presenceData.map(p => p.user_id)
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, username, display_name, photo_url')
+        .in('id', userIds)
+      
+      if (profilesError) {
+        console.error('❌ Erro ao buscar profiles:', profilesError)
+        // Criar usuários sem profile como fallback
+        const fallbackUsers: WebRTCUser[] = presenceData.map((presence, index) => ({
+          id: presence.user_id,
+          username: `user${index + 1}`,
+          display_name: `Usuário ${index + 1}`,
+          photo_url: undefined,
+          isOnline: presence.is_online
+        }))
+        setOnlineUsers(fallbackUsers)
+        return
+      }
+      
+      // Combinar presence e profiles
+      const users: WebRTCUser[] = presenceData.map(presence => {
+        const profile = profilesData?.find(p => p.id === presence.user_id)
+        return {
+          id: presence.user_id,
+          username: profile?.username || 'unknown',
+          display_name: profile?.display_name || 'Usuário Desconhecido',
+          photo_url: profile?.photo_url,
+          isOnline: presence.is_online
+        }
+      })
+      
+      console.log('✅ Usuários online carregados:', users)
+      
+      // Se não há usuários online, adicionar um usuário de teste para desenvolvimento
+      if (users.length === 0 && process.env.NODE_ENV === 'development') {
+        console.log('🧪 Adicionando usuário de teste para desenvolvimento...')
+        const testUser: WebRTCUser = {
+          id: 'test-user-123',
+          username: 'teste',
+          display_name: 'Usuário de Teste',
+          photo_url: undefined,
+          isOnline: true
+        }
+        setOnlineUsers([testUser])
+      } else {
+        setOnlineUsers(users)
+      }
     } catch (error) {
-      console.error('Error loading online users:', error)
+      console.error('❌ Erro geral ao carregar usuários online:', error)
       setOnlineUsers([])
     }
   }

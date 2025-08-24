@@ -20,6 +20,18 @@
     },
     "app/api/gemini/messages/route.ts": {
       "maxDuration": 20
+    },
+    "app/api/bug-monitor/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/deploy-checker/route.ts": {
+      "maxDuration": 30
+    },
+    "app/api/bug-notifications/route.ts": {
+      "maxDuration": 15
+    },
+    "app/api/system-monitor/route.ts": {
+      "maxDuration": 60
     }
   },
   "headers": [

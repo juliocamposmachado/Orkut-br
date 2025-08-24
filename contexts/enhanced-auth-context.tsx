@@ -136,6 +136,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     setUser(user)
 
+    // Debug: Log completo dos metadados do usuário
+    console.log('🔍 [DEBUG] Dados completos do usuário Supabase:')
+    console.log('- ID:', supabaseUser.id)
+    console.log('- Email:', supabaseUser.email)
+    console.log('- User Metadata:', JSON.stringify(supabaseUser.user_metadata, null, 2))
+    console.log('- App Metadata:', JSON.stringify(supabaseUser.app_metadata, null, 2))
+    console.log('- Identities:', JSON.stringify(supabaseUser.identities, null, 2))
+
     // Load user profile
     try {
       const { data, error } = await supabase
@@ -150,11 +158,64 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       if (data) {
-        setProfile({
-          ...data,
-          email_confirmed: !!user.email_confirmed_at,
-          email_confirmed_at: user.email_confirmed_at || null
-        })
+        // Tentar várias fontes para a foto do Google
+        let googlePhoto = null
+        
+        // Verificar múltiplas fontes de foto
+        const photoSources = [
+          supabaseUser.user_metadata?.avatar_url,
+          supabaseUser.user_metadata?.picture, 
+          supabaseUser.user_metadata?.photo_url,
+          // Verificar também nas identities (mais confiável)
+          supabaseUser.identities?.[0]?.identity_data?.avatar_url,
+          supabaseUser.identities?.[0]?.identity_data?.picture,
+        ]
+        
+        // Pegar a primeira foto válida (que não seja do Pexels)
+        for (const photo of photoSources) {
+          if (photo && typeof photo === 'string' && !photo.includes('pexels.com')) {
+            googlePhoto = photo
+            console.log('✅ Foto do Google encontrada:', photo)
+            break
+          }
+        }
+        
+        if (!googlePhoto) {
+          console.log('❌ Nenhuma foto válida do Google encontrada nos metadados')
+          console.log('📋 Fontes verificadas:', photoSources.filter(Boolean))
+        }
+        
+        // Se há foto do Google e não temos foto, ou se a foto mudou, atualizar
+        if (googlePhoto && (!data.photo_url || data.photo_url !== googlePhoto)) {
+          console.log('🖼️ Atualizando foto do perfil com dados do Google:', googlePhoto)
+          
+          // Atualizar no banco
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({ photo_url: googlePhoto })
+            .eq('id', user.id)
+          
+          if (updateError) {
+            console.error('❌ Erro ao atualizar foto no banco:', updateError)
+          } else {
+            console.log('✅ Foto atualizada no banco com sucesso')
+          }
+          
+          // Atualizar estado local
+          setProfile({
+            ...data,
+            photo_url: googlePhoto,
+            email_confirmed: !!user.email_confirmed_at,
+            email_confirmed_at: user.email_confirmed_at || null
+          })
+        } else {
+          console.log('📷 Mantendo foto atual do perfil:', data.photo_url)
+          setProfile({
+            ...data,
+            email_confirmed: !!user.email_confirmed_at,
+            email_confirmed_at: user.email_confirmed_at || null
+          })
+        }
       } else {
         // Create profile if it doesn't exist
         await createUserProfile(user, {
@@ -377,11 +438,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const createUserProfile = async (user: any, userData: { username: string, displayName: string }) => {
     try {
+      // Extrair foto do Google se disponível
+      const googlePhoto = user.user_metadata?.avatar_url || user.user_metadata?.picture || null
+      
       const profileData = {
         id: user.id,
         username: userData.username,
         display_name: userData.displayName,
-        photo_url: null,
+        photo_url: googlePhoto,
         bio: null,
         location: null,
         birthday: null,

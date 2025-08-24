@@ -109,10 +109,6 @@ export async function POST(request: NextRequest) {
           author_name: DJ_ORKY_PROFILE.display_name,
           author_photo: DJ_ORKY_PROFILE.photo_url,
           visibility: 'public' as const,
-          likes_count: Math.floor(Math.random() * 30) + 20,
-          comments_count: Math.floor(Math.random() * 15) + 5,
-          shares_count: Math.floor(Math.random() * 10) + 2,
-          is_dj_post: true,
           created_at: new Date(Date.now() - (i * 30 * 60 * 1000)).toISOString()
         }
 
@@ -176,7 +172,6 @@ export async function GET(request: NextRequest) {
       .from('posts')
       .select('id, created_at')
       .eq('author', DJ_ORKY_PROFILE.id)
-      .eq('is_dj_post', true)
 
     if (postsError) {
       throw postsError

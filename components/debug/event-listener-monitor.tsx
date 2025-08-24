@@ -26,8 +26,8 @@ export function EventListenerMonitor() {
   const [listeners, setListeners] = useState<ListenerInfo[]>([])
   const [totalCount, setTotalCount] = useState(0)
 
-  // Só mostrar em desenvolvimento
-  if (process.env.NODE_ENV !== 'development') return null
+  // Mostrar sempre para teste (pode remover depois)
+  // if (process.env.NODE_ENV !== 'development') return null
 
   // Função para contar event listeners
   const countEventListeners = () => {

@@ -12,6 +12,7 @@ import { OrkutCard, OrkutCardContent, OrkutCardHeader } from '@/components/ui/or
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { CreateCommunityModal } from '@/components/communities/create-community-modal'
 import { supabase } from '@/lib/supabase'
 import { 
   Search, 
@@ -178,9 +179,29 @@ export default function CommunitiesPage() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-800 mb-2">Comunidades</h1>
-              <p className="text-gray-600">
+              <p className="text-gray-600 mb-4">
                 Encontre pessoas que compartilham seus interesses
               </p>
+              
+              {/* Mensagem motivadora */}
+              <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg p-4 border-l-4 border-purple-500">
+                <div className="flex items-start space-x-3">
+                  <span className="text-2xl">🚀</span>
+                  <div>
+                    <h3 className="font-semibold text-purple-800 mb-1">
+                      Bem-vindo ao coração do Novo Orkut!
+                    </h3>
+                    <p className="text-sm text-purple-700 mb-2">
+                      <strong>Aqui é onde a mágica acontece!</strong> Crie comunidades sobre seus hobbies, paixões e interesses. 
+                      Reúna pessoas incríveis, compartilhe conhecimento e faça parte de algo maior.
+                    </p>
+                    <p className="text-xs text-purple-600">
+                      💡 <strong>Dica:</strong> Seja o primeiro a criar a comunidade dos seus sonhos! 
+                      Torne-se moderador e ajude nossa plataforma a crescer. Vamos colocar nossa criação à prova! 💪
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="flex space-x-2 mt-4 md:mt-0">
               <Button 
@@ -189,10 +210,7 @@ export default function CommunitiesPage() {
               >
                 🎭 Criar "NÃO É CULPA NOSSA!"
               </Button>
-              <Button className="bg-purple-500 hover:bg-purple-600">
-                <Plus className="h-4 w-4 mr-2" />
-                Criar Comunidade
-              </Button>
+              <CreateCommunityModal onCommunityCreated={loadCommunities} />
             </div>
           </div>
 
@@ -267,7 +285,12 @@ export default function CommunitiesPage() {
             {viewMode === 'grid' ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredCommunities.map((community) => (
-                  <OrkutCard key={community.id} variant="community" className="hover:shadow-lg transition-shadow cursor-pointer">
+                  <OrkutCard 
+                    key={community.id} 
+                    variant="community" 
+                    className="hover:shadow-lg transition-shadow cursor-pointer"
+                    onClick={() => router.push(`/comunidades/${community.id}`)}
+                  >
                     <div className="p-4">
                       <div className="relative mb-4">
                         <img
@@ -372,10 +395,7 @@ export default function CommunitiesPage() {
                 <p className="text-gray-600 mb-4">
                   Tente ajustar seus filtros ou criar uma nova comunidade.
                 </p>
-                <Button className="bg-purple-500 hover:bg-purple-600">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Criar Nova Comunidade
-                </Button>
+                <CreateCommunityModal onCommunityCreated={loadCommunities} />
               </div>
             )}
           </>

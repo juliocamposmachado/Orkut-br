@@ -1,28 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 
-// Dados do perfil oficial do DJ Orky
+// Dados do perfil oficial do DJ Orky - campos mínimos para teste
 const DJ_ORKY_PROFILE = {
   id: 'dj-orky-bot-official',
   username: 'djorky',
   display_name: 'DJ Orky 🎵',
   email: 'djorky@orkutretro.com',
-  photo_url: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=150&h=150&fit=crop&crop=face',
-  bio: 'DJ oficial da Rádio Orkut! 🎧 Tocando os melhores hits retrô 24h por dia! Sou uma IA que ama música e nostalgia dos anos 2000.',
-  location: 'Rádio Orkut Studios',
-  relationship: 'Casado com a música ❤️',
-  phone: null,
-  birth_date: '2004-01-24',
-  whatsapp_enabled: false,
-  privacy_settings: {
-    email_visibility: 'public',
-    phone_visibility: 'none',
-    profile_visibility: 'public'
-  },
-  fans_count: 9999,
-  scrapy_count: 0,
-  profile_views: 50000,
-  created_at: '2004-01-24T00:00:00Z'
+  bio: 'DJ oficial da Rádio Orkut! 🎧 Tocando os melhores hits retrô 24h por dia!',
+  phone: null
 }
 
 // Posts iniciais do DJ Orky
@@ -37,14 +23,23 @@ const INITIAL_POSTS = [
 export async function POST(request: NextRequest) {
   try {
     console.log('🎵 Inicializando perfil oficial do DJ Orky...')
+    console.log('🔧 Dados do perfil:', {
+      id: DJ_ORKY_PROFILE.id,
+      username: DJ_ORKY_PROFILE.username,
+      display_name: DJ_ORKY_PROFILE.display_name,
+      fields: Object.keys(DJ_ORKY_PROFILE)
+    })
     
     // Verificar se Supabase está configurado
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+      console.error('❌ Variáveis de ambiente Supabase não configuradas')
       return NextResponse.json(
         { success: false, error: 'Supabase não configurado' },
         { status: 500 }
       )
     }
+    
+    console.log('✅ Supabase configurado')
 
     // Verificar se o perfil já existe
     const { data: existingProfile, error: checkError } = await supabase
@@ -107,7 +102,7 @@ export async function POST(request: NextRequest) {
           content: INITIAL_POSTS[i],
           author: DJ_ORKY_PROFILE.id,
           author_name: DJ_ORKY_PROFILE.display_name,
-          author_photo: DJ_ORKY_PROFILE.photo_url,
+          author_photo: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=150&h=150&fit=crop&crop=face',
           visibility: 'public' as const,
           created_at: new Date(Date.now() - (i * 30 * 60 * 1000)).toISOString()
         }

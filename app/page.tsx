@@ -398,14 +398,20 @@ export default function HomePage() {
                   >
                     <div className="relative w-full aspect-video flex flex-col items-center justify-center text-white overflow-hidden">
                       {/* Background image */}
-                      <div 
-                        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                        style={{
-                          backgroundImage: `url('https://i.ytimg.com/vi/Evbbtpavsuo/maxresdefault.jpg?sqp=-oaymwEmCIAKENAF8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGH8gEygaMA8=&rs=AOn4CLD1Ffb5W21keyPtr-CJhYH7XV3Sbg')`
+                      <img 
+                        src="https://i.ytimg.com/vi/Evbbtpavsuo/maxresdefault.jpg?sqp=-oaymwEmCIAKENAF8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGH8gEygaMA8=&rs=AOn4CLD1Ffb5W21keyPtr-CJhYH7XV3Sbg"
+                        alt="Juliette Psicose - Voices of The Forgotten"
+                        className="absolute inset-0 w-full h-full object-cover"
+                        crossOrigin="anonymous"
+                        onError={(e) => {
+                          console.log('Erro ao carregar imagem da playlist:', e)
+                          // Fallback para gradiente se a imagem não carregar
+                          e.currentTarget.style.display = 'none'
+                          e.currentTarget.parentElement!.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
                         }}
-                      ></div>
+                      />
                       {/* Dark overlay for better text readability */}
-                      <div className="absolute inset-0 bg-black bg-opacity-50"></div>
+                      <div className="absolute inset-0 bg-black bg-opacity-40"></div>
                       
                       {/* Content */}
                       <div className="relative z-10 text-center">

@@ -3,6 +3,9 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  typescript: {
+    ignoreBuildErrors: false,
+  },
   images: { 
     unoptimized: true,
     domains: ['images.pexels.com', 'woyyikaztjrhqzgvbhmn.supabase.co', 'static2.mytuner.mobi']

@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { supabase } from '@/lib/supabase'
 import { cookies } from 'next/headers'
 
 export async function GET() {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
     
     // Buscar usuários online (últimos 5 minutos)
     const { data, error } = await supabase
@@ -48,7 +47,6 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
     
     // Verificar se o usuário está autenticado
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -123,7 +121,6 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies })
     
     // Verificar se o usuário está autenticado
     const { data: { user }, error: authError } = await supabase.auth.getUser()

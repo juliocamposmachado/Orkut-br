@@ -1,5 +1,12 @@
 // Configurações cross-platform para Web, Mobile e Desktop
 
+// Declaração para suporte ao Electron
+declare global {
+  interface Window {
+    electronAPI?: any;
+  }
+}
+
 export interface PlatformConfig {
   platform: 'web' | 'mobile' | 'desktop';
   supabaseUrl: string;

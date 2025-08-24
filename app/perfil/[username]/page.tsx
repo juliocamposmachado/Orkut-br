@@ -71,6 +71,8 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
   const [friendshipStatus, setFriendshipStatus] = useState<string>('none');
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const [actionLoading, setActionLoading] = useState<string>('');
+  const [userPosts, setUserPosts] = useState<any[]>([]);
+  const [loadingPosts, setLoadingPosts] = useState(false);
   const [friends, setFriends] = useState<FriendItem[]>(() =>
     Array.from({ length: 8 }).map((_, idx) => ({
       id: `placeholder-${idx}`,
@@ -161,6 +163,66 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
       loadProfile();
     }
   }, [username]);
+  
+  // Carregar posts quando o perfil for carregado
+  useEffect(() => {
+    if (profile?.id || currentUser?.id) {
+      loadUserPosts();
+    }
+  }, [profile?.id, currentUser?.id]);
+  
+  // Listener para novos posts (atualizar perfil quando posts são criados)
+  useEffect(() => {
+    const handleNewPost = (event: Event) => {
+      console.log('📨 Novo post detectado no perfil!', (event as CustomEvent).detail);
+      // Recarregar posts do usuário
+      if (profile?.id || currentUser?.id) {
+        loadUserPosts();
+      }
+    };
+
+    window.addEventListener('new-post-created', handleNewPost);
+    return () => window.removeEventListener('new-post-created', handleNewPost);
+  }, [profile?.id, currentUser?.id]);
+
+  // Função para carregar posts do usuário
+  const loadUserPosts = async () => {
+    if (!profile?.id && !currentUser?.id) return;
+    
+    setLoadingPosts(true);
+    try {
+      console.log('🔍 Carregando posts do usuário:', profile?.display_name || currentUser?.display_name);
+      
+      const response = await fetch(`/api/posts-db`, {
+        method: 'GET',
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        
+        if (data.success && Array.isArray(data.posts)) {
+          // Filtrar posts apenas deste usuário
+          const currentUserId = profile?.id || currentUser?.id;
+          const userSpecificPosts = data.posts.filter((post: any) => 
+            post.author === currentUserId || 
+            post.author === username || 
+            (currentUser && post.author === currentUser.id)
+          );
+          
+          console.log(`✅ Posts do usuário carregados:`, userSpecificPosts.length);
+          setUserPosts(userSpecificPosts.slice(0, 10)); // Últimos 10 posts
+        }
+      }
+    } catch (error) {
+      console.error('❌ Erro ao carregar posts do usuário:', error);
+    } finally {
+      setLoadingPosts(false);
+    }
+  };
 
   const loadProfile = async () => {
     try {
@@ -653,14 +715,107 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
               <OrkutCardHeader>
                 <div className="flex items-center space-x-2">
                   <MessageCircle className="h-4 w-4" />
-                  <span>Atividades Recentes</span>
+                  <span>Atividades Recentes ({userPosts.length})</span>
                 </div>
               </OrkutCardHeader>
               <OrkutCardContent>
-                <div className="text-center py-8 text-gray-500">
-                  <p className="mb-4">Nenhuma atividade recente</p>
-                  <p className="text-sm">Em breve: posts, fotos e scraps!</p>
-                </div>
+                {loadingPosts ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600 mx-auto mb-2"></div>
+                    <p className="text-sm text-gray-500">Carregando atividades...</p>
+                  </div>
+                ) : userPosts.length > 0 ? (
+                  <div className="space-y-4">
+                    {userPosts.map((post) => (
+                      <div key={post.id} className="border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-start space-x-3">
+                          <Avatar className="h-8 w-8 flex-shrink-0">
+                            <AvatarImage 
+                              src={post.author_photo || profile.photo_url || undefined} 
+                              alt={post.author_name || profile.display_name} 
+                            />
+                            <AvatarFallback className="text-xs bg-purple-500 text-white">
+                              {(post.author_name || profile.display_name)?.charAt(0)?.toUpperCase() || '?'}
+                            </AvatarFallback>
+                          </Avatar>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <h4 className="font-medium text-sm text-gray-800 truncate">
+                                {post.author_name || profile.display_name}
+                              </h4>
+                              <span className="text-xs text-gray-500">
+                                {new Date(post.created_at).toLocaleDateString('pt-BR', {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: '2-digit'
+                                })}
+                              </span>
+                            </div>
+                            
+                            <p className="text-sm text-gray-700 mb-2 break-words">
+                              {post.content}
+                            </p>
+                            
+                            <div className="flex items-center space-x-4 text-xs text-gray-500">
+                              <span className="flex items-center space-x-1">
+                                <Heart className="h-3 w-3" />
+                                <span>{post.likes_count || 0}</span>
+                              </span>
+                              <span className="flex items-center space-x-1">
+                                <MessageCircle className="h-3 w-3" />
+                                <span>{post.comments_count || 0}</span>
+                              </span>
+                              {post.shares_count > 0 && (
+                                <span className="flex items-center space-x-1">
+                                  <Send className="h-3 w-3" />
+                                  <span>{post.shares_count}</span>
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {userPosts.length >= 10 && (
+                      <div className="text-center pt-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                          onClick={() => alert('Funcionalidade de "Ver Mais" será implementada!')}
+                        >
+                          Ver Mais Posts
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <MessageCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                    <p className="mb-2">
+                      {isOwnProfile 
+                        ? 'Você ainda não fez nenhum post!' 
+                        : `${profile.display_name} ainda não fez posts`}
+                    </p>
+                    <p className="text-sm">
+                      {isOwnProfile 
+                        ? 'Que tal criar seu primeiro post?' 
+                        : 'Volte depois para ver as novidades!'}
+                    </p>
+                    {isOwnProfile && (
+                      <Link href="/">
+                        <Button 
+                          size="sm"
+                          className="mt-3 bg-purple-500 hover:bg-purple-600"
+                        >
+                          Criar Meu Primeiro Post
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
+                )}
               </OrkutCardContent>
             </OrkutCard>
             

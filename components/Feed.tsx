@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { PostCard, Post } from "./PostCard"
 import { CreatePost } from './CreatePost'
 import SmartMusicCard from './SmartMusicCard'
-import { djOrkyService } from '@/lib/dj-orky-service'
 import { useAuth } from '@/contexts/enhanced-auth-context'
 import { OrkutCard, OrkutCardContent } from '@/components/ui/orkut-card'
 import { Button } from '@/components/ui/button'
@@ -115,24 +114,9 @@ export function Feed() {
     }
   }
 
-  // Inicializar DJ Orky e carregar posts
+  // Carregar posts
   useEffect(() => {
-    const initialize = async () => {
-      try {
-        // Sempre inicializar DJ Orky se não estiver ativo
-        console.log('🎵 Inicializando DJ Orky...')
-        
-        if (!djOrkyService.isActivePosting()) {
-          await djOrkyService.startAutoPosting()
-        }
-      } catch (error) {
-        console.warn('⚠️ Erro ao inicializar DJ Orky:', error)
-      }
-      
-      loadPosts()
-    }
-
-    initialize()
+    loadPosts()
 
     // Listener para novos posts
     const handleNewPost = (event: Event) => {

@@ -38,8 +38,8 @@ const SmartMusicCard: React.FC = () => {
       const data = await response.json()
       
       // Extrair informações da música atual
-      if (data.current_song) {
-        const [artist, song] = data.current_song.split(' - ')
+      if (data.currentSong) {
+        const [artist, song] = data.currentSong.split(' - ')
         return {
           artist: artist?.trim() || 'Artista Desconhecido',
           song: song?.trim() || 'Música Desconhecida',

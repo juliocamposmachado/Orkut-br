@@ -377,57 +377,54 @@ export default function HomePage() {
             {/* Minhas Playlists */}
             <OrkutCard>
               <OrkutCardHeader>
-                <span className="text-gray-600 text-sm font-medium">Minhas Playlists</span>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600 text-sm font-medium">Minhas Playlists</span>
+                  <div className="bg-red-600 px-2 py-1 rounded text-white text-xs font-bold">
+                    YouTube
+                  </div>
+                </div>
               </OrkutCardHeader>
               <OrkutCardContent className="p-0">
-                <div 
-                  className="relative overflow-hidden rounded-lg cursor-pointer group hover:shadow-lg transition-all duration-300"
-                  onClick={() => window.open('https://www.youtube.com/playlist?list=PLkm4QB9CKklpa5tej_S5yL-VM59O7mshE', '_blank')}
-                >
-                  {/* Thumbnail do YouTube */}
-                  <div className="relative">
-                    <img 
-                      src="https://img.youtube.com/vi/videoseries?list=PLkm4QB9CKklpa5tej_S5yL-VM59O7mshE/maxresdefault.jpg"
-                      alt="Juliette Psicose - Voices of The Forgotten"
-                      className="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300"
-                      onError={(e) => {
-                        // Fallback para imagem padrão se a thumbnail não carregar
-                        e.currentTarget.src = 'https://img.youtube.com/vi/videoseries?list=PLkm4QB9CKklpa5tej_S5yL-VM59O7mshE/hqdefault.jpg'
-                      }}
-                    />
-                    {/* Overlay gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                    
-                    {/* Play button overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <div className="w-12 h-12 bg-red-600 bg-opacity-90 rounded-full flex items-center justify-center shadow-lg">
-                        <svg className="w-5 h-5 text-white ml-1" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M8 5v14l11-7z"/>
-                        </svg>
-                      </div>
-                    </div>
-                    
-                    {/* YouTube logo */}
-                    <div className="absolute top-2 right-2">
-                      <div className="bg-red-600 px-2 py-1 rounded text-white text-xs font-bold">
-                        YouTube
-                      </div>
-                    </div>
+                <div className="relative">
+                  {/* Iframe do YouTube */}
+                  <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                    <iframe 
+                      className="absolute top-0 left-0 w-full h-full rounded-b-lg"
+                      src="https://www.youtube.com/embed/videoseries?si=1DPOmbsxDZHBfFui&list=PLkm4QB9CKklpa5tej_S5yL-VM59O7mshE"
+                      title="Juliette Psicose - Voices of The Forgotten"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      referrerPolicy="strict-origin-when-cross-origin"
+                      allowFullScreen
+                    ></iframe>
                   </div>
                   
                   {/* Informações da playlist */}
-                  <div className="p-3">
-                    <h3 className="font-semibold text-gray-800 text-sm mb-1 group-hover:text-red-600 transition-colors">
+                  <div className="p-3 bg-white">
+                    <h3 className="font-semibold text-gray-800 text-sm mb-1">
                       Juliette Psicose
                     </h3>
                     <p className="text-gray-500 text-xs mb-2">
                       Voices of The Forgotten
                     </p>
-                    <div className="flex items-center space-x-2 text-xs text-gray-400">
-                      <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
-                      </svg>
-                      <span>Playlist</span>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2 text-xs text-gray-400">
+                        <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                        </svg>
+                        <span>Playlist</span>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="text-red-600 hover:bg-red-50 px-2 py-1 h-auto text-xs"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          window.open('https://www.youtube.com/playlist?list=PLkm4QB9CKklpa5tej_S5yL-VM59O7mshE', '_blank')
+                        }}
+                      >
+                        Ver no YouTube
+                      </Button>
                     </div>
                   </div>
                 </div>

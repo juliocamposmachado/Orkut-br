@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Music, Radio, Sparkles, Clock, RefreshCw } from 'lucide-react'
+import { Loader2, Music, Radio, Sparkles, Clock, RefreshCw, ExternalLink } from 'lucide-react'
 
 interface CurrentSong {
   artist: string
@@ -150,6 +150,12 @@ const SmartMusicCard: React.FC = () => {
     updateMusicCard()
   }
 
+  // Função para abrir o site da rádio (mesmo do RadioWidget)
+  const openRadioWebsite = () => {
+    const radioWebsite = "https://radiotatuapefm.radiostream321.com/"
+    window.open(radioWebsite, '_blank', 'noopener,noreferrer')
+  }
+
   if (loading) {
     return (
       <Card className="w-full mb-6 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-700">
@@ -268,6 +274,25 @@ const SmartMusicCard: React.FC = () => {
                 Gemini AI
               </Badge>
             </div>
+          </div>
+
+          {/* Botão Ouvir Rádio */}
+          <div className="mt-4 pt-3 border-t border-purple-200/50">
+            <button
+              onClick={openRadioWebsite}
+              className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.02] shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
+              title="Clique para ouvir no site da rádio"
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+              </svg>
+              <span>Ouvir Rádio</span>
+              <ExternalLink className="w-4 h-4" />
+            </button>
+            
+            <p className="text-xs text-gray-500 text-center mt-2">
+              Abre o player externo da rádio
+            </p>
           </div>
         </div>
       </CardContent>

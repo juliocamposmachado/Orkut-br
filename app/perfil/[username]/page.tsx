@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { getUserPhotos, getRecentPhotos, getDefaultPhotos } from '@/data/profile-photos';
+import { OnlineStatusToggle } from '@/components/profile/online-status-toggle';
 
 interface UserProfile {
   id: string;
@@ -390,14 +391,8 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                   <h3 className="font-bold text-gray-800 text-lg mb-1">{profile.display_name}</h3>
                   <p className="text-sm text-gray-600 mb-3">@{profile.username}</p>
                   
-                  {/* User Status/Mood - apenas no próprio perfil */}
-                  {isOwnProfile && (
-                    <div className="mb-4">
-                      <Badge variant="secondary" className="bg-green-100 text-green-700">
-                        😊 Online
-                      </Badge>
-                    </div>
-                  )}
+                  {/* Status Online/Offline Toggle */}
+                  <OnlineStatusToggle isOwnProfile={isOwnProfile} className="mb-4" />
                   
                   <p className="text-sm text-gray-700 mb-4">{profile.relationship || 'Solteiro(a)'}</p>
                   

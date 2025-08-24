@@ -120,10 +120,9 @@ export function Feed() {
       try {
         // Sempre inicializar DJ Orky se não estiver ativo
         console.log('🎵 Inicializando DJ Orky...')
-        await djOrkyService.createInitialPosts()
-
+        
         if (!djOrkyService.isActivePosting()) {
-          djOrkyService.startAutoPosting()
+          await djOrkyService.startAutoPosting()
         }
       } catch (error) {
         console.warn('⚠️ Erro ao inicializar DJ Orky:', error)

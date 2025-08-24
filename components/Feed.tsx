@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { PostCard, Post } from "./PostCard"
 import { CreatePost } from './CreatePost'
+import SmartMusicCard from './SmartMusicCard'
 import { djOrkyService } from '@/lib/dj-orky-service'
 import { useAuth } from '@/contexts/enhanced-auth-context'
 import { OrkutCard, OrkutCardContent } from '@/components/ui/orkut-card'
@@ -184,6 +185,9 @@ export function Feed() {
     <div className="space-y-6">
       {/* Área para criar post */}
       <CreatePost onPostCreated={loadPosts} />
+      
+      {/* DJ Orky Smart Music Card - informações inteligentes sobre a música atual */}
+      <SmartMusicCard />
       
       {/* Feed de posts */}
       {posts.length > 0 ? (

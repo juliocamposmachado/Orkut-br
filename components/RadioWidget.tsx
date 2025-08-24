@@ -98,7 +98,7 @@ const RadioTatuapeWidget: React.FC<RadioWidgetProps> = ({
   };
 
   return (
-    <div className={`bg-white rounded-lg shadow-lg border overflow-hidden ${className}`}>
+    <div className={`bg-white rounded-lg shadow-lg border overflow-hidden ${className}`} data-radio-player>
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white">
         <div className="flex items-center space-x-3">

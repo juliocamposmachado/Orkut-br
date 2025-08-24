@@ -69,28 +69,14 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
   const loadVoiceSettings = async () => {
     if (!user) return
 
-    if (supabase) {
-      try {
-        const { data } = await supabase
-          .from('settings')
-          .select('voice_enabled')
-          .eq('profile_id', user.id)
-          .single()
-
-        if (data?.voice_enabled) {
-          setIsVoiceEnabled(true)
-        }
-      } catch (error) {
-        console.warn('Erro ao carregar configurações de voz do Supabase (usando localStorage):', error)
-        // Fallback para localStorage
-        const voiceEnabled = localStorage.getItem('voice_enabled') === 'true'
-        setIsVoiceEnabled(voiceEnabled)
-      }
-    } else {
-      // Modo desenvolvimento/fallback - usar localStorage diretamente
-      console.log('Supabase não configurado, usando localStorage para configurações de voz')
+    // Por enquanto, usar apenas localStorage até criarmos a tabela settings
+    try {
       const voiceEnabled = localStorage.getItem('voice_enabled') === 'true'
       setIsVoiceEnabled(voiceEnabled)
+      console.log('✅ Configurações de voz carregadas do localStorage')
+    } catch (error) {
+      console.warn('Erro ao carregar configurações de voz:', error)
+      setIsVoiceEnabled(false)
     }
   }
 
@@ -130,18 +116,9 @@ export function VoiceProvider({ children }: VoiceProviderProps) {
     try {
       const newValue = !isVoiceEnabled
 
-      // Update settings in database or localStorage
-      if (supabase) {
-        await supabase
-          .from('settings')
-          .upsert({ 
-            profile_id: user.id, 
-            voice_enabled: newValue 
-          })
-      } else {
-        // Fallback para localStorage
-        localStorage.setItem('voice_enabled', newValue.toString())
-      }
+      // Por enquanto, salvar apenas no localStorage
+      localStorage.setItem('voice_enabled', newValue.toString())
+      console.log('✅ Configurações de voz salvas no localStorage')
 
       setIsVoiceEnabled(newValue)
 

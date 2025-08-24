@@ -58,19 +58,25 @@ export const OnlineStatusProvider: React.FC<{ children: React.ReactNode }> = ({ 
   useEffect(() => {
     if (user && !socket) {
       try {
+        console.log('🔌 Conectando ao servidor WebSocket...')
+        
         const socketUrl = process.env.NODE_ENV === 'production' 
-          ? 'https://orkut-br.vercel.app'
+          ? 'https://orkut-br-oficial.vercel.app'
           : 'http://localhost:5001';
         
         const newSocket = io(socketUrl, {
-          path: process.env.NODE_ENV === 'production' ? '/api/signaling' : '/socket.io',
-          timeout: 10000,
-          retries: 3,
+          path: '/api/signaling',
+          timeout: 15000,
+          retries: 5,
           auth: {
             userId: user.id,
             userName: profile?.display_name || user.email || 'Usuário'
           },
-          transports: ['websocket', 'polling']
+          transports: ['websocket', 'polling'],
+          forceNew: false,
+          reconnection: true,
+          reconnectionDelay: 1000,
+          reconnectionAttempts: 5
         });
 
       newSocket.on('connect', () => {

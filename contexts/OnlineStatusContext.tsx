@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from '@/contexts/enhanced-auth-context'
+import { supabase } from '@/lib/supabase'
 
 interface OnlineUser {
   userId: string;
@@ -22,6 +23,29 @@ interface OnlineStatusContextType {
 }
 
 const OnlineStatusContext = createContext<OnlineStatusContextType | undefined>(undefined);
+
+// Função para atualizar presença usando UPSERT do banco
+const updateUserPresence = async (
+  userId: string, 
+  isOnline: boolean, 
+  status: 'online' | 'away' | 'busy' | 'offline',
+  deviceInfo: any = {}
+) => {
+  try {
+    const { error } = await supabase.rpc('upsert_user_presence', {
+      p_user_id: userId,
+      p_is_online: isOnline,
+      p_status: status,
+      p_device_info: deviceInfo
+    });
+    
+    if (error) {
+      console.warn('Erro ao atualizar presença:', error);
+    }
+  } catch (error) {
+    console.warn('Erro ao atualizar presença:', error);
+  }
+};
 
 export const OnlineStatusProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, profile } = useAuth();
@@ -53,7 +77,9 @@ export const OnlineStatusProvider: React.FC<{ children: React.ReactNode }> = ({ 
         console.log('Conectado ao servidor de status online');
         setIsConnected(true);
         
-        // Registrar usuário como online
+        // Registrar usuário como online usando UPSERT
+        updateUserPresence(user.id, true, 'online');
+        
         newSocket.emit('join', {
           userId: user.id,
           userName: profile?.display_name || user.email || 'Usuário'

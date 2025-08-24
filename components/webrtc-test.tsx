@@ -169,24 +169,60 @@ export function WebRTCTest() {
     if (!user) return
 
     try {
-      const { error } = await supabase
-        .from('user_presence')
-        .upsert({
-          user_id: user.id,
-          is_online: true,
-          last_seen: new Date().toISOString()
-        })
+      // Tentar usar a função RPC primeiro
+      let { error } = await supabase.rpc('upsert_user_presence', {
+        p_user_id: user.id,
+        p_is_online: true,
+        p_status: 'online'
+      })
+
+      // Se RPC falhar, tentar UPSERT manual
+      if (error) {
+        console.warn('RPC falhou, tentando UPSERT manual:', error)
+        const { error: upsertError } = await supabase
+          .from('user_presence')
+          .upsert({
+            user_id: user.id,
+            is_online: true,
+            last_seen: new Date().toISOString()
+          }, {
+            onConflict: 'user_id'
+          })
+        error = upsertError
+      }
 
       if (error) {
         console.error('Erro ao criar presença:', error)
-        alert('Erro ao criar presença do usuário')
+        alert(`Erro ao criar presença do usuário: ${error.message}`)
       } else {
-        alert('Presença do usuário criada/atualizada com sucesso!')
-        runTests() // Re-run tests
+        alert('✅ Presença do usuário criada/atualizada com sucesso!')
+        // Re-run tests and refresh context
+        runTests()
+        // Force refresh the WebRTC context
+        if (typeof window !== 'undefined') {
+          window.location.reload()
+        }
       }
     } catch (error) {
       console.error('Erro:', error)
       alert('Erro na operação')
+    }
+  }
+
+  const forceRefreshPresence = async () => {
+    if (!user) return
+
+    try {
+      // Primeiro, marcar como online
+      await createTestUser()
+      
+      // Aguardar um pouco
+      setTimeout(() => {
+        // Recarregar a página para forçar reconexão
+        window.location.reload()
+      }, 1000)
+    } catch (error) {
+      console.error('Erro ao atualizar presença:', error)
     }
   }
 

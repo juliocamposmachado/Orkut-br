@@ -217,6 +217,59 @@ export default function FriendsPage() {
 
       if (error) throw error
 
+      // Get the friend's profile info for notification
+      const friendInfo = searchResults.find(friend => friend.id === friendId)
+      
+      if (friendInfo) {
+        // Create real notification for friend request
+        try {
+          const notificationData = {
+            profile_id: friendId,
+            type: 'friend_request',
+            payload: {
+              from_user: {
+                id: user.id,
+                display_name: profile?.display_name || user.email || '',
+                photo_url: profile?.photo_url || null,
+                username: profile?.username || user.email?.split('@')[0] || ''
+              },
+              action_url: `/perfil/${profile?.username || user.email?.split('@')[0] || ''}`
+            },
+            read: false
+          }
+
+          // Try to insert notification in database
+          const { error: notificationError } = await supabase
+            .from('notifications')
+            .insert(notificationData)
+            
+          if (notificationError) {
+            console.warn('Failed to create notification in database:', notificationError)
+            // Fallback: add to local storage for the target user
+            const existingNotifications = JSON.parse(
+              localStorage.getItem(`notifications_${friendId}`) || '[]'
+            )
+            
+            const localNotification = {
+              id: Date.now().toString(),
+              type: 'friend_request',
+              title: 'Solicitação de amizade',
+              message: 'enviou uma solicitação de amizade',
+              read: false,
+              created_at: new Date().toISOString(),
+              from_user: notificationData.payload.from_user
+            }
+            
+            const updatedNotifications = [localNotification, ...existingNotifications].slice(0, 50)
+            localStorage.setItem(`notifications_${friendId}`, JSON.stringify(updatedNotifications))
+          } else {
+            console.log('✅ Friend request notification created successfully')
+          }
+        } catch (notificationError) {
+          console.warn('Error creating friend request notification:', notificationError)
+        }
+      }
+
       // Update search results
       setSearchResults(prev => prev.map(friend => 
         friend.id === friendId 

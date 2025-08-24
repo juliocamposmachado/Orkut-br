@@ -134,15 +134,85 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
     if (!user) return
     
     try {
-      await supabase
+      console.log(`🔄 Atualizando status para: ${isOnline ? 'online' : 'offline'}`)
+      
+      // Primeiro, tentar usar a função UPSERT se existir
+      try {
+        const { error: rpcError } = await supabase.rpc('upsert_user_presence', {
+          p_user_id: user.id,
+          p_is_online: isOnline,
+          p_status: isOnline ? 'online' : 'offline',
+          p_device_info: {
+            platform: 'web',
+            user_agent: navigator.userAgent,
+            timestamp: new Date().toISOString()
+          }
+        })
+        
+        if (!rpcError) {
+          console.log('✅ Status atualizado via função RPC')
+          return
+        } else {
+          console.warn('⚠️ RPC falhou, tentando UPSERT manual:', rpcError)
+        }
+      } catch (rpcError) {
+        console.warn('⚠️ RPC não disponível, usando UPSERT manual')
+      }
+      
+      // Fallback: UPSERT manual
+      const { error } = await supabase
         .from('user_presence')
         .upsert({
           user_id: user.id,
           is_online: isOnline,
-          last_seen: new Date().toISOString()
+          last_seen: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
         })
+      
+      if (error) {
+        console.error('❌ Erro no UPSERT manual:', error)
+        
+        // Último fallback: INSERT ou UPDATE separado
+        try {
+          const { error: insertError } = await supabase
+            .from('user_presence')
+            .insert({
+              user_id: user.id,
+              is_online: isOnline,
+              last_seen: new Date().toISOString()
+            })
+            
+          if (insertError && insertError.code === '23505') { // Conflict
+            // Tentar UPDATE
+            const { error: updateError } = await supabase
+              .from('user_presence')
+              .update({
+                is_online: isOnline,
+                last_seen: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              })
+              .eq('user_id', user.id)
+              
+            if (updateError) {
+              console.error('❌ Erro no UPDATE final:', updateError)
+            } else {
+              console.log('✅ Status atualizado via UPDATE')
+            }
+          } else if (!insertError) {
+            console.log('✅ Status criado via INSERT')
+          } else {
+            console.error('❌ Erro no INSERT final:', insertError)
+          }
+        } catch (finalError) {
+          console.error('❌ Erro no fallback final:', finalError)
+        }
+      } else {
+        console.log('✅ Status atualizado via UPSERT manual')
+      }
     } catch (error) {
-      console.error('Error updating online status:', error)
+      console.error('❌ Erro geral ao atualizar status online:', error)
     }
   }
   

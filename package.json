@@ -10,7 +10,16 @@
     "deploy": "vercel --prod",
     "deploy-preview": "vercel",
     "clean": "powershell -Command \"if (Test-Path '.next') { Remove-Item -Recurse -Force '.next' }; if (Test-Path 'node_modules/.cache') { Remove-Item -Recurse -Force 'node_modules/.cache' }\"",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "export": "next export",
+    "setup:cross-platform": "powershell -ExecutionPolicy Bypass -File ./setup-cross-platform.ps1",
+    "build:all": "powershell -ExecutionPolicy Bypass -File ./scripts/build-all-platforms.ps1 -All",
+    "build:web": "npm run build && npm run export",
+    "build:desktop": "powershell -ExecutionPolicy Bypass -File ./scripts/build-all-platforms.ps1 -Desktop",
+    "build:mobile": "powershell -ExecutionPolicy Bypass -File ./scripts/build-all-platforms.ps1 -Mobile",
+    "test:all": "powershell -ExecutionPolicy Bypass -File ./scripts/test-all-platforms.ps1 -All",
+    "dev:desktop": "cd desktop && npm run dev",
+    "dev:mobile": "cd mobile && npm start"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

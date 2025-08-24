@@ -241,14 +241,80 @@ export async function PUT(request: NextRequest) {
         let updateData: any = {}
         
         if (action === 'like') {
-          // Primeiro buscar o post atual para incrementar
+          // Primeiro buscar o post atual para incrementar e obter dados do autor
           const { data: currentPost } = await supabase
             .from('posts')
-            .select('likes_count')
+            .select('likes_count, author, author_name, content')
             .eq('id', post_id)
             .single()
           
           updateData.likes_count = (currentPost?.likes_count || 0) + 1
+
+          // Criar notificação para o autor do post se não for ele mesmo curtindo
+          if (currentPost && currentPost.author !== user_id) {
+            try {
+              // Buscar dados do usuário que curtiu
+              const { data: userProfile } = await supabase
+                .from('profiles')
+                .select('display_name, photo_url, username')
+                .eq('id', user_id)
+                .single()
+
+              if (userProfile) {
+                const notificationData = {
+                  profile_id: currentPost.author,
+                  type: 'like',
+                  payload: {
+                    from_user: {
+                      id: user_id,
+                      display_name: userProfile.display_name || userProfile.username || '',
+                      photo_url: userProfile.photo_url,
+                      username: userProfile.username || ''
+                    },
+                    post: {
+                      id: post_id,
+                      content: currentPost.content || ''
+                    },
+                    action_url: `/post/${post_id}`
+                  },
+                  read: false
+                }
+
+                // Tentar inserir notificação no banco
+                const { error: notificationError } = await supabase
+                  .from('notifications')
+                  .insert(notificationData)
+                  
+                if (notificationError) {
+                  console.warn('Failed to create like notification in database:', notificationError)
+                  // Fallback: add to local storage for the target user
+                  const existingNotifications = JSON.parse(
+                    (typeof localStorage !== 'undefined' ? localStorage.getItem(`notifications_${currentPost.author}`) : null) || '[]'
+                  )
+                  
+                  const localNotification = {
+                    id: Date.now().toString(),
+                    type: 'like',
+                    title: 'Curtiu seu post',
+                    message: 'curtiu seu post',
+                    read: false,
+                    created_at: new Date().toISOString(),
+                    from_user: notificationData.payload.from_user,
+                    post: notificationData.payload.post
+                  }
+                  
+                  const updatedNotifications = [localNotification, ...existingNotifications].slice(0, 50)
+                  if (typeof localStorage !== 'undefined') {
+                    localStorage.setItem(`notifications_${currentPost.author}`, JSON.stringify(updatedNotifications))
+                  }
+                } else {
+                  console.log('✅ Like notification created successfully')
+                }
+              }
+            } catch (notificationError) {
+              console.warn('Error creating like notification:', notificationError)
+            }
+          }
         } else if (action === 'comment') {
           const { data: currentPost } = await supabase
             .from('posts')

@@ -70,96 +70,95 @@ export function NotificationsDropdown() {
     }
   }, [])
 
-  // Load notifications from localStorage (fallback system)
-  const loadNotifications = () => {
+  // Load notifications from database and localStorage fallback
+  const loadNotifications = async () => {
     if (!user) return
 
+    setIsLoading(true)
     try {
-      const saved = localStorage.getItem(`notifications_${user.id}`)
-      if (saved) {
-        const parsed = JSON.parse(saved)
-        setNotifications(parsed)
-        setUnreadCount(parsed.filter((n: Notification) => !n.read).length)
-      } else {
-        // Generate some sample notifications for demonstration
-        const sampleNotifications: Notification[] = [
-          {
-            id: '1',
-            type: 'like',
-            title: 'Curtiu seu post',
-            message: 'curtiu seu post sobre tecnologia',
-            read: false,
-            created_at: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-            from_user: {
-              id: 'user1',
-              display_name: 'Maria Silva',
-              photo_url: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=100',
-              username: 'maria'
-            },
-            post: {
-              id: 1,
-              content: 'Hoje foi um dia incrível aprendendo sobre tecnologia!'
-            }
-          },
-          {
-            id: '2',
-            type: 'comment',
-            title: 'Comentou no seu post',
-            message: 'comentou: "Muito interessante! Parabéns!"',
-            read: false,
-            created_at: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-            from_user: {
-              id: 'user2',
-              display_name: 'João Santos',
-              photo_url: 'https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=100',
-              username: 'joao'
-            },
-            post: {
-              id: 2,
-              content: 'Compartilhando algumas reflexões sobre a vida...'
-            }
-          },
-          {
-            id: '3',
-            type: 'share',
-            title: 'Compartilhou seu post',
-            message: 'compartilhou seu post no feed dela',
-            read: true,
-            created_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-            from_user: {
-              id: 'user3',
-              display_name: 'Ana Costa',
-              photo_url: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=100',
-              username: 'ana'
-            },
-            post: {
-              id: 3,
-              content: 'Foto do pôr do sol hoje na praia 🌅'
-            }
-          },
-          {
-            id: '4',
-            type: 'friend_request',
-            title: 'Solicitação de amizade',
-            message: 'enviou uma solicitação de amizade',
-            read: false,
-            created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-            from_user: {
-              id: 'user4',
-              display_name: 'Pedro Lima',
-              photo_url: 'https://images.pexels.com/photos/262391/pexels-photo-262391.jpeg?auto=compress&cs=tinysrgb&w=100',
-              username: 'pedro'
-            }
-          }
-        ]
+      let loadedNotifications: Notification[] = []
 
-        setNotifications(sampleNotifications)
-        setUnreadCount(sampleNotifications.filter(n => !n.read).length)
-        localStorage.setItem(`notifications_${user.id}`, JSON.stringify(sampleNotifications))
+      // Try to load from database first
+      if (supabase) {
+        try {
+          const { data: dbNotifications, error } = await supabase
+            .from('notifications')
+            .select('*')
+            .eq('profile_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(50)
+
+          if (!error && dbNotifications) {
+            // Transform database notifications to component format
+            loadedNotifications = dbNotifications.map(dbNotif => ({
+              id: dbNotif.id.toString(),
+              type: dbNotif.type,
+              title: getNotificationTitle(dbNotif.type),
+              message: getNotificationMessage(dbNotif.type, dbNotif.payload?.from_user?.display_name || ''),
+              read: dbNotif.read || false,
+              created_at: dbNotif.created_at,
+              from_user: {
+                id: dbNotif.payload?.from_user?.id || '',
+                display_name: dbNotif.payload?.from_user?.display_name || '',
+                photo_url: dbNotif.payload?.from_user?.photo_url || null,
+                username: dbNotif.payload?.from_user?.username || ''
+              },
+              post: dbNotif.payload?.post ? {
+                id: dbNotif.payload.post.id,
+                content: dbNotif.payload.post.content
+              } : undefined
+            }))
+            
+            console.log(`✅ Loaded ${loadedNotifications.length} notifications from database`)
+          } else {
+            console.warn('Database notifications failed:', error?.message)
+          }
+        } catch (dbError) {
+          console.warn('Database error, trying localStorage:', dbError)
+        }
       }
+
+      // Fallback to localStorage if no database notifications
+      if (loadedNotifications.length === 0) {
+        const saved = localStorage.getItem(`notifications_${user.id}`)
+        if (saved) {
+          loadedNotifications = JSON.parse(saved)
+          console.log(`📦 Loaded ${loadedNotifications.length} notifications from localStorage`)
+        }
+      }
+
+      setNotifications(loadedNotifications)
+      setUnreadCount(loadedNotifications.filter((n: Notification) => !n.read).length)
     } catch (error) {
       console.error('Error loading notifications:', error)
+      setNotifications([])
+      setUnreadCount(0)
+    } finally {
+      setIsLoading(false)
     }
+  }
+
+  // Helper functions for notification titles and messages
+  const getNotificationTitle = (type: string): string => {
+    const titles: Record<string, string> = {
+      'like': 'Curtiu seu post',
+      'comment': 'Comentou no seu post',
+      'share': 'Compartilhou seu post',
+      'friend_request': 'Solicitação de amizade',
+      'mention': 'Mencionou você'
+    }
+    return titles[type] || 'Nova notificação'
+  }
+
+  const getNotificationMessage = (type: string, userName: string): string => {
+    const messages: Record<string, string> = {
+      'like': 'curtiu seu post',
+      'comment': 'comentou em seu post',
+      'share': 'compartilhou seu post',
+      'friend_request': 'enviou uma solicitação de amizade',
+      'mention': 'mencionou você'
+    }
+    return messages[type] || 'nova atividade'
   }
 
   useEffect(() => {

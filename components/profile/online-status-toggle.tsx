@@ -25,9 +25,11 @@ export function OnlineStatusToggle({ isOwnProfile, className }: OnlineStatusTogg
       markAsOnline()
       
       // Salvar preferência no localStorage
-      const storedStatus = localStorage.getItem(`user_online_status_${user.id}`)
-      if (storedStatus) {
-        setIsOnline(storedStatus === 'true')
+      if (typeof localStorage !== 'undefined') {
+        const storedStatus = localStorage.getItem(`user_online_status_${user.id}`)
+        if (storedStatus) {
+          setIsOnline(storedStatus === 'true')
+        }
       }
     }
   }, [user, isOwnProfile])
@@ -46,8 +48,12 @@ export function OnlineStatusToggle({ isOwnProfile, className }: OnlineStatusTogg
         })
       })
       
-      if (response.ok) {
+      const result = await response.json()
+      
+      if (response.ok && result.success) {
         console.log('✅ Usuário marcado como online')
+      } else {
+        console.warn('⚠️ Erro ao marcar como online:', result.error || 'Erro desconhecido')
       }
     } catch (error) {
       console.warn('⚠️ Erro ao marcar como online:', error)
@@ -68,8 +74,12 @@ export function OnlineStatusToggle({ isOwnProfile, className }: OnlineStatusTogg
         })
       })
       
-      if (response.ok) {
+      const result = await response.json()
+      
+      if (response.ok && result.success) {
         console.log('✅ Usuário marcado como offline')
+      } else {
+        console.warn('⚠️ Erro ao marcar como offline:', result.error || 'Erro desconhecido')
       }
     } catch (error) {
       console.warn('⚠️ Erro ao marcar como offline:', error)
@@ -94,7 +104,9 @@ export function OnlineStatusToggle({ isOwnProfile, className }: OnlineStatusTogg
       setIsOnline(newStatus)
       
       // Salvar preferência no localStorage
-      localStorage.setItem(`user_online_status_${user.id}`, newStatus.toString())
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem(`user_online_status_${user.id}`, newStatus.toString())
+      }
 
       // Mostrar feedback
       toast.success(

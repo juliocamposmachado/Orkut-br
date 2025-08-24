@@ -62,10 +62,16 @@ export async function POST(request: NextRequest) {
     const { action } = body
 
     if (action === 'mark_online') {
-      // Marcar usuário como online
-      const { error } = await supabase.rpc('simple_mark_online', {
-        p_user_id: user.id
-      })
+      // Marcar usuário como online usando UPSERT
+      const { error } = await supabase
+        .from('user_presence')
+        .upsert({
+          user_id: user.id,
+          is_online: true,
+          last_seen: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        })
 
       if (error) {
         console.error('Erro ao marcar como online:', error)
@@ -81,14 +87,16 @@ export async function POST(request: NextRequest) {
       })
 
     } else if (action === 'mark_offline') {
-      // Marcar usuário como offline
+      // Marcar usuário como offline usando UPSERT
       const { error } = await supabase
         .from('user_presence')
-        .update({
+        .upsert({
+          user_id: user.id,
           is_online: false,
           last_seen: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
         })
-        .eq('user_id', user.id)
 
       if (error) {
         console.error('Erro ao marcar como offline:', error)
@@ -132,14 +140,16 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    // Atualizar presença do usuário (heartbeat)
+    // Atualizar presença do usuário (heartbeat) usando UPSERT
     const { error } = await supabase
       .from('user_presence')
-      .update({
+      .upsert({
+        user_id: user.id,
         last_seen: new Date().toISOString(),
         is_online: true
+      }, {
+        onConflict: 'user_id'
       })
-      .eq('user_id', user.id)
 
     if (error) {
       console.error('Erro ao atualizar presença:', error)

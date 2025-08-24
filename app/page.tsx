@@ -320,12 +320,14 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
       <Navbar />
       
+      {/* AI-Powered Marquee Banner - Full Width */}
+      <div className="px-4 py-2">
+        <MarqueeBanner className="mb-4" />
+      </div>
+      
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Email Verification Banner */}
         <EmailVerificationBanner />
-        
-        {/* AI-Powered Marquee Banner */}
-        <MarqueeBanner className="mb-4" />
         
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_320px] xl:grid-cols-[300px_1fr_350px] gap-6 items-start">
           

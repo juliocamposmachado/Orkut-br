@@ -285,12 +285,15 @@ export default function CommunitiesPage() {
             {viewMode === 'grid' ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {filteredCommunities.map((community) => (
-                  <OrkutCard 
-                    key={community.id} 
-                    variant="community" 
-                    className="hover:shadow-lg transition-shadow cursor-pointer"
+                  <div 
+                    key={community.id}
+                    className="cursor-pointer"
                     onClick={() => router.push(`/comunidades/${community.id}`)}
                   >
+                    <OrkutCard 
+                      variant="community" 
+                      className="hover:shadow-lg transition-shadow"
+                    >
                     <div className="p-4">
                       <div className="relative mb-4">
                         <img
@@ -327,20 +330,29 @@ export default function CommunitiesPage() {
                       
                       <Button
                         size="sm"
-                        onClick={() => handleJoinCommunity(community.id)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleJoinCommunity(community.id)
+                        }}
                         className="w-full bg-purple-500 hover:bg-purple-600"
                       >
                         Entrar na Comunidade
                       </Button>
                     </div>
-                  </OrkutCard>
+                    </OrkutCard>
+                  </div>
                 ))}
               </div>
             ) : (
               <div className="space-y-4">
                 {filteredCommunities.map((community) => (
-                  <OrkutCard key={community.id} className="hover:shadow-lg transition-shadow">
-                    <OrkutCardContent>
+                  <div 
+                    key={community.id}
+                    className="cursor-pointer"
+                    onClick={() => router.push(`/comunidades/${community.id}`)}
+                  >
+                    <OrkutCard className="hover:shadow-lg transition-shadow">
+                      <OrkutCardContent>
                       <div className="flex items-center space-x-4">
                         <img
                           src={community.photo_url}
@@ -372,7 +384,10 @@ export default function CommunitiesPage() {
                             </div>
                             <Button
                               size="sm"
-                              onClick={() => handleJoinCommunity(community.id)}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleJoinCommunity(community.id)
+                              }}
                               className="bg-purple-500 hover:bg-purple-600 ml-4"
                             >
                               Entrar
@@ -380,8 +395,9 @@ export default function CommunitiesPage() {
                           </div>
                         </div>
                       </div>
-                    </OrkutCardContent>
-                  </OrkutCard>
+                      </OrkutCardContent>
+                    </OrkutCard>
+                  </div>
                 ))}
               </div>
             )}

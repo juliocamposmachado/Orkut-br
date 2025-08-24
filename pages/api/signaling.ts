@@ -3,11 +3,13 @@ import { Server as SocketIOServer } from 'socket.io'
 import { Server as HTTPServer } from 'http'
 
 // Estender tipos do Next.js para incluir socket.io
+interface SocketServer extends HTTPServer {
+  io?: SocketIOServer
+}
+
 interface NextApiResponseWithSocket extends NextApiResponse {
-  socket: {
-    server: HTTPServer & {
-      io?: SocketIOServer
-    }
+  socket: NextApiResponse['socket'] & {
+    server: SocketServer
   }
 }
 

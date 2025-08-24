@@ -396,12 +396,16 @@ export default function HomePage() {
                       window.open(miniplayerUrl, 'YouTubeMiniPlayer', windowFeatures)
                     }}
                   >
-                    <div className="relative w-full aspect-video bg-gradient-to-br from-purple-600 via-red-500 to-pink-600 flex flex-col items-center justify-center text-white">
-                      {/* Background pattern */}
-                      <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-                      <div className="absolute inset-0" style={{
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-                      }}></div>
+                    <div className="relative w-full aspect-video flex flex-col items-center justify-center text-white overflow-hidden">
+                      {/* Background image */}
+                      <div 
+                        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                        style={{
+                          backgroundImage: `url('https://i.ytimg.com/vi/Evbbtpavsuo/maxresdefault.jpg?sqp=-oaymwEmCIAKENAF8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGH8gEygaMA8=&rs=AOn4CLD1Ffb5W21keyPtr-CJhYH7XV3Sbg')`
+                        }}
+                      ></div>
+                      {/* Dark overlay for better text readability */}
+                      <div className="absolute inset-0 bg-black bg-opacity-50"></div>
                       
                       {/* Content */}
                       <div className="relative z-10 text-center">

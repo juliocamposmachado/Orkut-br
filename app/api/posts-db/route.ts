@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
       try {
         console.log('🔄 Tentando carregar posts do Supabase...')
         
-        // Query para buscar posts públicos + posts de amigos (se user_id fornecido)
+        // Query para buscar todos os posts (versão simplificada)
         let query = supabase
           .from('posts')
           .select(`
@@ -61,20 +61,10 @@ export async function GET(request: NextRequest) {
             author,
             author_name,
             author_photo,
-            visibility,
             likes_count,
             comments_count,
-            created_at,
-            is_dj_post
+            created_at
           `)
-          
-        // Se temos user_id, buscar posts públicos + posts de amigos
-        if (user_id) {
-          query = query.or(`visibility.eq.public,and(visibility.eq.friends,author.eq.${user_id})`)
-        } else {
-          // Se não temos user_id, apenas posts públicos
-          query = query.eq('visibility', 'public')
-        }
         
         const { data, error } = await query
           .order('created_at', { ascending: false })
@@ -183,10 +173,8 @@ export async function POST(request: NextRequest) {
             author: newPost.author,
             author_name: newPost.author_name,
             author_photo: newPost.author_photo,
-            visibility: newPost.visibility,
             likes_count: newPost.likes_count,
-            comments_count: newPost.comments_count,
-            is_dj_post: newPost.is_dj_post
+            comments_count: newPost.comments_count
           })
           .select()
           .single()

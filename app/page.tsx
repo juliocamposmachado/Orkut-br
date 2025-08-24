@@ -47,7 +47,6 @@ import { ShareModal } from '@/components/posts/share-modal'
 import { UserMoodDisplay } from '@/components/status/user-mood-display'
 import { SponsoredCarousel } from '@/components/ads/sponsored-carousel'
 import { MarqueeBanner } from '@/components/ui/marquee-banner'
-import { AddTestUserDialog } from '@/components/AddTestUserDialog'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'

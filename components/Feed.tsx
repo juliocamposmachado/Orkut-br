@@ -98,8 +98,6 @@ export function Feed() {
         } else {
           setPosts(sortedPosts.slice(0, 50))
         }
-        
-        localStorage.setItem('orkut_posts', JSON.stringify(sortedPosts))
       } else {
         console.warn('⚠️ API retornou formato inesperado')
         throw new Error('Formato de resposta inválido')
@@ -108,19 +106,9 @@ export function Feed() {
       console.error('❌ Erro ao carregar posts:', error)
       setError('Erro ao carregar posts')
       
-      // Fallback: carregar do localStorage ou usar demos
-      try {
-        const storedPosts = JSON.parse(localStorage.getItem('orkut_posts') || '[]')
-        if (storedPosts.length > 0) {
-          setPosts(storedPosts.slice(0, 50))
-          console.log('📦 Posts carregados do localStorage')
-        } else {
-          setPosts(demoPosts)
-          console.log('🎭 Usando posts demo')
-        }
-      } catch {
-        setPosts(demoPosts)
-      }
+      // Fallback: usar apenas posts demo
+      setPosts(demoPosts)
+      console.log('🎭 Usando posts demo como fallback')
     } finally {
       setIsLoading(false)
     }
@@ -130,14 +118,9 @@ export function Feed() {
   useEffect(() => {
     const initialize = async () => {
       try {
-        // Verificar se DJ Orky precisa ser inicializado
-        const storedPosts = JSON.parse(localStorage.getItem('orkut_posts') || '[]')
-        const hasDjPosts = storedPosts.some((p: any) => p.is_dj_post)
-        
-        if (!hasDjPosts) {
-          console.log('🎵 Inicializando DJ Orky...')
-          await djOrkyService.createInitialPosts()
-        }
+        // Sempre inicializar DJ Orky se não estiver ativo
+        console.log('🎵 Inicializando DJ Orky...')
+        await djOrkyService.createInitialPosts()
 
         if (!djOrkyService.isActivePosting()) {
           djOrkyService.startAutoPosting()

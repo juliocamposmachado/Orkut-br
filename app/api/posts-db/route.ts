@@ -33,14 +33,14 @@ let memoryPosts: Post[] = [
   }
 ]
 
-// GET - Buscar todos os posts (feed global)
+// GET - Buscar posts (feed global ou por usuário)
 export async function GET(request: NextRequest) {
   try {
-    // Obter user_id dos parâmetros da query para filtrar posts de amigos
     const url = new URL(request.url)
     const user_id = url.searchParams.get('user_id')
+    const profile_posts = url.searchParams.get('profile_posts') // Para posts do perfil
     
-    console.log('🔄 Carregando feed global para usuário:', user_id || 'anônimo')
+    console.log('🔄 Carregando posts:', { user_id, profile_posts })
     
     // Verificar se Supabase está configurado corretamente
     const hasValidSupabase = process.env.NEXT_PUBLIC_SUPABASE_URL && 
@@ -50,9 +50,8 @@ export async function GET(request: NextRequest) {
     
     if (hasValidSupabase && supabase) {
       try {
-        console.log('🔄 Tentando carregar posts do Supabase...')
+        console.log('🔄 Carregando posts do Supabase...')
         
-        // Query para buscar todos os posts (versão simplificada)
         let query = supabase
           .from('posts')
           .select(`
@@ -61,10 +60,18 @@ export async function GET(request: NextRequest) {
             author,
             author_name,
             author_photo,
+            visibility,
             likes_count,
             comments_count,
+            shares_count,
+            is_dj_post,
             created_at
           `)
+        
+        // Se for para carregar posts do perfil de um usuário específico
+        if (profile_posts && user_id) {
+          query = query.eq('author', user_id)
+        }
         
         const { data, error } = await query
           .order('created_at', { ascending: false })
@@ -73,18 +80,14 @@ export async function GET(request: NextRequest) {
         if (!error && data) {
           console.log(`✅ Posts carregados do Supabase: ${data.length}`)
           
-          // Adicionar shares_count aos posts do Supabase (compatibilidade)
-          const postsWithShares = data.map(post => ({ ...post, shares_count: 0 }))
-          
           return NextResponse.json({
             success: true,
-            posts: postsWithShares,
-            total: postsWithShares.length,
+            posts: data,
+            total: data.length,
             source: 'database'
           })
         } else {
           console.warn('⚠️ Erro no Supabase:', error?.message || 'Erro desconhecido')
-          console.warn('⚠️ Código do erro:', error?.code)
           throw new Error(`Supabase: ${error?.message || 'Erro desconhecido'}`)
         }
       } catch (supabaseError) {
@@ -94,17 +97,22 @@ export async function GET(request: NextRequest) {
       console.warn('⚠️ Supabase não configurado corretamente, usando memória')
     }
 
-    // Fallback para memória
+    // Fallback para memória (apenas para desenvolvimento)
     const sortedPosts = [...memoryPosts].sort((a, b) => 
       new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     )
 
-    console.log(`🔄 Posts carregados da memória: ${sortedPosts.length}`)
+    // Filtrar posts do usuário se solicitado
+    const filteredPosts = profile_posts && user_id 
+      ? sortedPosts.filter(post => post.author === user_id)
+      : sortedPosts
+
+    console.log(`🔄 Posts carregados da memória: ${filteredPosts.length}`)
     
     return NextResponse.json({
       success: true,
-      posts: sortedPosts.slice(0, 100),
-      total: sortedPosts.length,
+      posts: filteredPosts.slice(0, 100),
+      total: filteredPosts.length,
       source: 'memory'
     })
   } catch (error) {
@@ -164,7 +172,7 @@ export async function POST(request: NextRequest) {
     if (hasValidSupabase && supabase) {
       // Tentar salvar no Supabase primeiro
       try {
-        console.log(`🔄 Tentando salvar post no Supabase: ${author_name}`)
+        console.log(`🔄 Salvando post no Supabase: ${author_name}`)
         
         const { data, error } = await supabase
           .from('posts')
@@ -173,26 +181,39 @@ export async function POST(request: NextRequest) {
             author: newPost.author,
             author_name: newPost.author_name,
             author_photo: newPost.author_photo,
+            visibility: newPost.visibility,
             likes_count: newPost.likes_count,
-            comments_count: newPost.comments_count
+            comments_count: newPost.comments_count,
+            shares_count: newPost.shares_count,
+            is_dj_post: newPost.is_dj_post
           })
           .select()
           .single()
 
         if (!error && data) {
-          savedPost = { ...data, shares_count: 0 } as Post // Adicionar shares_count para compatibilidade
+          savedPost = data as Post
           source = 'database'
-          console.log(`✅ Post salvo no Supabase: ${author_name} - "${content.substring(0, 50)}..."`)
+          console.log(`✅ Post permanentemente salvo no banco: ${author_name}`)
+          
+          return NextResponse.json({
+            success: true,
+            post: savedPost,
+            message: 'Post criado e salvo permanentemente',
+            source
+          })
         } else {
           console.warn('⚠️ Erro ao salvar no Supabase:', error?.message || 'Erro desconhecido')
-          console.warn('⚠️ Código do erro:', error?.code)
-          throw new Error(`Supabase: ${error?.message || 'Erro desconhecido'}`)
+          throw new Error(`Erro no banco de dados: ${error?.message || 'Erro desconhecido'}`)
         }
       } catch (supabaseError) {
-        console.warn('⚠️ Fallback para memória devido erro Supabase:', supabaseError)
+        console.error('❌ Erro crítico no Supabase:', supabaseError)
+        return NextResponse.json(
+          { success: false, error: 'Erro ao salvar post no banco de dados' },
+          { status: 500 }
+        )
       }
     } else {
-      console.warn('⚠️ Supabase não configurado, salvando em memória')
+      console.warn('⚠️ Supabase não configurado, usando memória temporária')
     }
 
     // Se não conseguiu salvar no Supabase, salvar na memória

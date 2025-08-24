@@ -187,17 +187,19 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
 
   // Função para carregar posts do usuário
   const loadUserPosts = async () => {
-    if (!profile?.id && !currentUser?.id) return;
+    const targetUserId = profile?.id || currentUser?.id;
+    if (!targetUserId) return;
     
     setLoadingPosts(true);
     try {
       console.log('🔍 Carregando posts do usuário:', profile?.display_name || profile?.username || 'usuário');
       
-      const response = await fetch(`/api/posts-db`, {
+      // Usar o novo parâmetro profile_posts para carregar apenas posts do usuário
+      const response = await fetch(`/api/posts-db?user_id=${targetUserId}&profile_posts=true`, {
         method: 'GET',
         cache: 'no-store',
         headers: {
-          'Cache-Control': 'no-cache'
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
         }
       });
       
@@ -205,16 +207,8 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
         const data = await response.json();
         
         if (data.success && Array.isArray(data.posts)) {
-          // Filtrar posts apenas deste usuário
-          const currentUserId = profile?.id || currentUser?.id;
-          const userSpecificPosts = data.posts.filter((post: any) => 
-            post.author === currentUserId || 
-            post.author === username || 
-            (currentUser && post.author === currentUser.id)
-          );
-          
-          console.log(`✅ Posts do usuário carregados:`, userSpecificPosts.length);
-          setUserPosts(userSpecificPosts.slice(0, 10)); // Últimos 10 posts
+          console.log(`✅ ${data.posts.length} posts do usuário carregados (${data.source})`);
+          setUserPosts(data.posts.slice(0, 20)); // Últimos 20 posts
         }
       }
     } catch (error) {

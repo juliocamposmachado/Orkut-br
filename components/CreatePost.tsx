@@ -7,13 +7,14 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { supabase } from '@/lib/supabase'
-import { Camera, Image, Smile, Send, Globe, Users, ChevronDown } from 'lucide-react'
+import { Camera, Image, Smile, Send, Globe, Users, ChevronDown, CheckCircle } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { toast } from 'sonner'
 
 interface CreatePostProps {
   onPostCreated?: () => void
@@ -35,8 +36,8 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
 
     setIsLoading(true)
     try {
-      // SEMPRE usar a API global para garantir que todos vejam o post
-      console.log('🚀 Criando post via API global:', {
+      // Criar post permanente no banco de dados
+      console.log('🚀 Criando post permanente:', {
         content: content.trim(),
         author: user.id,
         author_name: profile?.display_name
@@ -52,7 +53,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           author: user.id,
           author_name: profile?.display_name || 'Usuário',
           author_photo: profile?.photo_url || null,
-          visibility: visibility, // Configurável pelo usuário
+          visibility: visibility,
           is_dj_post: false
         })
       })
@@ -63,14 +64,20 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       }
       
       const result = await response.json()
-      console.log('✅ Post criado com sucesso no feed global:', result.post)
+      console.log('✅ Post salvo permanentemente:', result.post)
       
-      // Sincronizar com localStorage para compatibilidade
-      const existingPosts = JSON.parse(localStorage.getItem('orkut_posts') || '[]')
-      existingPosts.unshift(result.post)
-      // Manter apenas os 100 posts mais recentes no localStorage
-      const trimmedPosts = existingPosts.slice(0, 100)
-      localStorage.setItem('orkut_posts', JSON.stringify(trimmedPosts))
+      // Mostrar notificação de sucesso
+      toast.success('Post publicado com sucesso!', {
+        description: 'Sua postagem foi salva permanentemente e aparecerá no seu perfil.',
+        icon: <CheckCircle className="h-4 w-4" />,
+        duration: 4000,
+        position: 'top-right',
+        style: {
+          background: '#10B981',
+          border: '1px solid #059669',
+          color: 'white',
+        },
+      })
       
       // Dispara evento para o Feed atualizar
       window.dispatchEvent(new CustomEvent('new-post-created', { detail: result.post }))
@@ -78,12 +85,22 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       setContent('')
       onPostCreated?.()
       
-      // Feedback visual melhor
-      console.log('🎉 Post publicado no feed global! Todos os usuários poderão ver.')
+      console.log('🎉 Post publicado e salvo permanentemente no seu perfil!')
       
     } catch (error: any) {
       console.error('❌ Erro ao criar post:', error)
-      alert(`Erro ao criar post: ${error.message || 'Erro desconhecido'}`)
+      
+      // Mostrar notificação de erro
+      toast.error('Erro ao publicar post', {
+        description: error.message || 'Ocorreu um erro inesperado. Tente novamente.',
+        duration: 5000,
+        position: 'top-right',
+        style: {
+          background: '#EF4444',
+          border: '1px solid #DC2626',
+          color: 'white',
+        },
+      })
     } finally {
       setIsLoading(false)
     }

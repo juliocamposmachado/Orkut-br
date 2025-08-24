@@ -87,11 +87,7 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!user) return
     
-    // For development, we'll use a simple WebSocket server
-    // In production, you'd want to use a proper signaling server
     try {
-      // This is a placeholder - you'd need to set up a WebSocket server
-      // For now, we'll use Supabase realtime as signaling
       initializeSignaling()
     } catch (error) {
       console.error('Failed to connect to signaling server:', error)
@@ -118,6 +114,7 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
           filter: `to_user_id=eq.${user.id}`
         }, 
         (payload) => {
+          console.log('📡 Sinal WebRTC recebido:', payload)
           handleSignalingMessage(payload.new)
         }
       )
@@ -346,17 +343,32 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
   const handleSignalingMessage = async (signal: any) => {
     const { signal_type, signal_data } = signal
     
-    if (!peerConnectionRef.current) return
+    console.log('🔄 Processando sinal:', signal_type, signal_data)
     
     switch (signal_type) {
+      case 'call_offer':
+        await handleIncomingCallOffer(signal_data)
+        break
+      case 'call_accepted':
+        await handleCallAccepted(signal_data)
+        break
+      case 'call_rejected':
+        handleCallRejected(signal_data)
+        break
       case 'offer':
-        await handleOffer(signal_data)
+        if (peerConnectionRef.current) {
+          await handleOffer(signal_data)
+        }
         break
       case 'answer':
-        await handleAnswer(signal_data)
+        if (peerConnectionRef.current) {
+          await handleAnswer(signal_data)
+        }
         break
       case 'ice-candidate':
-        await handleIceCandidate(signal_data)
+        if (peerConnectionRef.current) {
+          await handleIceCandidate(signal_data)
+        }
         break
       case 'call-end':
         handleCallEnd()
@@ -400,6 +412,30 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
     await peerConnectionRef.current.addIceCandidate(candidate)
   }
   
+  const handleIncomingCallOffer = async (signalData: any) => {
+    console.log('📞 Oferta de chamada recebida:', signalData)
+    
+    // Esta função será chamada quando o usuário recebe uma notificação de chamada
+    // A notificação já é tratada pelo IncomingCallNotification component
+    // Aqui apenas preparamos para aceitar a chamada quando necessário
+  }
+
+  const handleCallAccepted = async (signalData: any) => {
+    console.log('✅ Chamada aceita:', signalData)
+    
+    if (signalData.answer && peerConnectionRef.current) {
+      await peerConnectionRef.current.setRemoteDescription(signalData.answer)
+      setCallState(prev => ({ ...prev, callAccepted: true }))
+      toast.success('Chamada aceita!')
+    }
+  }
+
+  const handleCallRejected = (signalData: any) => {
+    console.log('❌ Chamada rejeitada:', signalData)
+    toast.error('Chamada rejeitada')
+    endCall()
+  }
+
   const handleCallEnd = () => {
     endCall()
   }
@@ -517,10 +553,23 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
       const offer = await peerConnection.createOffer()
       await peerConnection.setLocalDescription(offer)
       
-      await sendSignalingMessage({
-        type: 'offer',
-        offer
+      // Send call notification via API instead of direct signaling
+      const response = await fetch('/api/call-notification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          targetUserId: userId,
+          callType: 'audio',
+          offer: offer
+        })
       })
+
+      if (!response.ok) {
+        throw new Error('Falha ao enviar notificação de chamada')
+      }
+
+      const result = await response.json()
+      console.log('✅ Notificação de chamada enviada:', result)
       
       toast.success(`Chamando ${targetUser.display_name}...`)
     } catch (error) {
@@ -563,10 +612,23 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
       const offer = await peerConnection.createOffer()
       await peerConnection.setLocalDescription(offer)
       
-      await sendSignalingMessage({
-        type: 'offer',
-        offer
+      // Send call notification via API instead of direct signaling
+      const response = await fetch('/api/call-notification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          targetUserId: userId,
+          callType: 'video',
+          offer: offer
+        })
       })
+
+      if (!response.ok) {
+        throw new Error('Falha ao enviar notificação de chamada')
+      }
+
+      const result = await response.json()
+      console.log('✅ Notificação de chamada enviada:', result)
       
       toast.success(`Chamando ${targetUser.display_name} via vídeo...`)
     } catch (error) {

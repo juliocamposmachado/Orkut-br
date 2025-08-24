@@ -10,6 +10,7 @@ import { StructuredData } from '@/components/seo/structured-data';
 import { CallManager } from '@/components/calls/call-manager';
 import { WebRTCDiagnostics } from '@/components/webrtc-diagnostics';
 import { WebRTCTest } from '@/components/webrtc-test';
+import { EventListenerMonitor } from '@/components/debug/event-listener-monitor';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -138,6 +139,7 @@ export default function RootLayout({
                 <CallManager />
                 <WebRTCDiagnostics />
                 <WebRTCTest />
+                <EventListenerMonitor />
                 <Toaster />
               </VoiceProvider>
             </WebRTCProvider>

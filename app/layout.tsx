@@ -8,6 +8,7 @@ import { WebRTCProvider } from '@/contexts/webrtc-context';
 import { Toaster } from '@/components/ui/sonner';
 import { StructuredData } from '@/components/seo/structured-data';
 import { CallManager } from '@/components/calls/call-manager';
+import { WebRTCDiagnostics } from '@/components/webrtc-diagnostics';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -134,6 +135,7 @@ export default function RootLayout({
               <VoiceProvider>
                 {children}
                 <CallManager />
+                <WebRTCDiagnostics />
                 <Toaster />
               </VoiceProvider>
             </WebRTCProvider>

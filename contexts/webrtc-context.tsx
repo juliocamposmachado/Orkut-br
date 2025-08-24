@@ -284,8 +284,10 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
   }
   
   const getUserMedia = async (callType: 'audio' | 'video'): Promise<MediaStream> => {
+    console.log('🎯 Solicitando permissões de mídia para:', callType)
     // Detectar se é mobile
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    console.log('📱 Dispositivo mobile:', isMobile)
     
     const constraints: MediaStreamConstraints = {
       audio: {
@@ -305,22 +307,35 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
       } : false
     }
     
+    console.log('🔍 Constraints:', JSON.stringify(constraints, null, 2))
+    
     try {
+      console.log('🚀 Chamando getUserMedia...')
       const stream = await navigator.mediaDevices.getUserMedia(constraints)
+      console.log('✅ Stream obtido com sucesso:', stream)
+      console.log('📹 Video tracks:', stream.getVideoTracks().length)
+      console.log('🎤 Audio tracks:', stream.getAudioTracks().length)
       
       if (localVideoRef.current && callType === 'video') {
+        console.log('📺 Configurando vídeo local...')
         localVideoRef.current.srcObject = stream
         
         // Mobile: auto-play e configurações
         if (isMobile) {
           localVideoRef.current.playsInline = true
           localVideoRef.current.muted = true
+          console.log('📱 Configurações mobile aplicadas')
         }
       }
       
       return stream
     } catch (error) {
-      console.error('Error getting user media:', error)
+      console.error('❌ Erro ao obter stream:', error)
+      console.error('Erro detalhado:', {
+        name: error.name,
+        message: error.message,
+        constraintName: error.constraintName
+      })
       
       // Fallback para mobile com permissões limitadas
       if (isMobile && callType === 'video') {
@@ -395,13 +410,16 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
   }
   
   const startVideoCall = async (userId: string) => {
+    console.log('🎥 Iniciando chamada de vídeo para:', userId)
     try {
       // Find user info
       const targetUser = onlineUsers.find(u => u.id === userId)
       if (!targetUser) {
+        console.error('❌ Usuário não encontrado:', userId, 'Online users:', onlineUsers)
         toast.error('Usuário não encontrado ou offline')
         return
       }
+      console.log('✅ Usuário encontrado:', targetUser)
       
       setCallState(prev => ({
         ...prev,

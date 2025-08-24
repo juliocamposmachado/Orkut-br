@@ -45,7 +45,7 @@ export function EventListenerMonitor() {
       const identifier = element.id || element.className.split(' ')[0] || `element-${index}`
       elementsToCheck.push({
         selector: identifier,
-        element: element
+        element: element as HTMLElement
       })
     })
 

@@ -332,9 +332,9 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       console.error('❌ Erro ao obter stream:', error)
       console.error('Erro detalhado:', {
-        name: error.name,
-        message: error.message,
-        constraintName: error.constraintName
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error),
+        constraintName: (error as any)?.constraintName || 'Unknown'
       })
       
       // Fallback para mobile com permissões limitadas

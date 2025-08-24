@@ -47,6 +47,8 @@ import { ShareModal } from '@/components/posts/share-modal'
 import { UserMoodDisplay } from '@/components/status/user-mood-display'
 import { SponsoredCarousel } from '@/components/ads/sponsored-carousel'
 import { MarqueeBanner } from '@/components/ui/marquee-banner'
+import { CallModal } from '@/components/call/call-modal'
+import { useCall } from '@/hooks/use-call'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -76,6 +78,7 @@ interface Community {
 export default function HomePage() {
   const { user, profile, loading } = useAuth()
   const router = useRouter()
+  const { callState, startVideoCall, startAudioCall, endCall } = useCall()
   const [posts, setPosts] = useState<Post[]>([])
   const [communities, setCommunities] = useState<Community[]>([])
   const [loadingPosts, setLoadingPosts] = useState(true)
@@ -754,8 +757,28 @@ export default function HomePage() {
                         <Button 
                           size="sm" 
                           variant="ghost" 
-                          className="p-1 h-6 w-6 text-purple-600 hover:bg-purple-100"
+                          className="p-1 h-6 w-6 text-green-600 hover:bg-green-100"
+                          title="Chamada de áudio"
+                          onClick={() => startAudioCall({
+                            id: `friend-${idx}`,
+                            name: friend.name,
+                            photo: friend.avatar,
+                            username: friend.name.toLowerCase().replace(' ', '')
+                          })}
+                        >
+                          <Phone className="h-3 w-3" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="p-1 h-6 w-6 text-blue-600 hover:bg-blue-100"
                           title="Chamada de vídeo"
+                          onClick={() => startVideoCall({
+                            id: `friend-${idx}`,
+                            name: friend.name,
+                            photo: friend.avatar,
+                            username: friend.name.toLowerCase().replace(' ', '')
+                          })}
                         >
                           <Video className="h-3 w-3" />
                         </Button>
@@ -844,6 +867,16 @@ export default function HomePage() {
 
       <Footer />
       <OrkyAssistant />
+      
+      {/* Modal de Chamada */}
+      {callState.isOpen && callState.targetUser && callState.callType && (
+        <CallModal
+          isOpen={callState.isOpen}
+          onClose={endCall}
+          callType={callState.callType}
+          targetUser={callState.targetUser}
+        />
+      )}
     </div>
   )
 }

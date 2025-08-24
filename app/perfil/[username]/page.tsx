@@ -36,6 +36,8 @@ import {
 import Link from 'next/link';
 import { getUserPhotos, getRecentPhotos, getDefaultPhotos } from '@/data/profile-photos';
 import { OnlineStatusToggle } from '@/components/profile/online-status-toggle';
+import { CallModal } from '@/components/call/call-modal';
+import { useCall } from '@/hooks/use-call';
 
 interface UserProfile {
   id: string;
@@ -65,6 +67,7 @@ interface FriendItem {
 
 const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
   const { user: currentUser } = useAuth();
+  const { callState, startVideoCall, startAudioCall, endCall } = useCall();
   
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -483,17 +486,29 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                     
                     {/* Botões de Chamada - para todos */}
                     <Button 
-                      size="sm" 
+                      size="sm"
                       variant="outline" 
                       className="w-full border-purple-300 text-purple-700 hover:bg-purple-50"
+                      onClick={() => startAudioCall({
+                        id: profile.id,
+                        name: profile.display_name,
+                        photo: profile.photo_url || undefined,
+                        username: profile.username
+                      })}
                     >
                       <Phone className="h-4 w-4 mr-2" />
                       Chamada de Áudio
                     </Button>
                     <Button 
-                      size="sm" 
+                      size="sm"
                       variant="outline" 
                       className="w-full border-purple-300 text-purple-700 hover:bg-purple-50"
+                      onClick={() => startVideoCall({
+                        id: profile.id,
+                        name: profile.display_name,
+                        photo: profile.photo_url || undefined,
+                        username: profile.username
+                      })}
                     >
                       <Video className="h-4 w-4 mr-2" />
                       Chamada de Vídeo
@@ -930,6 +945,16 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
       </div>
       
       <Footer />
+      
+      {/* Modal de Chamada */}
+      {callState.isOpen && callState.targetUser && callState.callType && (
+        <CallModal
+          isOpen={callState.isOpen}
+          onClose={endCall}
+          callType={callState.callType}
+          targetUser={callState.targetUser}
+        />
+      )}
     </div>
   );
 };

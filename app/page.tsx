@@ -385,35 +385,76 @@ export default function HomePage() {
                 </div>
               </OrkutCardHeader>
               <OrkutCardContent className="p-0">
-                <div className="relative">
-                  {/* Iframe do YouTube */}
-                  <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-                    <iframe 
-                      className="absolute top-0 left-0 w-full h-full rounded-b-lg"
-                      src="https://www.youtube.com/embed/videoseries?si=1DPOmbsxDZHBfFui&list=PLkm4QB9CKklpa5tej_S5yL-VM59O7mshE"
-                      title="Juliette Psicose - Voices of The Forgotten"
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      referrerPolicy="strict-origin-when-cross-origin"
-                      allowFullScreen
-                    ></iframe>
+                <div className="relative overflow-hidden rounded-b-lg">
+                  {/* Thumbnail clicável */}
+                  <div 
+                    className="relative cursor-pointer group"
+                    onClick={() => {
+                      // Abre no miniplayer do YouTube
+                      const miniplayerUrl = 'https://www.youtube.com/playlist?list=PLkm4QB9CKklpa5tej_S5yL-VM59O7mshE&feature=miniplayer'
+                      const windowFeatures = 'width=480,height=270,resizable=yes,scrollbars=no,toolbar=no,menubar=no,location=no,status=no'
+                      window.open(miniplayerUrl, 'YouTubeMiniPlayer', windowFeatures)
+                    }}
+                  >
+                    <div className="relative w-full aspect-video">
+                      <img 
+                        src="https://img.youtube.com/vi/videoseries?list=PLkm4QB9CKklpa5tej_S5yL-VM59O7mshE/maxresdefault.jpg"
+                        alt="Juliette Psicose - Voices of The Forgotten"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        onError={(e) => {
+                          // Fallback para HQ se maxres não carregar
+                          const target = e.currentTarget
+                          if (target.src.includes('maxresdefault')) {
+                            target.src = 'https://img.youtube.com/vi/videoseries?list=PLkm4QB9CKklpa5tej_S5yL-VM59O7mshE/hqdefault.jpg'
+                          }
+                        }}
+                      />
+                      
+                      {/* Overlay escuro */}
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-300"></div>
+                      
+                      {/* Botão Play Central */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-16 h-16 bg-red-600 bg-opacity-90 rounded-full flex items-center justify-center shadow-xl group-hover:bg-red-700 group-hover:scale-110 transition-all duration-300">
+                          <svg className="w-8 h-8 text-white ml-1" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M8 5v14l11-7z"/>
+                          </svg>
+                        </div>
+                      </div>
+                      
+                      {/* Badge Miniplayer */}
+                      <div className="absolute top-2 left-2">
+                        <div className="bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs font-medium">
+                          📺 Miniplayer
+                        </div>
+                      </div>
+                      
+                      {/* Duração/Info */}
+                      <div className="absolute bottom-2 right-2">
+                        <div className="bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs">
+                          Playlist
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   
                   {/* Informações da playlist */}
                   <div className="p-3 bg-white">
-                    <h3 className="font-semibold text-gray-800 text-sm mb-1">
+                    <h3 className="font-semibold text-gray-800 text-sm mb-1 line-clamp-1">
                       Juliette Psicose
                     </h3>
-                    <p className="text-gray-500 text-xs mb-2">
+                    <p className="text-gray-500 text-xs mb-3 line-clamp-1">
                       Voices of The Forgotten
                     </p>
+                    
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2 text-xs text-gray-400">
                         <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
-                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
                         </svg>
-                        <span>Playlist</span>
+                        <span>Lista de reprodução</span>
                       </div>
+                      
                       <Button 
                         size="sm" 
                         variant="ghost" 
@@ -423,7 +464,7 @@ export default function HomePage() {
                           window.open('https://www.youtube.com/playlist?list=PLkm4QB9CKklpa5tej_S5yL-VM59O7mshE', '_blank')
                         }}
                       >
-                        Ver no YouTube
+                        Abrir YouTube
                       </Button>
                     </div>
                   </div>

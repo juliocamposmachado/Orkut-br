@@ -13,8 +13,10 @@ export interface MediaPermissionsHook {
   isSupported: boolean
   isMobile: boolean
   requestPermissions: (types: Array<'camera' | 'microphone' | 'displayCapture'>) => Promise<boolean>
+  requestMicrophoneOnly: () => Promise<boolean>
   checkPermissions: () => Promise<void>
   hasAllPermissions: boolean
+  hasMicrophonePermission: boolean
   isLoading: boolean
   error: string | null
 }
@@ -180,8 +182,57 @@ export function useMediaPermissions(): MediaPermissionsHook {
     }
   }, [isSupported, isMobile, checkPermissions])
 
+  const requestMicrophoneOnly = useCallback(async (): Promise<boolean> => {
+    if (!isSupported) {
+      setError('MediaDevices não é suportado neste dispositivo')
+      return false
+    }
+
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const constraints: MediaStreamConstraints = {
+        audio: isMobile ? {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        } : true
+      }
+
+      // Request microphone access
+      const stream = await navigator.mediaDevices.getUserMedia(constraints)
+      
+      // Stop the stream immediately, we just wanted to request permission
+      stream.getTracks().forEach(track => track.stop())
+
+      // Re-check permissions after request
+      await checkPermissions()
+      
+      return true
+    } catch (err: any) {
+      console.error('Error requesting microphone permission:', err)
+      
+      if (err.name === 'NotAllowedError') {
+        setError('Acesso ao microfone foi negado. Para usar o assistente de voz, permita o acesso ao microfone.')
+      } else if (err.name === 'NotFoundError') {
+        setError('Microfone não encontrado. Verifique se há um microfone conectado ao seu dispositivo.')
+      } else if (err.name === 'NotSupportedError') {
+        setError('Microfone não é suportado neste dispositivo.')
+      } else {
+        setError('Erro ao solicitar acesso ao microfone.')
+      }
+      
+      return false
+    } finally {
+      setIsLoading(false)
+    }
+  }, [isSupported, isMobile, checkPermissions])
+
   const hasAllPermissions = permissions.camera === 'granted' && 
     permissions.microphone === 'granted'
+  
+  const hasMicrophonePermission = permissions.microphone === 'granted'
 
   useEffect(() => {
     if (isSupported) {
@@ -194,8 +245,10 @@ export function useMediaPermissions(): MediaPermissionsHook {
     isSupported,
     isMobile,
     requestPermissions,
+    requestMicrophoneOnly,
     checkPermissions,
     hasAllPermissions,
+    hasMicrophonePermission,
     isLoading,
     error
   }

@@ -1,7 +1,7 @@
 'use client'
 
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent'
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyB8QXNgbYg6xZWVyYdI8bw64Kr8BmRlWGk'
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyDaFdQ0tlAMSiSQU2u9Qwctbb2MfDTg3VQ'
 
 export interface GeminiAction {
   name: string

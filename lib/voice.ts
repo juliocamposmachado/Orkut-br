@@ -129,7 +129,7 @@ export class VoiceService {
     return this.synthesis?.speaking || false
   }
 
-  listen(): Promise<string> {
+  listen(options: { timeout?: number; waitForActivation?: boolean } = {}): Promise<string> {
     return new Promise((resolve, reject) => {
       if (!this.recognition) {
         reject(new Error('Speech recognition not supported'))
@@ -142,25 +142,95 @@ export class VoiceService {
       }
 
       this.isListening = true
+      let timeoutId: NodeJS.Timeout | null = null
+      
+      // Set timeout if specified
+      if (options.timeout) {
+        timeoutId = setTimeout(() => {
+          this.recognition?.stop()
+          this.isListening = false
+          reject(new Error('Listening timeout'))
+        }, options.timeout)
+      }
 
       this.recognition.onresult = (event) => {
+        if (timeoutId) {
+          clearTimeout(timeoutId)
+        }
+        
         const transcript = event.results[0]?.item(0)?.transcript || ''
+        const cleanTranscript = transcript.trim().toLowerCase()
+        
         this.isListening = false
-        resolve(transcript.trim())
+        
+        // If waiting for activation word, check if it's present
+        if (options.waitForActivation) {
+          const activationWords = ['orky', 'oi orky', 'olá orky', 'hey orky']
+          const hasActivation = activationWords.some(word => cleanTranscript.includes(word))
+          
+          if (hasActivation) {
+            // Remove activation word from the command
+            let command = cleanTranscript
+            activationWords.forEach(word => {
+              command = command.replace(word, '').trim()
+            })
+            resolve(command || 'olá') // Default greeting if no command after activation
+          } else {
+            // Continue listening if no activation word detected
+            setTimeout(() => {
+              if (!this.isListening) {
+                this.listen(options).then(resolve).catch(reject)
+              }
+            }, 100)
+            return
+          }
+        } else {
+          resolve(transcript.trim())
+        }
       }
 
       this.recognition.onerror = (event) => {
+        if (timeoutId) {
+          clearTimeout(timeoutId)
+        }
         this.isListening = false
+        
+        // Don't reject for common, recoverable errors when waiting for activation
+        if (options.waitForActivation && (event.error === 'no-speech' || event.error === 'audio-capture')) {
+          // Restart listening after a brief pause
+          setTimeout(() => {
+            if (!this.isListening) {
+              this.listen(options).then(resolve).catch(reject)
+            }
+          }, 500)
+          return
+        }
+        
         reject(new Error(`Speech recognition error: ${event.error}`))
       }
 
       this.recognition.onend = () => {
+        if (timeoutId) {
+          clearTimeout(timeoutId)
+        }
         this.isListening = false
+        
+        // If waiting for activation and not manually stopped, restart
+        if (options.waitForActivation && this.recognition) {
+          setTimeout(() => {
+            if (!this.isListening) {
+              this.listen(options).then(resolve).catch(reject)
+            }
+          }, 100)
+        }
       }
 
       try {
         this.recognition.start()
       } catch (error) {
+        if (timeoutId) {
+          clearTimeout(timeoutId)
+        }
         this.isListening = false
         reject(error)
       }

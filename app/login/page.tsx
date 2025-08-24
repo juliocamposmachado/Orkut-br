@@ -292,22 +292,34 @@ export default function LoginPage() {
                 Rápido, seguro e sem senhas para lembrar! 🚀
               </p>
               
-              {/* Google's Fault Disclaimer */}
-              <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              {/* Explicação sobre o nome técnico do Supabase */}
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <div className="flex items-start space-x-2">
-                  <span className="text-yellow-600 text-lg">⚠️</span>
+                  <span className="text-blue-600 text-lg">ℹ️</span>
                   <div className="flex-1">
-                    <p className="text-xs text-yellow-700 font-medium mb-1">
-                      <strong>Sobre o nome esquisito na tela do Google:</strong>
+                    <p className="text-xs text-blue-700 font-medium mb-2">
+                      <strong>Sobre o nome técnico na tela de login do Google:</strong>
                     </p>
-                    <p className="text-xs text-yellow-600 leading-relaxed">
-                      Se aparecer "woyyikaztjrhqzgvbhmn.supabase.co" na tela de login, 
-                      <strong className="text-yellow-700"> NÃO É CULPA NOSSA!</strong> 😅 
-                      O Google que insiste em usar esse nome técnico bizarro. 
-                      Pode clicar em "Continuar" tranquilo que funciona perfeitamente! 🚀
+                    <p className="text-xs text-blue-600 leading-relaxed mb-2">
+                      Encontramos algumas limitações técnicas em nosso projeto. 
+                      Utilizamos o <strong>Supabase</strong> como plataforma de banco de dados, 
+                      que gera automaticamente nomes de projeto não editáveis.
                     </p>
-                    <p className="text-xs text-yellow-500 mt-1 italic">
-                      💡 Dica: Culpe o Google, não a gente! 🤷‍♂️
+                    <p className="text-xs text-blue-600 leading-relaxed mb-2">
+                      Quando você clicar em "Continuar com Google", pode aparecer um nome 
+                      técnico como <strong>"woyyikaztjrhqzgvbhmn.supabase.co"</strong> - 
+                      este é o identificador automático gerado pela plataforma.
+                    </p>
+                    <p className="text-xs text-blue-700 font-medium mb-2">
+                      <strong>Pedimos mil desculpas pelo inconveniente!</strong>
+                    </p>
+                    <p className="text-xs text-blue-600 leading-relaxed">
+                      Estamos trabalhando para melhorar a experiência de login e 
+                      já contatamos as plataformas para buscar uma solução. 
+                      Por favor, continuem utilizando normalmente - o sistema funciona perfeitamente! 🚀
+                    </p>
+                    <p className="text-xs text-blue-500 mt-2 italic">
+                      Agradecemos pela compreensão e paciência! 🙏
                     </p>
                   </div>
                 </div>

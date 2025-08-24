@@ -402,10 +402,26 @@ export default function HomePage() {
                         alt="Juliette Psicose - Voices of The Forgotten"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={(e) => {
-                          // Fallback para HQ se maxres não carregar
+                          // Múltiplos fallbacks
                           const target = e.currentTarget
                           if (target.src.includes('maxresdefault')) {
                             target.src = 'https://i.ytimg.com/vi/qFLw26BjDZs/hqdefault.jpg'
+                          } else if (target.src.includes('hqdefault')) {
+                            target.src = 'https://i.ytimg.com/vi/qFLw26BjDZs/mqdefault.jpg'
+                          } else if (target.src.includes('mqdefault')) {
+                            // Fallback final: criar uma thumbnail customizada com CSS
+                            target.style.display = 'none'
+                            const parent = target.parentElement
+                            if (parent && !parent.querySelector('.custom-thumbnail')) {
+                              const customThumb = document.createElement('div')
+                              customThumb.className = 'custom-thumbnail w-full h-full bg-gradient-to-br from-purple-600 to-pink-600 flex flex-col items-center justify-center text-white'
+                              customThumb.innerHTML = `
+                                <div class="text-2xl mb-2">🎵</div>
+                                <div class="text-sm font-bold text-center px-2">Juliette Psicose</div>
+                                <div class="text-xs opacity-80 text-center px-2">Voices of The Forgotten</div>
+                              `
+                              parent.appendChild(customThumb)
+                            }
                           }
                         }}
                       />

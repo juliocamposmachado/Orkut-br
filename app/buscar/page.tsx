@@ -47,6 +47,7 @@ interface User {
   photo_url: string | null
   bio: string | null
   location: string | null
+  email?: string | null
 }
 
 interface Community {
@@ -136,16 +137,21 @@ export default function SearchPage() {
     saveRecentSearch(query)
 
     try {
-      // Search users
+      // Search users - COMPLETA com busca por email (essencial!)
       const { data: usersData, error: usersError } = await supabase
         .from('profiles')
-        .select('id, username, display_name, photo_url, bio, location')
-        .or(`username.ilike.%${query}%,display_name.ilike.%${query}%,bio.ilike.%${query}%`)
+        .select('id, username, display_name, photo_url, bio, location, email')
+        .or(`username.ilike.%${query}%,display_name.ilike.%${query}%,bio.ilike.%${query}%,email.ilike.%${query}%`)
         .neq('id', user?.id)
         .limit(20)
 
-      if (usersError) throw usersError
-      setUsers(usersData || [])
+      if (usersError) {
+        console.error('Error searching users:', usersError)
+        // Continue with empty array if there's an error, don't break the whole search
+        setUsers([])
+      } else {
+        setUsers(usersData || [])
+      }
 
       // Search communities
       const { data: communitiesData, error: communitiesError } = await supabase
@@ -154,8 +160,12 @@ export default function SearchPage() {
         .or(`name.ilike.%${query}%,description.ilike.%${query}%,category.ilike.%${query}%`)
         .limit(20)
 
-      if (communitiesError) throw communitiesError
-      setCommunities(communitiesData || [])
+      if (communitiesError) {
+        console.error('Error searching communities:', communitiesError)
+        setCommunities([])
+      } else {
+        setCommunities(communitiesData || [])
+      }
 
       // Search posts
       const { data: postsData, error: postsError } = await supabase
@@ -168,17 +178,23 @@ export default function SearchPage() {
         .order('created_at', { ascending: false })
         .limit(20)
 
-      if (postsError) throw postsError
-      
-      const transformedPosts = postsData?.map(post => ({
-        ...post,
-        author: post.profiles as any
-      })) || []
-
-      setPosts(transformedPosts)
+      if (postsError) {
+        console.error('Error searching posts:', postsError)
+        setPosts([])
+      } else {
+        const transformedPosts = postsData?.map(post => ({
+          ...post,
+          author: post.profiles as any
+        })) || []
+        setPosts(transformedPosts)
+      }
 
     } catch (error) {
       console.error('Error performing search:', error)
+      // Reset all results on general error
+      setUsers([])
+      setCommunities([])
+      setPosts([])
     } finally {
       setIsSearching(false)
     }
@@ -234,17 +250,19 @@ export default function SearchPage() {
 
         {/* Search Form */}
         <form onSubmit={handleSearch} className="mb-8">
-          <div className="relative max-w-2xl mx-auto">
-            <Search className="absolute left-4 top-4 h-5 w-5 text-gray-400" />
-            <Input
-              placeholder="Busque por pessoas, comunidades, posts..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-12 pr-4 py-4 text-lg border-purple-300 focus:ring-purple-500 rounded-xl"
-            />
+          <div className="flex gap-4 max-w-2xl mx-auto">
+            <div className="relative flex-1">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Input
+                placeholder="Busque por pessoas, comunidades, posts..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-12 pr-4 py-4 text-lg border-purple-300 focus:ring-purple-500 rounded-xl w-full"
+              />
+            </div>
             <Button 
               type="submit"
-              className="absolute right-2 top-2 bg-purple-500 hover:bg-purple-600"
+              className="bg-purple-500 hover:bg-purple-600 px-8 py-4 rounded-xl"
               disabled={isSearching}
             >
               {isSearching ? 'Buscando...' : 'Buscar'}
@@ -381,9 +399,31 @@ export default function SearchPage() {
                     <h3 className="text-xl font-medium text-gray-800 mb-2">
                       Nenhum resultado encontrado
                     </h3>
-                    <p className="text-gray-600 mb-6">
-                      Não encontramos nada para "{searchQuery}". Tente outros termos ou explore os tópicos em alta.
-                    </p>
+                    <div className="mb-6">
+                      <p className="text-gray-600 mb-3">
+                        Não encontramos nada para <strong>"{searchQuery}"</strong>.
+                      </p>
+                      {/* Check if search looks like an email */}
+                      {searchQuery.includes('@') ? (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <span className="text-blue-600 text-lg">📧</span>
+                            <p className="text-sm font-medium text-blue-800">
+                              Busca por email:
+                            </p>
+                          </div>
+                          <p className="text-sm text-blue-700">
+                            • Verifique se o email está escrito corretamente<br/>
+                            • O usuário pode não ter se cadastrado ainda<br/>
+                            • Tente buscar pelo nome da pessoa
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 text-sm">
+                          Tente outros termos ou explore os tópicos em alta.
+                        </p>
+                      )}
+                    </div>
                     <div className="flex flex-wrap gap-2 justify-center">
                       {trendingTopics.slice(0, 3).map((topic, index) => (
                         <Button

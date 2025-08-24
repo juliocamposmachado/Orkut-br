@@ -39,11 +39,28 @@ const SmartMusicCard: React.FC = () => {
       
       // Extrair informações da música atual
       if (data.currentSong) {
-        const [artist, song] = data.currentSong.split(' - ')
-        return {
-          artist: artist?.trim() || 'Artista Desconhecido',
-          song: song?.trim() || 'Música Desconhecida',
-          timestamp: new Date().toISOString()
+        // Tratar caracteres especiais e acentos
+        const cleanSong = data.currentSong.trim()
+        
+        // Procurar pelo primeiro ' - ' (artista - música)
+        const separatorIndex = cleanSong.indexOf(' - ')
+        
+        if (separatorIndex > 0) {
+          const artist = cleanSong.substring(0, separatorIndex).trim()
+          const song = cleanSong.substring(separatorIndex + 3).trim()
+          
+          return {
+            artist: artist || 'Artista Desconhecido',
+            song: song || 'Música Desconhecida',
+            timestamp: new Date().toISOString()
+          }
+        } else {
+          // Se não encontrou separador, usar a string toda como música
+          return {
+            artist: 'Artista Desconhecido',
+            song: cleanSong || 'Música Desconhecida',
+            timestamp: new Date().toISOString()
+          }
         }
       }
       

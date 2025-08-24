@@ -169,6 +169,12 @@ export async function POST(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_URL.startsWith('https://') &&
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
+    console.log('🔍 Status Supabase:', {
+      hasValidConfig: hasValidSupabase,
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'configurada' : 'não configurada',
+      key: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'configurada' : 'não configurada'
+    })
+
     if (hasValidSupabase && supabase) {
       // Tentar salvar no Supabase primeiro
       try {
@@ -203,17 +209,36 @@ export async function POST(request: NextRequest) {
           })
         } else {
           console.warn('⚠️ Erro ao salvar no Supabase:', error?.message || 'Erro desconhecido')
-          throw new Error(`Erro no banco de dados: ${error?.message || 'Erro desconhecido'}`)
+          console.warn('⚠️ Detalhes completos:', error)
+          return NextResponse.json(
+            { 
+              success: false, 
+              error: `Erro no banco de dados: ${error?.message || 'Erro desconhecido'}`,
+              details: error
+            },
+            { status: 500 }
+          )
         }
-      } catch (supabaseError) {
+      } catch (supabaseError: any) {
         console.error('❌ Erro crítico no Supabase:', supabaseError)
         return NextResponse.json(
-          { success: false, error: 'Erro ao salvar post no banco de dados' },
+          { 
+            success: false, 
+            error: `Erro crítico no banco: ${supabaseError.message || 'Erro desconhecido'}`,
+            details: supabaseError
+          },
           { status: 500 }
         )
       }
     } else {
-      console.warn('⚠️ Supabase não configurado, usando memória temporária')
+      console.warn('⚠️ Supabase não configurado - verifique as variáveis de ambiente')
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Configuração do banco de dados não encontrada. Verifique as variáveis de ambiente.' 
+        },
+        { status: 500 }
+      )
     }
 
     // Se não conseguiu salvar no Supabase, salvar na memória

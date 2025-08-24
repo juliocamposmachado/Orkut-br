@@ -35,7 +35,7 @@ interface CallModalProps {
 type CallState = 'connecting' | 'ringing' | 'connected' | 'ended' | 'declined'
 
 export function CallModal({ isOpen, onClose, callType, targetUser }: CallModalProps) {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const [callState, setCallState] = useState<CallState>('connecting')
   const [isVideoEnabled, setIsVideoEnabled] = useState(callType === 'video')
   const [isAudioEnabled, setIsAudioEnabled] = useState(true)
@@ -245,9 +245,9 @@ export function CallModal({ isOpen, onClose, callType, targetUser }: CallModalPr
                 {!isVideoEnabled && (
                   <div className="w-full h-full flex items-center justify-center bg-gray-700">
                     <Avatar className="h-16 w-16">
-                      <AvatarImage src={user?.user_metadata?.avatar_url} alt={user?.user_metadata?.full_name || 'Você'} />
+                      <AvatarImage src={profile?.photo_url || undefined} alt={profile?.display_name || 'Você'} />
                       <AvatarFallback className="bg-purple-600 text-white">
-                        {(user?.user_metadata?.full_name || 'U').charAt(0).toUpperCase()}
+                        {(profile?.display_name || 'U').charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                   </div>

@@ -38,6 +38,7 @@ import { getUserPhotos, getRecentPhotos, getDefaultPhotos } from '@/data/profile
 import { OnlineStatusToggle } from '@/components/profile/online-status-toggle';
 import { CallModal } from '@/components/call/call-modal';
 import { useCall } from '@/hooks/use-call';
+import { BioEditor } from '@/components/profile/bio-editor';
 
 interface UserProfile {
   id: string;
@@ -319,6 +320,25 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
 
   const isOwnProfile = currentUser?.id === profile?.id;
   
+  // Função para salvar biografia
+  const handleSaveBio = async (newBio: string) => {
+    if (!profile) return;
+    
+    try {
+      // Simular salvamento - aqui você pode implementar a lógica real do Supabase
+      console.log('Salvando biografia:', newBio);
+      
+      // Atualizar o perfil local
+      setProfile(prev => prev ? { ...prev, bio: newBio } : null);
+      
+      // Mostrar sucesso
+      alert('Biografia atualizada com sucesso!');
+    } catch (error) {
+      console.error('Erro ao salvar biografia:', error);
+      alert('Erro ao salvar biografia. Tente novamente.');
+    }
+  };
+  
   // Carregar status de amizade quando o perfil for carregado
   useEffect(() => {
     if (profile?.id && currentUser?.id && !isOwnProfile) {
@@ -572,43 +592,7 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
 
           {/* Main Content Area - Central */}
           <div className="space-y-6">
-            {/* Quick Actions Card */}
-            {isOwnProfile && (
-              <OrkutCard>
-                <OrkutCardHeader>
-                  <div className="flex items-center space-x-2">
-                    <Settings className="h-4 w-4" />
-                    <span>Ações Rápidas</span>
-                  </div>
-                </OrkutCardHeader>
-                <OrkutCardContent>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button 
-                      variant="outline" 
-                      className="border-purple-300 text-purple-700 hover:bg-purple-50"
-                      onClick={() => {
-                        // Funcionalidade de adicionar foto pode ser implementada futuramente
-                        alert('Funcionalidade em desenvolvimento!');
-                      }}
-                    >
-                      <Camera className="h-4 w-4 mr-2" />
-                      Adicionar Foto
-                    </Button>
-                    <Link href="/">
-                      <Button variant="outline" className="w-full border-purple-300 text-purple-700 hover:bg-purple-50">
-                        <MessageCircle className="h-4 w-4 mr-2" />
-                        Criar Post
-                      </Button>
-                    </Link>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2 text-center">
-                    Use a página inicial para criar e ver posts dos seus amigos
-                  </p>
-                </OrkutCardContent>
-              </OrkutCard>
-            )}
-            
-            {/* Profile Info Card */}
+            {/* Profile Info Card - Movido para o topo */}
             <OrkutCard>
               <OrkutCardHeader>
                 <div className="flex items-center space-x-2">
@@ -618,16 +602,11 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
               </OrkutCardHeader>
               <OrkutCardContent>
                 <div className="space-y-4">
-                  {profile.bio ? (
-                    <div>
-                      <h4 className="font-semibold text-gray-800 mb-2">Sobre mim:</h4>
-                      <p className="text-gray-700">{profile.bio}</p>
-                    </div>
-                  ) : (
-                    <div className="text-center py-4 text-gray-500">
-                      <p>{isOwnProfile ? 'Adicione uma biografia ao seu perfil!' : 'Este usuário ainda não adicionou uma biografia.'}</p>
-                    </div>
-                  )}
+                  <BioEditor 
+                    bio={profile.bio} 
+                    isOwnProfile={isOwnProfile} 
+                    onSave={handleSaveBio} 
+                  />
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
                     <div className="space-y-2">
@@ -668,6 +647,42 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                 </div>
               </OrkutCardContent>
             </OrkutCard>
+            
+            {/* Quick Actions Card - Movido para depois de Sobre */}
+            {isOwnProfile && (
+              <OrkutCard>
+                <OrkutCardHeader>
+                  <div className="flex items-center space-x-2">
+                    <Settings className="h-4 w-4" />
+                    <span>Ações Rápidas</span>
+                  </div>
+                </OrkutCardHeader>
+                <OrkutCardContent>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button 
+                      variant="outline" 
+                      className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                      onClick={() => {
+                        // Funcionalidade de adicionar foto pode ser implementada futuramente
+                        alert('Funcionalidade em desenvolvimento!');
+                      }}
+                    >
+                      <Camera className="h-4 w-4 mr-2" />
+                      Adicionar Foto
+                    </Button>
+                    <Link href="/">
+                      <Button variant="outline" className="w-full border-purple-300 text-purple-700 hover:bg-purple-50">
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        Criar Post
+                      </Button>
+                    </Link>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2 text-center">
+                    Use a página inicial para criar e ver posts dos seus amigos
+                  </p>
+                </OrkutCardContent>
+              </OrkutCard>
+            )}
             
             {/* Profile Photos */}
             <OrkutCard>

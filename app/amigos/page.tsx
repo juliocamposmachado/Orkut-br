@@ -94,6 +94,7 @@ export default function FriendsPage() {
     if (user) {
       loadFriends()
       loadRequests()
+      loadContacts()
     }
   }, [user, loading, router])
 

@@ -226,3 +226,121 @@
   -webkit-text-fill-color: transparent;
   animation: gradient 2s ease-in-out infinite;
 }
+
+/* Mobile-first responsive styles */
+@media (max-width: 768px) {
+  /* Reduzir padding e margens no mobile */
+  .mobile-padding {
+    @apply px-3 py-4;
+  }
+  
+  /* Cards menores no mobile */
+  .mobile-card {
+    @apply rounded-lg shadow-sm;
+  }
+  
+  /* Grid adaptativo para mobile */
+  .mobile-grid {
+    @apply grid-cols-1 gap-4;
+  }
+  
+  /* Texto menor em telas pequenas */
+  .mobile-text {
+    @apply text-sm;
+  }
+  
+  /* Botões mais compactos no mobile */
+  .mobile-button {
+    @apply px-3 py-2 text-sm;
+  }
+  
+  /* Avatar menor no mobile */
+  .mobile-avatar {
+    @apply w-8 h-8;
+  }
+  
+  /* Espaçamento reduzido entre elementos */
+  .mobile-space {
+    @apply space-y-3;
+  }
+}
+
+/* Tablet breakpoint */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .tablet-grid {
+    @apply grid-cols-2 gap-4;
+  }
+}
+
+/* Card responsivo específico para Orkut */
+.orkut-card-responsive {
+  @apply w-full rounded-xl bg-white shadow-sm border border-gray-100;
+  transition: all 0.2s ease-in-out;
+}
+
+@media (max-width: 768px) {
+  .orkut-card-responsive {
+    @apply mx-2 rounded-lg shadow-sm;
+  }
+}
+
+.orkut-card-responsive:hover {
+  @apply shadow-md -translate-y-0.5;
+}
+
+/* Quick Actions responsive */
+.quick-actions-mobile {
+  @apply grid grid-cols-2 gap-2;
+}
+
+@media (min-width: 768px) {
+  .quick-actions-mobile {
+    @apply grid-cols-1 gap-2;
+  }
+}
+
+/* Download Apps responsive */
+.download-apps-mobile {
+  @apply grid grid-cols-1 gap-2;
+}
+
+@media (max-width: 480px) {
+  .download-apps-mobile {
+    @apply grid-cols-1 gap-1;
+  }
+}
+
+/* Friends grid responsive */
+.friends-grid-mobile {
+  @apply grid grid-cols-4 gap-3;
+}
+
+@media (max-width: 480px) {
+  .friends-grid-mobile {
+    @apply grid-cols-3 gap-2;
+  }
+}
+
+/* Contact list mobile optimization */
+.contact-item-mobile {
+  @apply flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-purple-50 transition-colors;
+}
+
+@media (max-width: 768px) {
+  .contact-item-mobile {
+    @apply px-2 py-2 space-x-2;
+  }
+}
+
+/* Stories horizontal scroll mobile */
+.stories-mobile {
+  @apply flex items-center space-x-3 overflow-x-auto pb-2 scrollbar-hide;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+  .stories-mobile {
+    @apply space-x-2;
+  }
+}

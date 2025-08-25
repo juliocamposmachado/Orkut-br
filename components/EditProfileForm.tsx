@@ -16,7 +16,7 @@ interface ProfileData {
   email: string;
   phone: string;
   whatsapp_enabled: boolean;
-  avatar_url: string;
+  photo_url: string;
   privacy_settings: {
     profile_visibility: 'public' | 'friends' | 'private';
     phone_visibility: 'public' | 'friends' | 'private';
@@ -37,7 +37,7 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({
     email: '',
     phone: '',
     whatsapp_enabled: true,
-    avatar_url: '',
+    photo_url: '',
     privacy_settings: {
       profile_visibility: 'public',
       phone_visibility: 'friends',
@@ -75,7 +75,7 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({
           email: data.email || user?.email || '',
           phone: data.phone || '',
           whatsapp_enabled: data.whatsapp_enabled ?? true,
-          avatar_url: data.avatar_url || '',
+          photo_url: data.photo_url || '',
           privacy_settings: data.privacy_settings || {
             profile_visibility: 'public',
             phone_visibility: 'friends',
@@ -344,10 +344,10 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({
             <ImageUpload
               userId={user?.id || ''}
               type="profile"
-              currentImage={formData.avatar_url}
+              currentImage={formData.photo_url}
               variant="avatar"
               onUploadComplete={(url) => {
-                handleInputChange('avatar_url', url)
+                handleInputChange('photo_url', url)
                 // Força reload dos dados para pegar os thumbnails
                 loadCurrentProfile()
               }}
@@ -368,7 +368,7 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({
               </ul>
             </div>
             
-            {formData.avatar_url && (
+            {formData.photo_url && (
               <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                 <div className="flex items-center text-green-800">
                   <Check className="w-4 h-4 mr-2" />

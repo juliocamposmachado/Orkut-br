@@ -91,8 +91,6 @@ export type Database = {
           username: string
           display_name: string
           photo_url: string | null
-          avatar_url: string | null
-          avatar_thumbnails: { [size: string]: string } | null
           relationship: string | null
           location: string | null
           birthday: string | null
@@ -106,8 +104,6 @@ export type Database = {
           username: string
           display_name: string
           photo_url?: string | null
-          avatar_url?: string | null
-          avatar_thumbnails?: { [size: string]: string } | null
           relationship?: string | null
           location?: string | null
           birthday?: string | null
@@ -121,8 +117,6 @@ export type Database = {
           username?: string
           display_name?: string
           photo_url?: string | null
-          avatar_url?: string | null
-          avatar_thumbnails?: { [size: string]: string } | null
           relationship?: string | null
           location?: string | null
           birthday?: string | null

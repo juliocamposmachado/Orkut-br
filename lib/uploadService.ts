@@ -128,9 +128,9 @@ async function updateUserProfileImage(userId: string, imageUrl: string, thumbnai
   const { error } = await supabase
     .from('profiles')
     .update({
-      avatar_url: imageUrl,
-      avatar_thumbnails: thumbnails,
-      updated_at: new Date().toISOString()
+      photo_url: imageUrl,
+      // Note: avatar_thumbnails field doesn't exist in profiles table
+      // thumbnails can be stored in a separate table if needed
     })
     .eq('id', userId)
 

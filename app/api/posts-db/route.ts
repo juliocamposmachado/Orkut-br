@@ -128,12 +128,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-  const { content, author, author_name, author_photo, visibility = 'public', is_dj_post = false, shares_count = 0 } = body
+    const { content, author, author_name, author_photo, visibility = 'public', is_dj_post = false, shares_count = 0 } = body
 
     // Validações básicas
-    if (!content || !author || !author_name) {
+    if (!content || !author) {
       return NextResponse.json(
-        { success: false, error: 'Dados obrigatórios não fornecidos' },
+        { success: false, error: 'Conteúdo e autor são obrigatórios' },
         { status: 400 }
       )
     }

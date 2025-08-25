@@ -175,10 +175,15 @@ export default function HomenagemdPage() {
                         </li>
                       </ul>
                     </div>
-                    <p className="font-semibold text-xl text-yellow-800 text-center p-4 bg-yellow-100 rounded-lg">
-                      A violência que tirou a vida de Helen é <em className="text-red-600">INACEITÁVEL</em> 
-                      e não representa os valores que defendemos.
-                    </p>
+                    <div className="font-semibold text-xl text-yellow-800 text-center p-4 bg-yellow-100 rounded-lg">
+                      <p className="mb-2">
+                        A violência que tirou a vida de Helen é 
+                        <span className="text-red-600 font-bold block sm:inline">INACEITÁVEL</span>
+                      </p>
+                      <p>
+                        e não representa os valores que defendemos.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>

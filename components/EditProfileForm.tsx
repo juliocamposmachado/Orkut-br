@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/enhanced-auth-context'
 import { usePhoneValidation } from './WhatsAppButton';
-import { User, Mail, Phone, MessageCircle, Shield, Check, X, Loader } from 'lucide-react';
+import { ImageUpload } from './ImageUpload';
+import { User, Mail, Phone, MessageCircle, Shield, Check, X, Loader, Camera } from 'lucide-react';
 
 interface EditProfileFormProps {
   onSuccess?: () => void;
@@ -15,6 +16,7 @@ interface ProfileData {
   email: string;
   phone: string;
   whatsapp_enabled: boolean;
+  avatar_url: string;
   privacy_settings: {
     profile_visibility: 'public' | 'friends' | 'private';
     phone_visibility: 'public' | 'friends' | 'private';
@@ -35,6 +37,7 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({
     email: '',
     phone: '',
     whatsapp_enabled: true,
+    avatar_url: '',
     privacy_settings: {
       profile_visibility: 'public',
       phone_visibility: 'friends',
@@ -72,6 +75,7 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({
           email: data.email || user?.email || '',
           phone: data.phone || '',
           whatsapp_enabled: data.whatsapp_enabled ?? true,
+          avatar_url: data.avatar_url || '',
           privacy_settings: data.privacy_settings || {
             profile_visibility: 'public',
             phone_visibility: 'friends',
@@ -323,6 +327,55 @@ export const EditProfileForm: React.FC<EditProfileFormProps> = ({
               />
             </div>
             {errors.phone && <p className={errorClassName}>{errors.phone}</p>}
+          </div>
+        </div>
+      </div>
+
+      {/* Foto de Perfil */}
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+          <Camera size={20} />
+          Foto de Perfil
+        </h3>
+
+        <div className="flex flex-col md:flex-row gap-6 items-start">
+          {/* Preview atual ou componente de upload */}
+          <div className="flex-shrink-0">
+            <ImageUpload
+              userId={user?.id || ''}
+              type="profile"
+              currentImage={formData.avatar_url}
+              variant="avatar"
+              onUploadComplete={(url) => {
+                handleInputChange('avatar_url', url)
+                // Força reload dos dados para pegar os thumbnails
+                loadCurrentProfile()
+              }}
+              className="mx-auto md:mx-0"
+            />
+          </div>
+
+          {/* Informações sobre o upload */}
+          <div className="flex-1">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-medium text-blue-900 mb-2">💡 Dicas para sua foto:</h4>
+              <ul className="text-sm text-blue-800 space-y-1">
+                <li>• Use uma foto com seu rosto bem visível</li>
+                <li>• Formatos aceitos: JPEG, PNG, GIF, WebP</li>
+                <li>• Tamanho máximo: 10MB</li>
+                <li>• A imagem será otimizada automaticamente</li>
+                <li>• Arraste e solte ou clique para selecionar</li>
+              </ul>
+            </div>
+            
+            {formData.avatar_url && (
+              <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center text-green-800">
+                  <Check className="w-4 h-4 mr-2" />
+                  <span className="text-sm font-medium">Foto de perfil definida com sucesso!</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

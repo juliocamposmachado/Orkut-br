@@ -227,6 +227,120 @@
   animation: gradient 2s ease-in-out infinite;
 }
 
+/* Memorial page specific styles */
+.memorial-card {
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.memorial-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+/* Memorial photo frame animation */
+@keyframes memorial-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(168, 85, 247, 0.7);
+  }
+}
+
+.memorial-photo-frame {
+  animation: memorial-glow 3s ease-in-out infinite;
+}
+
+/* Gentle floating animation for decorative elements */
+@keyframes gentle-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.gentle-float {
+  animation: gentle-float 4s ease-in-out infinite;
+}
+
+/* Memorial text gradient animation */
+@keyframes memorial-gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.memorial-gradient-text {
+  background: linear-gradient(
+    45deg,
+    #8b5cf6,
+    #ec4899,
+    #a855f7,
+    #f97316,
+    #8b5cf6
+  );
+  background-size: 400% 400%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: memorial-gradient 4s ease-in-out infinite;
+}
+
+/* Subtle pulse for heart icons */
+@keyframes heart-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+.heart-pulse {
+  animation: heart-pulse 2s ease-in-out infinite;
+}
+
+/* Memorial backdrop filter enhancement */
+.memorial-backdrop {
+  backdrop-filter: blur(10px) saturate(180%);
+  -webkit-backdrop-filter: blur(10px) saturate(180%);
+}
+
+/* Smooth transitions for memorial elements */
+.memorial-transition {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.memorial-transition:hover {
+  transform: scale(1.02);
+}
+
+/* Special memorial card shadows */
+.memorial-shadow {
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(168, 85, 247, 0.1);
+}
+
+.memorial-shadow-hover:hover {
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1), 
+    0 10px 10px -5px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgba(168, 85, 247, 0.2);
+}
+
 /* Mobile-first responsive styles */
 @media (max-width: 768px) {
   /* Reduzir padding e margens no mobile */

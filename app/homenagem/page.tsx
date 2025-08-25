@@ -1,76 +1,128 @@
 'use client';
 
 import { OrkutCard } from '@/components/ui/orkut-card';
-import { Heart, Music, Users } from 'lucide-react';
+import { Heart, Music, Users, Star, Flower2 } from 'lucide-react';
+import Image from 'next/image';
 
 export default function HomenagemdPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 py-8">
-      <div className="container mx-auto px-4 max-w-4xl">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-800 to-pink-800 py-8 relative overflow-hidden">
+      {/* Decorative elements */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-20 left-10 w-4 h-4 bg-white rounded-full animate-pulse"></div>
+        <div className="absolute top-40 right-20 w-2 h-2 bg-white rounded-full animate-pulse" style={{animationDelay: '1s'}}></div>
+        <div className="absolute bottom-40 left-20 w-3 h-3 bg-white rounded-full animate-pulse" style={{animationDelay: '2s'}}></div>
+        <div className="absolute bottom-20 right-10 w-2 h-2 bg-white rounded-full animate-pulse" style={{animationDelay: '0.5s'}}></div>
+      </div>
+      
+      <div className="container mx-auto px-4 max-w-5xl relative z-10">
         
-        {/* Header de luto */}
-        <div className="text-center mb-8">
-          <div className="bg-black/80 rounded-lg p-6 mb-6">
-            <h1 className="text-3xl font-bold text-white mb-2">
-              🕊️ Em Memória de Helen Cristina Vitai 🕊️
-            </h1>
-            <p className="text-gray-300 text-lg">
-              03/08/2025 - Uma vida ceifada pela violência desnecessária
-            </p>
+        {/* Header memorial elegante */}
+        <div className="text-center mb-12">
+          <div className="bg-black/90 backdrop-blur-sm rounded-2xl p-8 mb-8 border border-white/20 shadow-2xl">
+            <div className="flex items-center justify-center mb-4">
+              <Flower2 className="w-8 h-8 text-white mr-3 animate-pulse" />
+              <h1 className="text-4xl md:text-5xl font-bold text-white mb-2 bg-gradient-to-r from-pink-200 to-purple-200 bg-clip-text text-transparent">
+                Em Memória de Helen Cristina Vitai
+              </h1>
+              <Flower2 className="w-8 h-8 text-white ml-3 animate-pulse" />
+            </div>
+            <div className="flex items-center justify-center text-gray-300 text-xl">
+              <Star className="w-5 h-5 mr-2" />
+              <span>03/08/2025 - Uma estrela que brilhará para sempre</span>
+              <Star className="w-5 h-5 ml-2" />
+            </div>
           </div>
         </div>
 
-        {/* Homenagem Principal */}
-        <OrkutCard className="mb-8">
-          <div className="text-center">
-            <div className="mb-6">
-              <div className="w-24 h-24 mx-auto bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center mb-4">
-                <Heart className="w-12 h-12 text-white" />
+        {/* Seção com foto da Helen */}
+        <OrkutCard className="mb-8 memorial-card">
+          <div className="text-center bg-gradient-to-br from-pink-50 via-purple-50 to-indigo-50 p-8">
+            <div className="mb-8">
+              {/* Frame decorativo para a foto */}
+              <div className="relative mx-auto w-64 h-64 mb-6">
+                <div className="absolute -inset-4 bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 rounded-full animate-pulse opacity-75"></div>
+                <div className="absolute -inset-2 bg-white rounded-full shadow-2xl"></div>
+                <div className="relative w-64 h-64 rounded-full overflow-hidden border-4 border-white shadow-xl bg-gradient-to-br from-purple-200 to-pink-200 flex items-center justify-center">
+                  {/* Placeholder for Helen's photo - Replace src with actual photo URL */}
+                  <div className="text-center text-purple-700">
+                    <Heart className="w-16 h-16 mx-auto mb-2" />
+                    <p className="text-sm font-medium">Foto da Helen</p>
+                    <p className="text-xs opacity-75">Adicionar imagem aqui</p>
+                  </div>
+                  {/* Uncomment and replace with actual image URL when available
+                  <Image
+                    src="/path-to-helen-photo.jpg"
+                    alt="Helen Cristina Vitai"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 200px, 256px"
+                    priority
+                  />
+                  */}
+                </div>
+                {/* Decorative corners */}
+                <div className="absolute -top-2 -left-2 w-8 h-8">
+                  <Flower2 className="w-full h-full text-pink-400" />
+                </div>
+                <div className="absolute -top-2 -right-2 w-8 h-8">
+                  <Flower2 className="w-full h-full text-purple-400" />
+                </div>
+                <div className="absolute -bottom-2 -left-2 w-8 h-8">
+                  <Flower2 className="w-full h-full text-indigo-400" />
+                </div>
+                <div className="absolute -bottom-2 -right-2 w-8 h-8">
+                  <Flower2 className="w-full h-full text-pink-400" />
+                </div>
               </div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                Helen Cristina Vitai - "Vitai Helen"
-              </h2>
-              <p className="text-gray-600 mb-4">
-                Uma alma que partiu cedo demais, vítima da violência que não deveria existir
-              </p>
+              
+              <div className="space-y-4">
+                <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-800 to-pink-800 bg-clip-text text-transparent">
+                  Helen Cristina Vitai
+                </h2>
+                <p className="text-xl text-gray-700 font-medium">
+                  "Vitai Helen" - Uma alma linda que nos deixou cedo demais
+                </p>
+                <div className="flex items-center justify-center space-x-4 text-gray-600">
+                  <Heart className="w-5 h-5 text-pink-500" />
+                  <span>Amante da música e do rock</span>
+                  <Music className="w-5 h-5 text-purple-500" />
+                </div>
+              </div>
             </div>
 
-            <div className="bg-red-50 border-l-4 border-red-500 p-6 mb-6">
-              <div className="flex items-start">
-                <div className="flex-shrink-0">
-                  <Heart className="w-5 h-5 text-red-500 mt-0.5" />
-                </div>
-                <div className="ml-3 text-left">
-                  <h3 className="text-lg font-semibold text-red-800 mb-2">
-                    Comunicado Oficial da Família
-                  </h3>
-                  <p className="text-red-700 mb-4">
-                    A família comunica, com profundo pesar, o falecimento de 
-                    <strong> Helen Cristina Vitai</strong>, ocorrido em 03/08/2025.
+            {/* Mensagem memorial */}
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-purple-200 shadow-lg">
+              <div className="text-center">
+                <h3 className="text-2xl font-bold text-purple-800 mb-4 flex items-center justify-center">
+                  <Heart className="w-6 h-6 mr-2 text-pink-500" />
+                  Comunicado da Família
+                  <Heart className="w-6 h-6 ml-2 text-pink-500" />
+                </h3>
+                <div className="text-gray-700 space-y-4">
+                  <p className="text-lg">
+                    A família comunica, com profundo pesar, o falecimento de nossa querida 
+                    <strong className="text-purple-800"> Helen Cristina Vitai</strong>, ocorrido em 03/08/2025.
                   </p>
-                  <p className="text-red-700 mb-4">
-                    A pedido dos familiares, solicitamos que não compareçam ao velório de visual.
+                  <p className="text-gray-600">
+                    A pedido dos familiares, solicitamos que não compareçam ao velório.
                   </p>
                   
-                  <div className="mt-4">
-                    <h4 className="font-semibold text-red-800 mb-2">Para mais informações:</h4>
-                    <div className="space-y-2 text-sm">
-                      <p>
-                        <a href="https://www.facebook.com/share/v/1GaovxBUeB/" 
-                           target="_blank" 
-                           rel="noopener noreferrer" 
-                           className="text-blue-600 hover:underline">
-                          📰 Informações sobre o ocorrido
-                        </a>
-                      </p>
-                      <p>
-                        <a href="https://www.facebook.com/share/p/1AoUej34K3/" 
-                           target="_blank" 
-                           rel="noopener noreferrer" 
-                           className="text-blue-600 hover:underline">
-                          📋 Detalhes adicionais
-                        </a>
-                      </p>
+                  <div className="bg-purple-50 rounded-lg p-4 mt-4">
+                    <h4 className="font-semibold text-purple-800 mb-3">Para mais informações:</h4>
+                    <div className="grid md:grid-cols-2 gap-3 text-sm">
+                      <a href="https://www.facebook.com/share/v/1GaovxBUeB/" 
+                         target="_blank" 
+                         rel="noopener noreferrer" 
+                         className="flex items-center text-blue-600 hover:text-blue-800 hover:underline transition-colors p-2 rounded-lg hover:bg-blue-50">
+                        📰 Informações sobre o ocorrido
+                      </a>
+                      <a href="https://www.facebook.com/share/p/1AoUej34K3/" 
+                         target="_blank" 
+                         rel="noopener noreferrer" 
+                         className="flex items-center text-blue-600 hover:text-blue-800 hover:underline transition-colors p-2 rounded-lg hover:bg-blue-50">
+                        📋 Detalhes adicionais
+                      </a>
                     </div>
                   </div>
                 </div>
@@ -80,40 +132,59 @@ export default function HomenagemdPage() {
         </OrkutCard>
 
         {/* Mensagem Contra Violência */}
-        <OrkutCard className="mb-8">
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-4">
-              <Music className="w-8 h-8 text-purple-600 mr-3" />
-              <h2 className="text-2xl font-bold text-gray-800">
-                Rock é Amor, Não Violência
-              </h2>
+        <OrkutCard className="mb-8 bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200">
+          <div className="p-8">
+            <div className="text-center mb-6">
+              <div className="flex items-center justify-center mb-4">
+                <Music className="w-10 h-10 text-yellow-600 mr-4 animate-bounce" />
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
+                  Rock é Amor, Não Violência
+                </h2>
+                <Music className="w-10 h-10 text-yellow-600 ml-4 animate-bounce" style={{animationDelay: '0.5s'}} />
+              </div>
             </div>
             
-            <div className="bg-yellow-50 border-l-4 border-yellow-500 p-6 text-left">
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 border border-yellow-300 shadow-lg">
               <div className="flex items-start">
                 <div className="flex-shrink-0">
-                  <Users className="w-5 h-5 text-yellow-500 mt-0.5" />
+                  <div className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center">
+                    <Users className="w-6 h-6 text-white" />
+                  </div>
                 </div>
-                <div className="ml-3">
-                  <h3 className="text-lg font-semibold text-yellow-800 mb-2">
+                <div className="ml-4">
+                  <h3 className="text-2xl font-bold text-yellow-800 mb-4">
                     Nossa Posição Contra a Violência
                   </h3>
-                  <div className="text-yellow-700 space-y-3">
+                  <div className="text-gray-700 space-y-4 text-lg">
                     <p>
-                      <strong>Estamos eternamente tristes com o ocorrido.</strong> 
+                      <strong className="text-yellow-800">Estamos eternamente tristes com o ocorrido.</strong> 
                       A morte de Helen representa tudo aquilo que rejeitamos e combatemos.
                     </p>
                     <p>
-                      O <strong>rock, a música e nossa comunidade</strong> sempre foram sobre:
+                      O <strong className="text-yellow-800">rock, a música e nossa comunidade</strong> sempre foram sobre:
                     </p>
-                    <ul className="list-disc ml-6 space-y-1">
-                      <li>União e fraternidade</li>
-                      <li>Expressão artística e liberdade</li>
-                      <li>Respeito às diferenças</li>
-                      <li>Paz e harmonia entre as pessoas</li>
-                    </ul>
-                    <p className="font-semibold">
-                      A violência que tirou a vida de Helen é <em>INACEITÁVEL</em> 
+                    <div className="bg-yellow-50 rounded-lg p-4">
+                      <ul className="grid md:grid-cols-2 gap-2 text-gray-700">
+                        <li className="flex items-center space-x-2">
+                          <Heart className="w-4 h-4 text-pink-500" />
+                          <span>União e fraternidade</span>
+                        </li>
+                        <li className="flex items-center space-x-2">
+                          <Music className="w-4 h-4 text-purple-500" />
+                          <span>Expressão artística e liberdade</span>
+                        </li>
+                        <li className="flex items-center space-x-2">
+                          <Users className="w-4 h-4 text-blue-500" />
+                          <span>Respeito às diferenças</span>
+                        </li>
+                        <li className="flex items-center space-x-2">
+                          <Flower2 className="w-4 h-4 text-green-500" />
+                          <span>Paz e harmonia entre as pessoas</span>
+                        </li>
+                      </ul>
+                    </div>
+                    <p className="font-semibold text-xl text-yellow-800 text-center p-4 bg-yellow-100 rounded-lg">
+                      A violência que tirou a vida de Helen é <em className="text-red-600">INACEITÁVEL</em> 
                       e não representa os valores que defendemos.
                     </p>
                   </div>
@@ -124,30 +195,33 @@ export default function HomenagemdPage() {
         </OrkutCard>
 
         {/* Crítica aos Responsáveis */}
-        <OrkutCard className="mb-8">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">
-              ⚠️ Sobre os Responsáveis
-            </h2>
+        <OrkutCard className="mb-8 bg-gradient-to-br from-red-50 to-pink-50 border-red-200">
+          <div className="p-8">
+            <div className="text-center mb-6">
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-red-600 to-pink-600 bg-clip-text text-transparent mb-2">
+                ⚠️ Sobre os Responsáveis
+              </h2>
+              <div className="w-24 h-1 bg-gradient-to-r from-red-500 to-pink-500 mx-auto rounded-full"></div>
+            </div>
             
-            <div className="bg-red-100 border border-red-300 p-6 text-left">
-              <div className="text-red-800 space-y-3">
-                <p className="font-semibold">
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 border border-red-300 shadow-lg">
+              <div className="text-red-800 space-y-4 text-lg">
+                <p className="font-semibold text-xl text-center">
                   Não podemos aceitar que pessoas andem com a morte ao lado.
                 </p>
-                <p>
+                <p className="text-center">
                   Aqueles que causaram esta tragédia são verdadeiros 
-                  <strong> "amigos da onça"</strong> - pessoas que destroem tudo ao seu redor.
+                  <strong className="text-red-600"> "amigos da onça"</strong> - pessoas que destroem tudo ao seu redor.
                 </p>
-                <p>
+                <div className="text-center bg-red-50 p-4 rounded-lg">
                   <a href="https://www.facebook.com/photo/?fbid=1791196635157175&set=a.122230572053798" 
                      target="_blank" 
                      rel="noopener noreferrer" 
-                     className="text-blue-600 hover:underline font-semibold">
-                    👆 Vejam aqui os responsáveis por esta tragédia
+                     className="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors">
+                    <span>👆 Vejam aqui os responsáveis por esta tragédia</span>
                   </a>
-                </p>
-                <p className="text-sm italic">
+                </div>
+                <p className="text-center italic bg-gray-100 p-4 rounded-lg">
                   A justiça deve ser feita. Não esqueceremos Helen, 
                   e não deixaremos que sua morte seja em vão.
                 </p>
@@ -157,72 +231,118 @@ export default function HomenagemdPage() {
         </OrkutCard>
 
         {/* Memórias de Helen */}
-        <OrkutCard className="mb-8">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">
-              💜 Lembrando Helen Vitai
-            </h2>
-            
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="text-left">
-                <h3 className="font-semibold text-gray-800 mb-2">Helen como a conhecíamos:</h3>
-                <ul className="text-gray-600 space-y-1">
-                  <li>• Uma pessoa que amava a música</li>
-                  <li>• Frequentadora da cena rock</li>
-                  <li>• Alguém que não merecia esse fim</li>
-                  <li>• Uma vida interrompida pela violência</li>
-                </ul>
-              </div>
-              
-              <div className="text-left">
-                <h3 className="font-semibold text-gray-800 mb-2">Como podemos honrá-la:</h3>
-                <ul className="text-gray-600 space-y-1">
-                  <li>• Rejeitando toda forma de violência</li>
-                  <li>• Promovendo paz nos eventos</li>
-                  <li>• Cuidando uns dos outros</li>
-                  <li>• Mantendo viva sua memória</li>
-                </ul>
-              </div>
+        <OrkutCard className="mb-8 bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200">
+          <div className="p-8">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
+                💜 Lembrando Helen Vitai
+              </h2>
+              <div className="w-24 h-1 bg-gradient-to-r from-purple-500 to-pink-500 mx-auto rounded-full"></div>
             </div>
             
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <p className="text-gray-600">
-                <a href="https://www.facebook.com/photo/?fbid=1029824547961058&set=a.122095432067312" 
-                   target="_blank" 
-                   rel="noopener noreferrer" 
-                   className="text-blue-600 hover:underline">
-                  📸 Ver foto de Helen Vitai
-                </a>
-              </p>
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 border border-purple-200 shadow-lg">
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="bg-purple-50 rounded-xl p-6">
+                  <h3 className="text-2xl font-bold text-purple-800 mb-4 flex items-center">
+                    <Heart className="w-6 h-6 mr-2" />
+                    Helen como a conhecíamos
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3 text-gray-700">
+                      <Music className="w-5 h-5 text-purple-500" />
+                      <span>Uma pessoa que amava a música</span>
+                    </div>
+                    <div className="flex items-center space-x-3 text-gray-700">
+                      <Star className="w-5 h-5 text-purple-500" />
+                      <span>Frequentadora da cena rock</span>
+                    </div>
+                    <div className="flex items-center space-x-3 text-gray-700">
+                      <Heart className="w-5 h-5 text-pink-500" />
+                      <span>Alguém que não merecia esse fim</span>
+                    </div>
+                    <div className="flex items-center space-x-3 text-gray-700">
+                      <Flower2 className="w-5 h-5 text-pink-500" />
+                      <span>Uma vida interrompida pela violência</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-pink-50 rounded-xl p-6">
+                  <h3 className="text-2xl font-bold text-pink-800 mb-4 flex items-center">
+                    <Flower2 className="w-6 h-6 mr-2" />
+                    Como podemos honrá-la
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3 text-gray-700">
+                      <Heart className="w-5 h-5 text-red-500" />
+                      <span>Rejeitando toda forma de violência</span>
+                    </div>
+                    <div className="flex items-center space-x-3 text-gray-700">
+                      <Flower2 className="w-5 h-5 text-green-500" />
+                      <span>Promovendo paz nos eventos</span>
+                    </div>
+                    <div className="flex items-center space-x-3 text-gray-700">
+                      <Users className="w-5 h-5 text-blue-500" />
+                      <span>Cuidando uns dos outros</span>
+                    </div>
+                    <div className="flex items-center space-x-3 text-gray-700">
+                      <Star className="w-5 h-5 text-purple-500" />
+                      <span>Mantendo viva sua memória</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </OrkutCard>
 
         {/* Mensagem Final */}
-        <OrkutCard>
-          <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">
-              🕊️ Descanse em Paz, Helen
-            </h2>
-            
-            <div className="bg-purple-50 p-6 rounded-lg">
-              <p className="text-gray-700 mb-4">
-                Que sua partida prematura sirva como um lembrete para todos nós:
-              </p>
-              <p className="text-lg font-semibold text-purple-800 mb-4">
-                "A vida é preciosa demais para ser perdida por causa da violência."
-              </p>
-              <p className="text-gray-600 text-sm">
-                Helen, você não será esquecida. Sua memória viverá como um símbolo 
-                da luta contra a violência e pela paz em nossa comunidade.
-              </p>
+        <OrkutCard className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 border-indigo-200">
+          <div className="p-8">
+            <div className="text-center mb-8">
+              <div className="flex items-center justify-center mb-4">
+                <Star className="w-8 h-8 text-indigo-500 mr-3 animate-pulse" />
+                <h2 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-pink-600 bg-clip-text text-transparent">
+                  Descanse em Paz, Helen
+                </h2>
+                <Star className="w-8 h-8 text-indigo-500 ml-3 animate-pulse" style={{animationDelay: '0.5s'}} />
+              </div>
+              <div className="w-32 h-1 bg-gradient-to-r from-indigo-500 to-pink-500 mx-auto rounded-full"></div>
             </div>
             
-            <div className="mt-6">
-              <p className="text-gray-500 text-sm">
-                Esta homenagem faz parte do projeto Orkut.br, criado por pessoas que acreditam 
-                na união, no respeito e na paz entre todos os seres humanos.
-              </p>
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 border border-indigo-200 shadow-lg">
+              <div className="text-center space-y-6">
+                <p className="text-xl text-gray-700">
+                  Que sua partida prematura sirva como um lembrete para todos nós:
+                </p>
+                <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl p-6">
+                  <p className="text-2xl font-bold text-purple-800 italic">
+                    "A vida é preciosa demais para ser perdida por causa da violência."
+                  </p>
+                </div>
+                <p className="text-lg text-gray-600">
+                  Helen, você não será esquecida. Sua memória viverá como um símbolo 
+                  da luta contra a violência e pela paz em nossa comunidade.
+                </p>
+                
+                {/* Decorative elements */}
+                <div className="flex justify-center space-x-4 mt-8">
+                  <Flower2 className="w-8 h-8 text-pink-400 animate-pulse" />
+                  <Heart className="w-8 h-8 text-red-400 animate-pulse" style={{animationDelay: '0.3s'}} />
+                  <Music className="w-8 h-8 text-purple-400 animate-pulse" style={{animationDelay: '0.6s'}} />
+                  <Star className="w-8 h-8 text-indigo-400 animate-pulse" style={{animationDelay: '0.9s'}} />
+                  <Flower2 className="w-8 h-8 text-pink-400 animate-pulse" style={{animationDelay: '1.2s'}} />
+                </div>
+              </div>
+            </div>
+            
+            <div className="mt-8 text-center">
+              <div className="bg-gray-50 rounded-xl p-4">
+                <p className="text-gray-500 text-sm">
+                  Esta homenagem faz parte do projeto Orkut.br, criado por pessoas que acreditam 
+                  na união, no respeito e na paz entre todos os seres humanos.
+                </p>
+              </div>
             </div>
           </div>
         </OrkutCard>

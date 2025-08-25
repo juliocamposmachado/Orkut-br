@@ -44,7 +44,7 @@ export const MessageModal: React.FC<MessageModalProps> = ({
   onClose,
   targetUser
 }) => {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, profile } = useAuth();
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -253,9 +253,9 @@ export const MessageModal: React.FC<MessageModalProps> = ({
               },
               sender: {
                 id: currentUser.id,
-                name: currentUser.display_name || currentUser.username,
-                photo: currentUser.photo_url,
-                username: currentUser.username
+                name: profile?.display_name || profile?.username || currentUser.email || 'Usuário',
+                photo: profile?.photo_url || null,
+                username: profile?.username || currentUser.email || 'user'
               },
               recipient: {
                 id: targetUser.id,

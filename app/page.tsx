@@ -7,6 +7,8 @@ import { EmailVerificationBanner } from '@/components/auth/email-verification-ba
 import { Navbar } from '@/components/layout/navbar'
 import { OrkyAssistant } from '@/components/voice/orky-assistant'
 import { Feed } from '@/components/Feed'
+import { GlobalFeed } from '@/components/GlobalFeed'
+import { CreatePost } from '@/components/CreatePost'
 import { Footer } from '@/components/layout/footer'
 import { OrkutCard, OrkutCardContent, OrkutCardHeader } from '@/components/ui/orkut-card'
 import { Button } from '@/components/ui/button'
@@ -697,8 +699,14 @@ export default function HomePage() {
               </OrkutCardContent>
             </OrkutCard>
 
-            {/* Feed Posts - Agora usando o componente Feed que inclui DJ Orky */}
-            <Feed />
+            {/* Criar Post */}
+            <CreatePost onPostCreated={() => {
+              // Trigger refresh do GlobalFeed quando um novo post é criado
+              console.log('🎉 Post criado, GlobalFeed será atualizado automaticamente via evento')
+            }} />
+            
+            {/* Feed Global Otimizado */}
+            <GlobalFeed />
           </div>
 
           {/* Right Sidebar */}

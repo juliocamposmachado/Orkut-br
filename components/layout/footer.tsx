@@ -1,6 +1,6 @@
 'use client'
 
-import { Heart, Code, Phone, Mail, Globe } from 'lucide-react'
+import { Heart, Code, Phone, Mail, Globe, Settings, Monitor } from 'lucide-react'
 
 export function Footer() {
   return (
@@ -89,8 +89,60 @@ export function Footer() {
           </div>
         </div>
 
+        {/* Tests & Diagnostics Section */}
+        <div className="border-t border-purple-700 mt-8 pt-6">
+          <div className="text-center mb-6">
+            <h3 className="text-lg font-semibold text-white mb-4">Testes e Diagnósticos</h3>
+            <p className="text-purple-200 text-sm mb-4">
+              Ferramentas para testar e diagnosticar funcionalidades do sistema
+            </p>
+            
+            <div className="flex flex-wrap justify-center gap-4">
+              {/* Teste WebRTC */}
+              <a 
+                href="/api/webrtc-test" 
+                className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              >
+                <Phone className="h-4 w-4" />
+                Teste WebRTC
+              </a>
+              
+              {/* Diagnóstico WebRTC */}
+              <a 
+                href="/api/webrtc-diagnostics" 
+                className="inline-flex items-center gap-2 bg-green-700 hover:bg-green-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              >
+                <Settings className="h-4 w-4" />
+                Diagnóstico WebRTC
+              </a>
+              
+              {/* Status do Sistema */}
+              <a 
+                href="/system-status" 
+                className="inline-flex items-center gap-2 bg-orange-700 hover:bg-orange-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              >
+                <Monitor className="h-4 w-4" />
+                Status do Sistema
+              </a>
+              
+              {/* Teste de Deploy */}
+              <a 
+                href="/api/deploy-checker" 
+                className="inline-flex items-center gap-2 bg-indigo-700 hover:bg-indigo-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              >
+                <Globe className="h-4 w-4" />
+                Teste de Deploy
+              </a>
+            </div>
+            
+            <p className="text-xs text-purple-400 mt-4">
+              🔧 Ferramentas de desenvolvimento e monitoramento
+            </p>
+          </div>
+        </div>
+
         {/* Bottom Bar */}
-        <div className="border-t border-purple-700 mt-8 pt-6 text-center">
+        <div className="border-t border-purple-700 mt-6 pt-6 text-center">
           <p className="text-purple-200 mb-2">
             Feito com <Heart className="h-4 w-4 inline text-pink-400" /> por 
             <span className="font-medium text-white"> Julio Campos Machado</span>

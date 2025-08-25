@@ -383,7 +383,7 @@ export default function HomePage() {
               </OrkutCardContent>
             </OrkutCard>
 
-            {/* Minhas Playlists */}
+            {/* Minhas Playlists - movido para mais acima */}
             <OrkutCard>
               <OrkutCardHeader>
                 <div className="flex items-center justify-between">
@@ -570,35 +570,43 @@ export default function HomePage() {
             </OrkutCard>
 
 
-            {/* Top Friends */}
-            <OrkutCard>
-              <OrkutCardHeader>
-                <div className="flex items-center space-x-2">
-                  <Star className="h-4 w-4" />
-                  <span>Top 10 Amigos</span>
-                </div>
-              </OrkutCardHeader>
-              <OrkutCardContent>
-                <div className="grid grid-cols-2 gap-3">
-                  {Array.from({ length: 8 }).map((_, idx) => (
-                    <div key={idx} className="text-center">
-                      <img 
-                        src={`https://images.pexels.com/photos/${220000 + idx}/pexels-photo-${220000 + idx}.jpeg?auto=compress&cs=tinysrgb&w=100`}
-                        alt={`Amigo ${idx + 1}`}
-                        className="w-12 h-12 rounded-full mx-auto mb-1 object-cover hover:opacity-80 transition-opacity cursor-pointer"
-                      />
-                      <p className="text-xs text-gray-600">Amigo {idx + 1}</p>
-                    </div>
-                  ))}
-                </div>
-              </OrkutCardContent>
-            </OrkutCard>
+            {/* Top Friends - Desktop Only */}
+            <div className="hidden lg:block">
+              <OrkutCard>
+                <OrkutCardHeader>
+                  <div className="flex items-center space-x-2">
+                    <Star className="h-4 w-4" />
+                    <span>Top 10 Amigos</span>
+                  </div>
+                </OrkutCardHeader>
+                <OrkutCardContent>
+                  <div className="grid grid-cols-2 gap-3">
+                    {Array.from({ length: 8 }).map((_, idx) => (
+                      <div key={idx} className="text-center">
+                        <img 
+                          src={`https://images.pexels.com/photos/${220000 + idx}/pexels-photo-${220000 + idx}.jpeg?auto=compress&cs=tinysrgb&w=100`}
+                          alt={`Amigo ${idx + 1}`}
+                          className="w-12 h-12 rounded-full mx-auto mb-1 object-cover hover:opacity-80 transition-opacity cursor-pointer"
+                        />
+                        <p className="text-xs text-gray-600">Amigo {idx + 1}</p>
+                      </div>
+                    ))}
+                  </div>
+                </OrkutCardContent>
+              </OrkutCard>
+            </div>
           </div>
 
           {/* Main Content - Postagens no meio */}
           <div className="space-y-6 lg:pr-2">
-            {/* Limitador de altura para o feed não ultrapassar as laterais */}
-            {/* Friends Recent Photos */}
+            {/* 1. No topo mobile: Criar Post */}
+            <div className="lg:hidden">
+              <CreatePost onPostCreated={() => {
+                console.log('🎉 Post criado, GlobalFeed será atualizado automaticamente via evento')
+              }} />
+            </div>
+            
+            {/* 2. Stories dos amigos - sempre visível */}
             <OrkutCard>
               <OrkutCardContent>
                 <div className="flex items-center space-x-3 overflow-x-auto pb-2 scrollbar-hide max-w-lg lg:max-w-xl xl:max-w-2xl">
@@ -700,17 +708,54 @@ export default function HomePage() {
               </OrkutCardContent>
             </OrkutCard>
 
-            {/* Criar Post */}
-            <CreatePost onPostCreated={() => {
-              // Trigger refresh do GlobalFeed quando um novo post é criado
-              console.log('🎉 Post criado, GlobalFeed será atualizado automaticamente via evento')
-            }} />
+            {/* 3. Desktop: Criar Post */}
+            <div className="hidden lg:block">
+              <CreatePost onPostCreated={() => {
+                console.log('🎉 Post criado, GlobalFeed será atualizado automaticamente via evento')
+              }} />
+            </div>
             
-            {/* DJ Orky Smart Music Card - informações inteligentes sobre a música atual */}
+            {/* 4. DJ Orky Smart Music Card */}
             <SmartMusicCard />
             
-            {/* Feed Global Otimizado */}
+            {/* 5. Feed Global Otimizado */}
             <GlobalFeed />
+            
+            {/* 6. Top 10 Amigos - Mobile Only (no final) */}
+            <div className="lg:hidden">
+              <OrkutCard>
+                <OrkutCardHeader>
+                  <div className="flex items-center space-x-2">
+                    <Star className="h-4 w-4" />
+                    <span>Top 10 Amigos</span>
+                  </div>
+                </OrkutCardHeader>
+                <OrkutCardContent>
+                  <div className="grid grid-cols-4 gap-3">
+                    {Array.from({ length: 8 }).map((_, idx) => (
+                      <div key={idx} className="text-center">
+                        <img 
+                          src={`https://images.pexels.com/photos/${220000 + idx}/pexels-photo-${220000 + idx}.jpeg?auto=compress&cs=tinysrgb&w=100`}
+                          alt={`Amigo ${idx + 1}`}
+                          className="w-16 h-16 rounded-full mx-auto mb-1 object-cover hover:opacity-80 transition-opacity cursor-pointer"
+                        />
+                        <p className="text-xs text-gray-600 truncate">Amigo {idx + 1}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-4 text-center">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="border-purple-300 text-purple-700 hover:bg-purple-50"
+                      onClick={() => router.push('/amigos')}
+                    >
+                      Ver todos os amigos
+                    </Button>
+                  </div>
+                </OrkutCardContent>
+              </OrkutCard>
+            </div>
           </div>
 
           {/* Right Sidebar */}
@@ -899,26 +944,176 @@ export default function HomePage() {
               </OrkutCardContent>
             </OrkutCard>
 
-            {/* My Communities */}
+            {/* Site Users - Discord Style */}
             <OrkutCard>
               <OrkutCardHeader>
-                <div className="flex items-center space-x-2">
-                  <Users className="h-4 w-4" />
-                  <span>Minhas Comunidades</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Globe className="h-4 w-4" />
+                    <span>Usuários do Site</span>
+                  </div>
+                  <div className="flex items-center space-x-2 text-xs text-gray-500">
+                    <div className="flex items-center space-x-1">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>5 online</span>
+                    </div>
+                    <span>•</span>
+                    <span>127 membros</span>
+                  </div>
                 </div>
               </OrkutCardHeader>
-              <OrkutCardContent>
-                <div className="grid grid-cols-3 gap-2">
-                  {communities.slice(0, 9).map((community) => (
-                    <div key={community.id} className="text-center">
-                      <img 
-                        src={community.photo_url} 
-                        alt={community.name}
-                        className="w-full aspect-square rounded-lg object-cover mb-1 hover:opacity-80 transition-opacity cursor-pointer"
-                      />
-                      <p className="text-xs text-gray-600 truncate">{community.name}</p>
+              <OrkutCardContent className="p-0">
+                <div className="max-h-72 overflow-y-auto">
+                  {/* Online Users Section */}
+                  <div className="p-3 pb-2">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Disponível — 5</span>
                     </div>
-                  ))}
+                    <div className="space-y-1">
+                      {[
+                        { 
+                          name: 'acebloke', 
+                          avatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=100',
+                          status: 'online',
+                          activity: 'Estudando Java...'
+                        },
+                        { 
+                          name: 'J.Th.vbs', 
+                          avatar: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=100',
+                          status: 'online',
+                          activity: 'Jogando docs.zira.bot | discord...'
+                        },
+                        { 
+                          name: '007j08tzD9jy28wrm', 
+                          avatar: 'https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=100',
+                          status: 'online',
+                          activity: 'Navegando no Orkut'
+                        },
+                        { 
+                          name: '007tracker', 
+                          avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=100',
+                          status: 'online',
+                          activity: 'Ouvindo música'
+                        },
+                        { 
+                          name: '23 viniciusamaral', 
+                          avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100',
+                          status: 'online',
+                          activity: 'Em uma chamada'
+                        }
+                      ].map((user, idx) => (
+                        <div key={idx} className="flex items-center space-x-3 px-2 py-1.5 rounded hover:bg-gray-50 transition-colors cursor-pointer group">
+                          <div className="relative">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={user.avatar} alt={user.name} />
+                              <AvatarFallback className="text-xs bg-purple-500 text-white">
+                                {user.name.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
+                            <p className="text-xs text-gray-500 truncate">{user.activity}</p>
+                          </div>
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              className="p-1 h-6 w-6 text-gray-600 hover:bg-gray-200"
+                              title="Enviar mensagem"
+                            >
+                              <MessageCircle className="h-3 w-3" />
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              className="p-1 h-6 w-6 text-gray-600 hover:bg-gray-200"
+                              title="Ver perfil"
+                            >
+                              <UserCheck className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Offline Users Section */}
+                  <div className="p-3 pt-2">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                      <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">Offline — 122</span>
+                    </div>
+                    <div className="space-y-1">
+                      {[
+                        { 
+                          name: '380472', 
+                          avatar: 'https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=100',
+                          lastSeen: 'Há 2 horas'
+                        },
+                        { 
+                          name: '691971', 
+                          avatar: 'https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=100',
+                          lastSeen: 'Há 1 dia'
+                        },
+                        { 
+                          name: '7514', 
+                          avatar: 'https://images.pexels.com/photos/1121796/pexels-photo-1121796.jpeg?auto=compress&cs=tinysrgb&w=100',
+                          lastSeen: 'Há 3 dias'
+                        },
+                        { 
+                          name: '<Allysson>', 
+                          avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=100',
+                          lastSeen: 'Há 1 semana'
+                        },
+                        { 
+                          name: 'DevMaster2024', 
+                          avatar: 'https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=100',
+                          lastSeen: 'Há 2 semanas'
+                        }
+                      ].map((user, idx) => (
+                        <div key={`offline-${idx}`} className="flex items-center space-x-3 px-2 py-1.5 rounded hover:bg-gray-50 transition-colors cursor-pointer group opacity-60">
+                          <div className="relative">
+                            <Avatar className="h-8 w-8">
+                              <AvatarImage src={user.avatar} alt={user.name} />
+                              <AvatarFallback className="text-xs bg-gray-500 text-white">
+                                {user.name.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-gray-400 rounded-full border-2 border-white"></div>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-700 truncate">{user.name}</p>
+                            <p className="text-xs text-gray-500 truncate">{user.lastSeen}</p>
+                          </div>
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+                            <Button 
+                              size="sm" 
+                              variant="ghost" 
+                              className="p-1 h-6 w-6 text-gray-600 hover:bg-gray-200"
+                              title="Ver perfil"
+                            >
+                              <UserCheck className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Footer with total count */}
+                <div className="border-t border-gray-100 p-3">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full border-purple-300 text-purple-700 hover:bg-purple-50 text-xs"
+                    onClick={() => router.push('/membros')}
+                  >
+                    Ver todos os membros (127)
+                  </Button>
                 </div>
               </OrkutCardContent>
             </OrkutCard>

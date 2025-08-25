@@ -26,7 +26,8 @@ import {
   Bell,
   Menu,
   MoreHorizontal,
-  Heart
+  Heart,
+  UserPlus
 } from 'lucide-react'
 import { useAuth } from '@/contexts/enhanced-auth-context'
 import { useVoice } from '@/contexts/voice-context'
@@ -155,6 +156,12 @@ export function Navbar() {
                       <span>Ativar Assistente de Voz</span>
                     </>
                   )}
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/solicitacoes-amizade" className="w-full">
+                    <UserPlus className="mr-2 h-4 w-4 text-purple-600" />
+                    <span>Solicitações de Amizade</span>
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/homenagem" className="w-full">

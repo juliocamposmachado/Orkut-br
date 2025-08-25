@@ -29,6 +29,7 @@ import {
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
 
 interface Notification {
   id: string
@@ -51,6 +52,7 @@ interface Notification {
 
 export function NotificationsDropdown() {
   const { user } = useAuth()
+  const router = useRouter()
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
@@ -228,6 +230,40 @@ export function NotificationsDropdown() {
     toast.success('Todas as notificações foram removidas')
   }
 
+  const handleNotificationClick = (notification: Notification) => {
+    // Marcar como lida primeiro
+    if (!notification.read) {
+      markAsRead(notification.id)
+    }
+    
+    // Redirecionar baseado no tipo da notificação
+    switch (notification.type) {
+      case 'friend_request':
+        setIsOpen(false) // Fechar dropdown
+        router.push('/solicitacoes-amizade')
+        break
+      case 'friend_request_accepted':
+        setIsOpen(false)
+        router.push(`/perfil/${notification.from_user.username}`)
+        break
+      case 'like':
+      case 'comment':
+      case 'share':
+        // Redirecionar para o post (implementar futuramente)
+        if (notification.post) {
+          setIsOpen(false)
+          router.push(`/`) // Por enquanto vai para home
+        }
+        break
+      case 'mention':
+        setIsOpen(false)
+        router.push(`/perfil/${notification.from_user.username}`)
+        break
+      default:
+        break
+    }
+  }
+
   if (!user) return null
 
   return (
@@ -303,7 +339,7 @@ export function NotificationsDropdown() {
                       ? 'bg-purple-50 border-l-2 border-purple-400' 
                       : 'hover:bg-gray-50'
                   }`}
-                  onClick={() => !notification.read && markAsRead(notification.id)}
+                  onClick={() => handleNotificationClick(notification)}
                 >
                   <div className="flex space-x-3 w-full">
                     <Avatar className="h-8 w-8 border">

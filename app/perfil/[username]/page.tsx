@@ -68,7 +68,7 @@ interface FriendItem {
 }
 
 const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, profile: currentUserProfile } = useAuth();
   const { callState, startVideoCall, startAudioCall, endCall } = useCall();
   
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -156,11 +156,11 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
         payload: {
           from_user: {
             id: currentUser.id,
-            display_name: currentUser.display_name || 'Usuário',
-            photo_url: currentUser.photo_url,
-            username: currentUser.username || 'usuario'
+            display_name: currentUserProfile?.display_name || 'Usuário',
+            photo_url: currentUserProfile?.photo_url,
+            username: currentUserProfile?.username || 'usuario'
           },
-          action_url: `/perfil/${currentUser.username}`
+          action_url: `/perfil/${currentUserProfile?.username || currentUser.id}`
         },
         read: false
       };

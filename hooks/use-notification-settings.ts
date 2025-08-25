@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/enhanced-auth-context'
 import { supabase } from '@/lib/supabase'
-import { toast } from 'sonner'
+// import { toast } from 'sonner' // Temporariamente comentado para build
 
 export interface NotificationSettings {
   // Tipos de notificação
@@ -154,13 +154,13 @@ export function useNotificationSettings() {
       if (error) {
         console.error('Error saving notification settings to Supabase:', error)
         // Mesmo com erro no Supabase, mantemos as configurações no localStorage
-        toast.success('Configurações salvas localmente')
+        console.log('Configurações salvas localmente')
       } else {
-        toast.success('Configurações salvas com sucesso!')
+        console.log('Configurações salvas com sucesso!')
       }
     } catch (error) {
       console.error('Error saving notification settings:', error)
-      toast.error('Erro ao salvar configurações')
+      console.error('Erro ao salvar configurações')
     }
   }, [user, settings])
 
@@ -184,7 +184,7 @@ export function useNotificationSettings() {
   // Solicitar permissão para notificações
   const requestNotificationPermission = useCallback(async () => {
     if (!('Notification' in window)) {
-      toast.error('Notificações não são suportadas neste navegador')
+      console.error('Notificações não são suportadas neste navegador')
       return false
     }
 
@@ -193,19 +193,19 @@ export function useNotificationSettings() {
       
       if (permission === 'granted') {
         await saveSettings({ browser_push: true })
-        toast.success('Permissão para notificações concedida!')
+        console.log('Permissão para notificações concedida!')
         return true
       } else if (permission === 'denied') {
         await saveSettings({ browser_push: false })
-        toast.error('Permissão para notificações negada')
+        console.error('Permissão para notificações negada')
         return false
       } else {
-        toast.info('Permissão para notificações não foi concedida')
+        console.log('Permissão para notificações não foi concedida')
         return false
       }
     } catch (error) {
       console.error('Error requesting notification permission:', error)
-      toast.error('Erro ao solicitar permissão para notificações')
+      console.error('Erro ao solicitar permissão para notificações')
       return false
     }
   }, [saveSettings])

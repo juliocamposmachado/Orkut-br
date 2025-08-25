@@ -27,7 +27,7 @@ import {
   AlertTriangle,
   Info
 } from 'lucide-react'
-import { toast } from 'sonner'
+// import { toast } from 'sonner' // Temporariamente comentado para build
 
 export function NotificationSettings() {
   const {
@@ -71,7 +71,7 @@ export function NotificationSettings() {
 
   const testNotification = () => {
     if (notificationPermission !== 'granted') {
-      toast.error('Permissão para notificações não concedida')
+      alert('Permissão para notificações não concedida')
       return
     }
 
@@ -82,7 +82,7 @@ export function NotificationSettings() {
       tag: 'test-notification'
     })
     
-    toast.success('Notificação de teste enviada!')
+    alert('Notificação de teste enviada!')
   }
 
   if (!hasLoaded) {

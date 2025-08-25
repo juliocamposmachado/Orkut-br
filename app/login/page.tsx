@@ -137,10 +137,10 @@ export default function LoginPage() {
             </span>
           </div>
           <h1 className="text-white text-2xl font-bold mb-2">
-            Orkut - Até o dono do nome ver! 😂
+            🙏 Tributo ao criador original: Orkut Büyükkökten - O gênio que criou nossa nostalgia! 🧠✨
           </h1>
           <p className="text-purple-100 mb-3">
-            A rede social que volta... ou não! 🤷‍♂️💀
+            "Obrigado por nos dar os melhores anos da internet brasileira!" 🇧🇷 ❤️
           </p>
         </div>
 

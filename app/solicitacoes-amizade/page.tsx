@@ -107,36 +107,96 @@ export default function FriendRequestsPage() {
   };
 
   const handleAcceptRequest = async (request: FriendRequest) => {
-    setActionLoading(`accept-${request.id}`);
+    setActionLoading(`accept-${request.id}`)
     
     try {
-      // Simular processamento
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('🔄 Aceitando pedido de amizade no banco de dados...')
+      console.log('📊 Dados da solicitação:', {
+        requestId: request.id,
+        fromUserId: request.from_user.id,
+        toUserId: user?.id,
+        fromUserName: request.from_user.display_name
+      })
       
-      // Atualizar status do pedido
+      // PASSO 1: Inserir amizade na tabela friendships
+      if (supabase && user) {
+        try {
+          console.log('🔄 Tentando inserir na tabela friendships...')
+          
+          const insertData = {
+            requester_id: request.from_user.id,
+            addressee_id: user.id,
+            status: 'accepted' as const
+          }
+          
+          console.log('📦 Dados para inserção:', insertData)
+          
+          const { data: insertResult, error: friendshipError } = await supabase
+            .from('friendships')
+            .insert(insertData)
+            .select()
+          
+          if (friendshipError) {
+            console.error('❌ Erro detalhado ao inserir amizade:', {
+              error: friendshipError,
+              code: friendshipError.code,
+              message: friendshipError.message,
+              details: friendshipError.details,
+              hint: friendshipError.hint
+            })
+            throw friendshipError
+          }
+          
+          console.log('✅ Amizade inserida no banco de dados com sucesso!', insertResult)
+          
+          // PASSO 2: Marcar notificação como lida
+          const { error: notificationError } = await supabase
+            .from('notifications')
+            .update({ read: true })
+            .eq('id', request.id)
+            .eq('profile_id', user.id)
+          
+          if (notificationError) {
+            console.warn('⚠️ Erro ao marcar notificação como lida:', notificationError)
+          } else {
+            console.log('✅ Notificação marcada como lida')
+          }
+          
+        } catch (dbError) {
+          console.error('❌ Erro na operação do banco:', dbError)
+          toast.error('Erro ao salvar amizade no banco de dados')
+          return // Não continua se houver erro no banco
+        }
+      } else {
+        console.warn('⚠️ Supabase não disponível, usando modo simulação')
+        // Simular processamento se não há Supabase
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+      
+      // PASSO 3: Atualizar status local do pedido
       setFriendRequests(prev => 
         prev.map(req => 
           req.id === request.id ? { ...req, status: 'accepted' } : req
         )
-      );
+      )
 
-      // Criar notificação de aceite para quem enviou
-      await createAcceptedNotification(request);
+      // PASSO 4: Criar notificação de aceite para quem enviou
+      await createAcceptedNotification(request)
       
-      // Atualizar localStorage
+      // PASSO 5: Atualizar localStorage (backup)
       if (user) {
         const existingNotifications = JSON.parse(
           localStorage.getItem(`notifications_${user.id}`) || '[]'
-        );
+        )
         
         const updatedNotifications = existingNotifications.map((n: any) => 
           n.id === request.id ? { ...n, read: true } : n
-        );
+        )
         
-        localStorage.setItem(`notifications_${user.id}`, JSON.stringify(updatedNotifications));
+        localStorage.setItem(`notifications_${user.id}`, JSON.stringify(updatedNotifications))
       }
 
-      toast.success(`Você aceitou a solicitação de ${request.from_user.display_name}! 🎉`);
+      toast.success(`Você aceitou a solicitação de ${request.from_user.display_name}! 🎉`)
       
       // Disparar evento global para atualizar listas de amigos
       window.dispatchEvent(new CustomEvent('friendRequestAccepted', {
@@ -168,17 +228,39 @@ export default function FriendRequestsPage() {
     setActionLoading(`reject-${request.id}`);
     
     try {
-      // Simular processamento
-      await new Promise(resolve => setTimeout(resolve, 800));
+      console.log('🚫 Rejeitando pedido de amizade...')
       
-      // Atualizar status do pedido
+      // PASSO 1: Marcar notificação como lida/removida no banco
+      if (supabase) {
+        try {
+          const { error: notificationError } = await supabase
+            .from('notifications')
+            .delete()
+            .eq('id', request.id)
+            .eq('profile_id', user.id)
+          
+          if (notificationError) {
+            console.warn('⚠️ Erro ao remover notificação do banco:', notificationError)
+          } else {
+            console.log('✅ Notificação removida do banco')
+          }
+        } catch (dbError) {
+          console.error('❌ Erro na operação do banco:', dbError)
+          // Continua mesmo com erro, pois é apenas uma rejeição
+        }
+      } else {
+        // Simular processamento se não há Supabase
+        await new Promise(resolve => setTimeout(resolve, 800))
+      }
+      
+      // PASSO 2: Atualizar status local do pedido
       setFriendRequests(prev => 
         prev.map(req => 
           req.id === request.id ? { ...req, status: 'rejected' } : req
         )
       );
 
-      // Remover da lista de notificações
+      // PASSO 3: Remover da lista de notificações (localStorage backup)
       if (user) {
         const existingNotifications = JSON.parse(
           localStorage.getItem(`notifications_${user.id}`) || '[]'

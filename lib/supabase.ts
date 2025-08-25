@@ -260,6 +260,24 @@ export type Database = {
           updated_at?: string
         }
       }
+      friendships: {
+        Row: {
+          id: number
+          requester_id: string
+          addressee_id: string
+          status: 'pending' | 'accepted' | 'rejected'
+          created_at: string
+        }
+        Insert: {
+          requester_id: string
+          addressee_id: string
+          status?: 'pending' | 'accepted' | 'rejected'
+          created_at?: string
+        }
+        Update: {
+          status?: 'pending' | 'accepted' | 'rejected'
+        }
+      }
     }
   }
 }

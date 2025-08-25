@@ -59,12 +59,13 @@ export const MessageModal: React.FC<MessageModalProps> = ({
 
   // Carregar mensagens quando abre o modal
   useEffect(() => {
-    if (isOpen && currentUser && targetUser.id) {
+    if (isOpen && targetUser.id) {
+      // Sempre inicializar, mesmo sem usuário autenticado
       loadConversation();
       scrollToBottom();
       setTimeout(() => inputRef.current?.focus(), 100);
     }
-  }, [isOpen, currentUser, targetUser.id]);
+  }, [isOpen, targetUser.id]);
 
   useEffect(() => {
     scrollToBottom();

@@ -115,6 +115,29 @@ export default function LoginPage() {
     }
   }
 
+  const handleDeveloperLogin = async () => {
+    const devCredentials = {
+      email: 'julioscouter',
+      password: 'Julio@2025'
+    }
+
+    setIsLoading(true)
+    try {
+      // Preencher os campos automaticamente
+      setEmail(devCredentials.email)
+      setPassword(devCredentials.password)
+      
+      // Tentar fazer login
+      await signIn(devCredentials.email, devCredentials.password)
+      toast.success('🛠️ Login de desenvolvedor realizado! Bem-vindo!')
+      router.push('/')
+    } catch (error: any) {
+      toast.error(`Erro ao fazer login de desenvolvedor: ${error.message}. Verifique se a conta existe no banco de dados.`)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleGoogleLogin = async () => {
     setIsLoading(true)
     try {
@@ -277,20 +300,31 @@ export default function LoginPage() {
               </TabsContent>
             </Tabs>
 
-            {/* Google Login */}
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <Button
-                onClick={handleGoogleLogin}
-                disabled={isLoading}
-                variant="outline"
-                className="w-full border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2.5"
-              >
-                <FcGoogle className="mr-3 text-xl" />
-                Continuar com Google
-              </Button>
-              <p className="text-xs text-gray-500 mt-2 text-center">
-                Rápido, seguro e sem senhas para lembrar! 🚀
-              </p>
+              {/* Developer Login */}
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <Button
+                  onClick={handleDeveloperLogin}
+                  disabled={isLoading}
+                  variant="outline"
+                  className="w-full mb-3 border-purple-300 hover:bg-purple-50 text-purple-700 font-medium py-2.5"
+                >
+                  <span className="mr-2 text-lg">🛠️</span>
+                  Área do Programador
+                </Button>
+                
+                {/* Google Login */}
+                <Button
+                  onClick={handleGoogleLogin}
+                  disabled={isLoading}
+                  variant="outline"
+                  className="w-full border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2.5"
+                >
+                  <FcGoogle className="mr-3 text-xl" />
+                  Continuar com Google
+                </Button>
+                <p className="text-xs text-gray-500 mt-2 text-center">
+                  Rápido, seguro e sem senhas para lembrar! 🚀
+                </p>
               
               {/* Explicação sobre o nome técnico do Supabase */}
               <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">

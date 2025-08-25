@@ -13,7 +13,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
     }
 
-    const { accessToken } = await request.json()
+    const body = await request.json()
+    let accessToken = body.accessToken
+    
+    // Se useExistingSession for true, tenta usar o token da sessão atual
+    if (body.useExistingSession && !accessToken) {
+      // Verifica se o usuário está logado com Google e tem um token válido
+      if (session.provider_token && session.user.app_metadata?.provider === 'google') {
+        accessToken = session.provider_token
+        console.log('✅ Usando token da sessão existente do Google')
+      } else {
+        console.log('❌ Sessão Google não disponível ou token inválido')
+        return NextResponse.json({ 
+          error: 'Sessão Google não disponível. Faça login com Google primeiro.',
+          needsAuth: true
+        }, { status: 400 })
+      }
+    }
     
     if (!accessToken) {
       return NextResponse.json({ error: 'Token de acesso é obrigatório' }, { status: 400 })

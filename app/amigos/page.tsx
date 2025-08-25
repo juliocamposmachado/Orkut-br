@@ -430,6 +430,25 @@ export default function FriendsPage() {
 
     setImportingGoogle(true)
     try {
+      // Primeira tentativa: usar sessão existente do Google se o usuário está logado
+      const sessionResponse = await fetch('/api/import-google-contacts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ useExistingSession: true })
+      })
+      
+      const sessionResult = await sessionResponse.json()
+      
+      if (sessionResult.success) {
+        alert(`✅ Contatos importados com sucesso!\nImportados: ${sessionResult.imported} | Já existentes: ${sessionResult.existing}`)
+        loadContacts()
+        setImportingGoogle(false)
+        return
+      }
+      
+      // Se não conseguiu usar a sessão existente, fazer OAuth tradicional
+      console.log('Sessão existente não disponível, iniciando OAuth...')
+      
       // Get Google OAuth URL
       const response = await fetch('/api/import-google-contacts')
       const { authUrl } = await response.json()
@@ -451,7 +470,7 @@ export default function FriendsPage() {
               })
               const result = await res.json()
               if (result.success) {
-                alert(`Importados: ${result.imported} | Já existentes: ${result.existing}`)
+                alert(`✅ Contatos importados com sucesso!\nImportados: ${result.imported} | Já existentes: ${result.existing}`)
                 loadContacts()
               } else {
                 alert(result.error || 'Falha ao importar contatos')
@@ -899,21 +918,29 @@ export default function FriendsPage() {
                           <Globe className="h-6 w-6 text-blue-600" />
                           <div>
                             <h4 className="font-medium text-gray-800">Google Contatos</h4>
-                            <p className="text-sm text-gray-600">Exporte e importe seus contatos</p>
+                            <p className="text-sm text-gray-600">Importação direta dos seus contatos</p>
                           </div>
                         </div>
                         <div className="space-y-2">
                           <Button 
-                            onClick={() => window.open('https://contacts.google.com/', '_blank')}
+                            onClick={importGoogleContacts}
+                            disabled={importingGoogle}
                             className="w-full bg-blue-500 hover:bg-blue-600"
                           >
-                            <Globe className="h-4 w-4 mr-2" />
-                            Abrir Google Contatos
+                            {importingGoogle ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                Importando...
+                              </>
+                            ) : (
+                              <>
+                                <Globe className="h-4 w-4 mr-2" />
+                                Importar do Google
+                              </>
+                            )}
                           </Button>
                           <p className="text-xs text-gray-500">
-                            1. Clique em "Exportar" no lado esquerdo<br/>
-                            2. Selecione "CSV do Google"<br/>
-                            3. Faça upload do arquivo abaixo
+                            💡 Se você fez login com Google, seus contatos serão importados automaticamente!
                           </p>
                         </div>
                       </div>

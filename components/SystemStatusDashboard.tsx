@@ -97,8 +97,8 @@ const SystemStatusDashboard: React.FC = () => {
         // Se encontrou bugs, criar notificação
         if (bugData.bugs && bugData.bugs.length > 0) {
           const highestSeverityBug = bugData.bugs.reduce((prev: any, current: any) => {
-            const severityOrder = { low: 1, medium: 2, high: 3, critical: 4 }
-            return severityOrder[current.severity] > severityOrder[prev.severity] ? current : prev
+            const severityOrder: { [key: string]: number } = { low: 1, medium: 2, high: 3, critical: 4 }
+            return (severityOrder[current.severity] || 0) > (severityOrder[prev.severity] || 0) ? current : prev
           })
 
           await fetch('/api/bug-notifications', {

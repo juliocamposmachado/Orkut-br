@@ -28,10 +28,15 @@ async function checkSiteHealth(url: string = 'https://orkut-br.vercel.app'): Pro
     const start = Date.now()
     
     // Verificar se o site está online
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000)
+    
     const response = await fetch(url, {
       method: 'HEAD',
-      timeout: 10000
+      signal: controller.signal
     })
+    
+    clearTimeout(timeoutId)
     
     const responseTime = Date.now() - start
     const isOnline = response.ok

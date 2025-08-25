@@ -148,10 +148,10 @@ export default function HomenagemdPage() {
                     Nossa Posição Contra a Violência
                   </h3>
                   <div className="text-gray-700 space-y-4 text-lg">
-                    <p>
-                      <strong className="text-yellow-800">Estamos eternamente tristes com o ocorrido.</strong> 
-                      A morte de Helen representa tudo aquilo que rejeitamos e combatemos.
-                    </p>
+                  <p>
+                    <strong className="text-yellow-800">Estamos eternamente tristes com o ocorrido.</strong>{' '}
+                    A morte de Helen representa tudo aquilo que rejeitamos e combatemos.
+                  </p>
                     <p>
                       O <strong className="text-yellow-800">rock, a música e nossa comunidade</strong> sempre foram sobre:
                     </p>
@@ -177,11 +177,9 @@ export default function HomenagemdPage() {
                     </div>
                     <div className="font-semibold text-xl text-yellow-800 text-center p-4 bg-yellow-100 rounded-lg">
                       <p className="mb-2">
-                        A violência que tirou a vida de Helen é 
-                        <span className="text-red-600 font-bold block sm:inline">INACEITÁVEL </span>
-                      </p>
-                      <p>
-                         e não representa os valores que defendemos.
+                        A violência que tirou a vida de Helen é{' '}
+                        <span className="text-red-600 font-bold">INACEITÁVEL</span>{' '}
+                        e não representa os valores que defendemos.
                       </p>
                     </div>
                   </div>
@@ -207,8 +205,9 @@ export default function HomenagemdPage() {
                   Não podemos aceitar que pessoas andem com a morte ao lado.
                 </p>
                 <p className="text-center">
-                  Aqueles que causaram esta tragédia são verdadeiros 
-                  <strong className="text-red-600"> "amigos da onça"</strong> - pessoas que destroem tudo ao seu redor.
+                  Aqueles que causaram esta tragédia são verdadeiros{' '}
+                  <strong className="text-red-600">"amigos da onça"</strong>{' '}
+                  - pessoas que destroem tudo ao seu redor.
                 </p>
                 <div className="text-center bg-red-50 p-4 rounded-lg">
                   <a href="https://www.facebook.com/photo/?fbid=1791196635157175&set=a.122230572053798" 
@@ -219,7 +218,7 @@ export default function HomenagemdPage() {
                   </a>
                 </div>
                 <p className="text-center italic bg-gray-100 p-4 rounded-lg">
-                  A justiça deve ser feita. Não esqueceremos Helen, 
+                  A justiça deve ser feita. Não esqueceremos Helen,{' '}
                   e não deixaremos que sua morte seja em vão.
                 </p>
               </div>
@@ -318,7 +317,7 @@ export default function HomenagemdPage() {
                   </p>
                 </div>
                 <p className="text-lg text-gray-600">
-                  Helen, você não será esquecida. Sua memória viverá como um símbolo 
+                  Helen, você não será esquecida. Sua memória viverá como um símbolo{' '}
                   da luta contra a violência e pela paz em nossa comunidade.
                 </p>
                 

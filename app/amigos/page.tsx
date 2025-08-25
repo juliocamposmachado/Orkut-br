@@ -435,22 +435,48 @@ export default function FriendsPage() {
       const { authUrl } = await response.json()
 
       if (authUrl) {
-        // Open Google OAuth in popup
-        const popup = window.open(authUrl, 'google-auth', 'width=500,height=600')
-        
-        // Listen for popup completion
-        const checkClosed = setInterval(() => {
-          if (popup?.closed) {
-            clearInterval(checkClosed)
-            // Reload contacts after import
-            loadContacts()
+        const popup = window.open(authUrl, 'google-auth', 'width=500,height=650')
+
+        // Handler to receive token from callback window
+        const onMessage = async (event: MessageEvent) => {
+          const data = event.data as any
+          if (!data || typeof data !== 'object') return
+          if (data.type === 'google-contacts-token' && data.accessToken) {
+            window.removeEventListener('message', onMessage)
+            try {
+              const res = await fetch('/api/import-google-contacts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ accessToken: data.accessToken })
+              })
+              const result = await res.json()
+              if (result.success) {
+                alert(`Importados: ${result.imported} | Já existentes: ${result.existing}`)
+                loadContacts()
+              } else {
+                alert(result.error || 'Falha ao importar contatos')
+              }
+            } catch (e) {
+              console.error('Import error:', e)
+              alert('Erro ao importar contatos')
+            } finally {
+              setImportingGoogle(false)
+            }
+            // fecha popup se ainda aberto
+            try { popup?.close() } catch {}
+          } else if (data.type === 'google-contacts-error') {
+            window.removeEventListener('message', onMessage)
+            setImportingGoogle(false)
+            alert('Erro no OAuth do Google: ' + (data.error || 'desconhecido'))
+            try { popup?.close() } catch {}
           }
-        }, 1000)
+        }
+
+        window.addEventListener('message', onMessage)
       }
     } catch (error) {
       console.error('Error importing Google contacts:', error)
       alert('Erro ao conectar com o Google. Tente novamente.')
-    } finally {
       setImportingGoogle(false)
     }
   }
@@ -873,26 +899,23 @@ export default function FriendsPage() {
                           <Globe className="h-6 w-6 text-blue-600" />
                           <div>
                             <h4 className="font-medium text-gray-800">Google Contatos</h4>
-                            <p className="text-sm text-gray-600">Importe automaticamente do Gmail</p>
+                            <p className="text-sm text-gray-600">Exporte e importe seus contatos</p>
                           </div>
                         </div>
-                        <Button 
-                          onClick={importGoogleContacts}
-                          disabled={importingGoogle}
-                          className="w-full bg-blue-500 hover:bg-blue-600"
-                        >
-                          {importingGoogle ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                              Conectando...
-                            </>
-                          ) : (
-                            <>
-                              <Globe className="h-4 w-4 mr-2" />
-                              Importar do Google
-                            </>
-                          )}
-                        </Button>
+                        <div className="space-y-2">
+                          <Button 
+                            onClick={() => window.open('https://contacts.google.com/', '_blank')}
+                            className="w-full bg-blue-500 hover:bg-blue-600"
+                          >
+                            <Globe className="h-4 w-4 mr-2" />
+                            Abrir Google Contatos
+                          </Button>
+                          <p className="text-xs text-gray-500">
+                            1. Clique em "Exportar" no lado esquerdo<br/>
+                            2. Selecione "CSV do Google"<br/>
+                            3. Faça upload do arquivo abaixo
+                          </p>
+                        </div>
                       </div>
 
                       {/* CSV Upload */}

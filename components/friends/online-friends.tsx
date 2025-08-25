@@ -91,7 +91,7 @@ export function OnlineFriends({ onOpenMessage, onStartAudioCall }: OnlineFriends
         }
       }
 
-      // Sempre adicionar amigos padrão (Julio e Rádio Tatuaé) se não há amigos carregados
+      // Sempre adicionar amigos padrão para parecer mais com Discord
       const defaultFriends: OnlineFriend[] = [
         {
           id: 'juliocamposmachado',
@@ -105,6 +105,34 @@ export function OnlineFriends({ onOpenMessage, onStartAudioCall }: OnlineFriends
           username: 'radiotatuapefm', 
           display_name: 'Rádio Tatuaé FM',
           photo_url: 'https://yt3.googleusercontent.com/ytc/AIdro_mNKSJ4CzULsb3m0uYJKY08OQTfJL7NJNmf_3hEjpY8T-8=s176-c-k-c0x00ffffff-no-rj',
+          isOnline: true
+        },
+        {
+          id: 'carlos_dev',
+          username: 'carlos_dev',
+          display_name: 'Carlos Silva',
+          photo_url: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=100',
+          isOnline: true
+        },
+        {
+          id: 'ana_designer',
+          username: 'ana_designer',
+          display_name: 'Ana Costa',
+          photo_url: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=100',
+          isOnline: true
+        },
+        {
+          id: 'pedro_games',
+          username: 'pedro_games',
+          display_name: 'Pedro Santos',
+          photo_url: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=100',
+          isOnline: true
+        },
+        {
+          id: 'mariana_tech',
+          username: 'mariana_tech',
+          display_name: 'Mariana Oliveira',
+          photo_url: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=100',
           isOnline: true
         }
       ]
@@ -138,7 +166,9 @@ export function OnlineFriends({ onOpenMessage, onStartAudioCall }: OnlineFriends
           </div>
           <div className="flex items-center space-x-1">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-xs text-gray-500">{onlineFriends.length} online</span>
+<span className="text-xs text-gray-500 font-medium">
+              {onlineFriends.length} {onlineFriends.length === 1 ? 'amigo' : 'amigos'} online
+            </span>
           </div>
         </div>
       </OrkutCardHeader>
@@ -155,92 +185,132 @@ export function OnlineFriends({ onOpenMessage, onStartAudioCall }: OnlineFriends
             <p className="text-xs">Adicione amigos para vê-los aqui!</p>
           </div>
         ) : (
-          <div className="space-y-2">
-            {onlineFriends.map((friend) => (
-              <div 
-                key={friend.id}
-                className="flex items-center space-x-3 p-2 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer group"
-              >
-                <div className="relative">
-                  <Avatar className="h-8 w-8 border-2 border-green-300">
-                    <AvatarImage 
-                      src={friend.photo_url || undefined} 
-                      alt={friend.display_name} 
-                    />
-                    <AvatarFallback className="bg-purple-500 text-white font-bold text-xs">
-                      {friend.display_name.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border border-white rounded-full animate-pulse"></div>
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-sm text-gray-800 truncate">
-                    {friend.display_name}
-                  </h4>
-                  <p className="text-xs text-green-600 font-medium">
-                    🟢 Online agora
-                    {friend.id === 'juliocamposmachado' && ' • Criador'}
-                    {friend.id === 'radiotatuapefm' && ' • Rádio Oficial'}
-                  </p>
-                </div>
-                
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
-                  {onOpenMessage && (
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      className="p-1 h-6 w-6 text-purple-600 hover:bg-purple-100"
-                      title="Enviar mensagem"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onOpenMessage({
-                          id: friend.id,
-                          name: friend.display_name,
-                          username: friend.username,
-                          photo: friend.photo_url || undefined,
-                          isOnline: friend.isOnline
-                        })
-                      }}
-                    >
-                      <MessageCircle className="h-3 w-3" />
-                    </Button>
-                  )}
+          <div className="space-y-1">
+            {onlineFriends.map((friend) => {
+              // Simular atividades diferentes para cada amigo
+              const activities = {
+                'juliocamposmachado': 'Desenvolvendo Orkut Retrô',
+                'radiotatuapefm': 'Transmitindo ao vivo',
+                'carlos_dev': 'Codando em React',
+                'ana_designer': 'Criando no Figma',
+                'pedro_games': 'Jogando Counter-Strike',
+                'mariana_tech': 'Estudando JavaScript',
+                'default': 'Navegando no Orkut'
+              }
+              const activity = activities[friend.id as keyof typeof activities] || activities.default
+              
+              return (
+                <div 
+                  key={friend.id}
+                  className="flex items-center space-x-3 p-2 rounded-md hover:bg-purple-50/80 transition-all duration-200 cursor-pointer group relative"
+                >
+                  <div className="relative flex-shrink-0">
+                    <Avatar className="h-10 w-10 border-2 border-green-400/60 shadow-sm">
+                      <AvatarImage 
+                        src={friend.photo_url || undefined} 
+                        alt={friend.display_name} 
+                      />
+                      <AvatarFallback className="bg-gradient-to-br from-purple-500 to-pink-500 text-white font-bold text-sm">
+                        {friend.display_name.charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    {/* Status indicator */}
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full shadow-sm animate-pulse"></div>
+                  </div>
                   
-                  {onStartAudioCall && (
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      className="p-1 h-6 w-6 text-green-600 hover:bg-green-100"
-                      title="Chamada de áudio"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onStartAudioCall({
-                          id: friend.id,
-                          name: friend.display_name,
-                          photo: friend.photo_url,
-                          username: friend.username
-                        })
-                      }}
-                    >
-                      <Phone className="h-3 w-3" />
-                    </Button>
-                  )}
+                  <div className="flex-1 min-w-0 overflow-hidden">
+                    <div className="flex items-center space-x-2">
+                      <h4 className="font-semibold text-sm text-gray-800 truncate">
+                        {friend.display_name}
+                      </h4>
+                      {/* Tags especiais */}
+                      {friend.id === 'juliocamposmachado' && (
+                        <span className="text-xs bg-gradient-to-r from-purple-100 to-pink-100 text-purple-700 px-1.5 py-0.5 rounded-full font-medium border border-purple-200">
+                          👑 Criador
+                        </span>
+                      )}
+                      {friend.id === 'radiotatuapefm' && (
+                        <span className="text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full font-medium border border-red-200">
+                          📻 Rádio
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* Status de atividade */}
+                    <div className="flex items-center space-x-1 mt-0.5">
+                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                      <p className="text-xs text-gray-600 truncate font-medium">
+                        {activity}
+                      </p>
+                    </div>
+                    
+                    {/* Tempo online */}
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      Online há {Math.floor(Math.random() * 60) + 1}min
+                    </p>
+                  </div>
                   
-                  <Link href={`/perfil/${friend.username}`}>
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      className="p-1 h-6 w-6 text-purple-600 hover:bg-purple-100"
-                      title="Ver perfil"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Eye className="h-3 w-3" />
-                    </Button>
-                  </Link>
+                  {/* Botões de ação - aparecem no hover */}
+                  <div className="opacity-0 group-hover:opacity-100 transition-all duration-200 flex space-x-1 flex-shrink-0">
+                    {onOpenMessage && (
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="p-1.5 h-7 w-7 text-purple-600 hover:bg-purple-100 hover:scale-105 transition-all rounded-full"
+                        title="Enviar mensagem"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onOpenMessage({
+                            id: friend.id,
+                            name: friend.display_name,
+                            username: friend.username,
+                            photo: friend.photo_url || undefined,
+                            isOnline: friend.isOnline
+                          })
+                        }}
+                      >
+                        <MessageCircle className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                    
+                    {onStartAudioCall && (
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="p-1.5 h-7 w-7 text-green-600 hover:bg-green-100 hover:scale-105 transition-all rounded-full"
+                        title="Chamada de áudio"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onStartAudioCall({
+                            id: friend.id,
+                            name: friend.display_name,
+                            photo: friend.photo_url,
+                            username: friend.username
+                          })
+                        }}
+                      >
+                        <Phone className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
+                    
+                    <Link href={`/perfil/${friend.username}`}>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="p-1.5 h-7 w-7 text-gray-600 hover:bg-gray-100 hover:scale-105 transition-all rounded-full"
+                        title="Ver perfil"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                      </Button>
+                    </Link>
+                  </div>
+                  
+                  {/* Indicador de hover sutil */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-md pointer-events-none"></div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
         

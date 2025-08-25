@@ -91,36 +91,45 @@ export type Database = {
           username: string
           display_name: string
           photo_url: string | null
+          avatar_url: string | null
+          avatar_thumbnails: { [size: string]: string } | null
           relationship: string | null
           location: string | null
           birthday: string | null
           bio: string | null
           fans_count: number
           created_at: string
+          updated_at: string | null
         }
         Insert: {
           id: string
           username: string
           display_name: string
           photo_url?: string | null
+          avatar_url?: string | null
+          avatar_thumbnails?: { [size: string]: string } | null
           relationship?: string | null
           location?: string | null
           birthday?: string | null
           bio?: string | null
           fans_count?: number
           created_at?: string
+          updated_at?: string | null
         }
         Update: {
           id?: string
           username?: string
           display_name?: string
           photo_url?: string | null
+          avatar_url?: string | null
+          avatar_thumbnails?: { [size: string]: string } | null
           relationship?: string | null
           location?: string | null
           birthday?: string | null
           bio?: string | null
           fans_count?: number
           created_at?: string
+          updated_at?: string | null
         }
       }
       posts: {

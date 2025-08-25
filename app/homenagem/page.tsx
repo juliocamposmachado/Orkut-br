@@ -45,7 +45,7 @@ export default function HomenagemdPage() {
                 <div className="absolute -inset-2 bg-white rounded-full shadow-2xl"></div>
                 <div className="relative w-64 h-64 rounded-full overflow-hidden border-4 border-white shadow-xl">
                   <Image
-                    src="/helen vitai"
+                    src="/helenvitai.jpg"
                     alt="Helen Cristina Vitai - Em memória"
                     fill
                     className="object-cover"

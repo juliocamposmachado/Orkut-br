@@ -36,11 +36,15 @@ import {
   Bookmark,
   Clock,
   Settings,
-  HelpCircle
+  HelpCircle,
+  Download,
+  Monitor,
+  Smartphone
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import Link from 'next/link'
+import { SiWindows, SiAndroid, SiApple } from 'react-icons/si'
 import RadioTatuapeWidget from '@/components/RadioWidget'
 import { CommentsModal } from '@/components/posts/comments-modal'
 import { ShareModal } from '@/components/posts/share-modal'
@@ -513,6 +517,52 @@ export default function HomePage() {
                     <Plus className="h-4 w-4 mr-2" />
                     Criar comunidade
                   </Button>
+                </div>
+              </OrkutCardContent>
+            </OrkutCard>
+            
+            {/* Download Apps */}
+            <OrkutCard>
+              <OrkutCardHeader>
+                <div className="flex items-center space-x-2">
+                  <Download className="h-4 w-4 text-purple-600" />
+                  <span className="text-gray-600 text-sm font-medium">Baixar Apps</span>
+                </div>
+              </OrkutCardHeader>
+              <OrkutCardContent>
+                <div className="space-y-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="w-full justify-start border-gray-300 text-gray-600 hover:bg-gray-50 cursor-not-allowed opacity-60"
+                    disabled
+                  >
+                    <SiWindows className="h-4 w-4 mr-2" />
+                    Windows 10
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="w-full justify-start border-gray-300 text-gray-600 hover:bg-gray-50 cursor-not-allowed opacity-60"
+                    disabled
+                  >
+                    <SiAndroid className="h-4 w-4 mr-2" />
+                    Android
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="w-full justify-start border-gray-300 text-gray-600 hover:bg-gray-50 cursor-not-allowed opacity-60"
+                    disabled
+                  >
+                    <SiApple className="h-4 w-4 mr-2" />
+                    iOS
+                  </Button>
+                </div>
+                <div className="mt-3 text-center">
+                  <p className="text-xs text-gray-500">
+                    💡 Em desenvolvimento
+                  </p>
                 </div>
               </OrkutCardContent>
             </OrkutCard>

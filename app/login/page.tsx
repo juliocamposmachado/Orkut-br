@@ -14,9 +14,10 @@ import { ForgotPasswordModal } from '@/components/auth/forgot-password-modal';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Smartphone, Monitor, Download } from 'lucide-react';
 import publicProfiles from '@/lib/seed-public-profiles.json';
 import { FcGoogle } from 'react-icons/fc';
+import { SiWindows, SiAndroid, SiApple } from 'react-icons/si';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -422,6 +423,62 @@ export default function LoginPage() {
             <p className="text-xs opacity-80">
               💜 Feito com amor (e sarcasmo) por fãs nostálgicos!
             </p>
+          </div>
+          
+          {/* Download Apps Section */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 mb-6">
+            <div className="text-center mb-4">
+              <Download className="h-6 w-6 mx-auto mb-2 text-purple-200" />
+              <h3 className="text-lg font-bold text-white mb-1">Baixe nossos Apps!</h3>
+              <p className="text-sm text-purple-200">Leve o Orkut para qualquer lugar 🚀</p>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Windows App */}
+              <Button 
+                variant="outline" 
+                className="bg-white/20 border-white/30 text-white hover:bg-white/30 transition-all duration-300 h-auto py-3 px-4 flex flex-col items-center space-y-2"
+                disabled
+              >
+                <SiWindows className="h-8 w-8" />
+                <div className="text-center">
+                  <p className="font-medium text-sm">Windows 10</p>
+                  <p className="text-xs opacity-80">Em breve</p>
+                </div>
+              </Button>
+              
+              {/* Android App */}
+              <Button 
+                variant="outline" 
+                className="bg-white/20 border-white/30 text-white hover:bg-white/30 transition-all duration-300 h-auto py-3 px-4 flex flex-col items-center space-y-2"
+                disabled
+              >
+                <SiAndroid className="h-8 w-8" />
+                <div className="text-center">
+                  <p className="font-medium text-sm">Android</p>
+                  <p className="text-xs opacity-80">Em breve</p>
+                </div>
+              </Button>
+              
+              {/* iOS App */}
+              <Button 
+                variant="outline" 
+                className="bg-white/20 border-white/30 text-white hover:bg-white/30 transition-all duration-300 h-auto py-3 px-4 flex flex-col items-center space-y-2"
+                disabled
+              >
+                <SiApple className="h-8 w-8" />
+                <div className="text-center">
+                  <p className="font-medium text-sm">iOS</p>
+                  <p className="text-xs opacity-80">Em breve</p>
+                </div>
+              </Button>
+            </div>
+            
+            <div className="mt-4 text-center">
+              <p className="text-xs text-purple-200 opacity-80">
+                💡 Versões nativas para uma experiência ainda melhor!
+              </p>
+            </div>
           </div>
           
           {/* Tribute to Orkut Büyükkökten */}

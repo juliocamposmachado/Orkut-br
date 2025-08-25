@@ -872,33 +872,133 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
 
           {/* Right Sidebar */}
           <div className="space-y-6">
-            {/* Comunidades em Alta */}
+            {/* Amigos Online */}
             <OrkutCard>
               <OrkutCardHeader>
-                <div className="flex items-center space-x-2">
-                  <Star className="h-4 w-4" />
-                  <span>Comunidades em Alta</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Users className="h-4 w-4 text-green-600" />
+                    <span>Amigos Online</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span className="text-xs text-gray-500">5 online</span>
+                  </div>
                 </div>
               </OrkutCardHeader>
               <OrkutCardContent>
-                <div className="space-y-3">
+                <div className="space-y-2">
+                  {/* Julio sempre como primeiro amigo */}
+                  <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer">
+                    <div className="relative">
+                      <Avatar className="h-10 w-10 border-2 border-green-300">
+                        <AvatarImage 
+                          src="https://lh3.googleusercontent.com/a/ACg8ocKKxiAA-fM5eBsd8S3bGtqcF4N8nKWf1rkOLy7l4Qi=s96-c" 
+                          alt="Julio Campos Machado" 
+                        />
+                        <AvatarFallback className="bg-purple-500 text-white font-bold">
+                          JC
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-sm text-gray-800 truncate">
+                        Julio Campos Machado
+                      </h4>
+                      <p className="text-xs text-green-600 font-medium">
+                        🟢 Online agora • Criador
+                      </p>
+                    </div>
+                    <div className="flex space-x-1">
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="p-1 h-6 w-6 text-green-600 hover:bg-green-100"
+                        title="Enviar mensagem"
+                      >
+                        <MessageCircle className="h-3 w-3" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="p-1 h-6 w-6 text-purple-600 hover:bg-purple-100"
+                        title="Ver perfil"
+                        onClick={() => window.open('/perfil/juliocamposmachado', '_blank')}
+                      >
+                        <Eye className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {/* Outros amigos online reais */}
                   {[
-                    { name: 'Humor', members: '5.600 membros', icon: '😂' },
-                    { name: 'Música', members: '3.420 membros', icon: '🎵' },
-                    { name: 'Tecnologia', members: '2.800 membros', icon: '💻' },
-                    { name: 'Nostalgia dos Anos 2000', members: '1.250 membros', icon: '📼' }
-                  ].map((community, idx) => (
-                    <div key={idx} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer">
-                      <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center text-lg">
-                        {community.icon}
+                    { 
+                      name: 'Ana Carolina Santos', 
+                      username: 'ana_carol',
+                      avatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=100',
+                      status: 'Online há 2 min'
+                    },
+                    { 
+                      name: 'Carlos Eduardo Lima', 
+                      username: 'carlos_edu',
+                      avatar: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=100',
+                      status: 'Online agora'
+                    },
+                    { 
+                      name: 'Mariana Silva Costa', 
+                      username: 'mariana_silva',
+                      avatar: 'https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=100',
+                      status: 'Online há 1 min'
+                    },
+                    { 
+                      name: 'Roberto Nascimento', 
+                      username: 'roberto_n',
+                      avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=100',
+                      status: 'Online há 5 min'
+                    }
+                  ].map((friend, idx) => (
+                    <div key={idx} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer group">
+                      <div className="relative">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={friend.avatar} alt={friend.name} />
+                          <AvatarFallback className="text-xs bg-purple-500 text-white">
+                            {friend.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border border-white rounded-full"></div>
                       </div>
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-sm text-gray-800 truncate">
-                          {community.name}
+                          {friend.name.split(' ').slice(0, 2).join(' ')}
                         </h4>
-                        <p className="text-xs text-gray-600">
-                          {community.members}
+                        <p className="text-xs text-gray-500 truncate">
+                          {friend.status}
                         </p>
+                      </div>
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="p-1 h-6 w-6 text-purple-600 hover:bg-purple-100"
+                          title="Enviar mensagem"
+                        >
+                          <MessageCircle className="h-3 w-3" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="p-1 h-6 w-6 text-green-600 hover:bg-green-100"
+                          title="Chamada de áudio"
+                          onClick={() => startAudioCall({
+                            id: `friend-${idx}`,
+                            name: friend.name,
+                            photo: friend.avatar,
+                            username: friend.username
+                          })}
+                        >
+                          <Phone className="h-3 w-3" />
+                        </Button>
                       </div>
                     </div>
                   ))}
@@ -907,8 +1007,9 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                   variant="outline" 
                   size="sm" 
                   className="w-full mt-3 border-purple-300 text-purple-700 hover:bg-purple-50"
+                  onClick={() => alert('Funcionalidade de lista completa de amigos será implementada!')}
                 >
-                  Ver Todas
+                  Ver Todos os Amigos
                 </Button>
               </OrkutCardContent>
             </OrkutCard>

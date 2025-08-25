@@ -32,7 +32,7 @@ import { toast } from 'sonner'
 
 interface Notification {
   id: string
-  type: 'like' | 'comment' | 'share' | 'friend_request' | 'mention'
+  type: 'like' | 'comment' | 'share' | 'friend_request' | 'friend_request_accepted' | 'mention'
   title: string
   message: string
   read: boolean
@@ -145,6 +145,7 @@ export function NotificationsDropdown() {
       'comment': 'Comentou no seu post',
       'share': 'Compartilhou seu post',
       'friend_request': 'Solicitação de amizade',
+      'friend_request_accepted': 'Pedido aceito',
       'mention': 'Mencionou você'
     }
     return titles[type] || 'Nova notificação'
@@ -156,6 +157,7 @@ export function NotificationsDropdown() {
       'comment': 'comentou em seu post',
       'share': 'compartilhou seu post',
       'friend_request': 'enviou uma solicitação de amizade',
+      'friend_request_accepted': 'aceitou sua solicitação de amizade',
       'mention': 'mencionou você'
     }
     return messages[type] || 'nova atividade'
@@ -177,6 +179,8 @@ export function NotificationsDropdown() {
         return <Share className="h-4 w-4 text-green-500" />
       case 'friend_request':
         return <UserPlus className="h-4 w-4 text-purple-500" />
+      case 'friend_request_accepted':
+        return <Check className="h-4 w-4 text-green-500" />
       case 'mention':
         return <Bell className="h-4 w-4 text-orange-500" />
       default:

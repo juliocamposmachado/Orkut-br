@@ -39,6 +39,7 @@ import { OnlineStatusToggle } from '@/components/profile/online-status-toggle';
 import { CallModal } from '@/components/call/call-modal';
 import { useCall } from '@/hooks/use-call';
 import { BioEditor } from '@/components/profile/bio-editor';
+import { MessageModal } from '@/components/messages/message-modal';
 
 interface UserProfile {
   id: string;
@@ -78,6 +79,14 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
   const [actionLoading, setActionLoading] = useState<string>('');
   const [userPosts, setUserPosts] = useState<any[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(false);
+  const [messageModalOpen, setMessageModalOpen] = useState(false);
+  const [messageTarget, setMessageTarget] = useState<{
+    id: string;
+    name: string;
+    username: string;
+    photo?: string;
+    isOnline?: boolean;
+  } | null>(null);
   const [friends, setFriends] = useState<FriendItem[]>(() =>
     Array.from({ length: 8 }).map((_, idx) => ({
       id: `placeholder-${idx}`,
@@ -111,9 +120,16 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
       await new Promise(resolve => setTimeout(resolve, 1000));
       setFriendshipStatus('pending');
       
+      // Criar notificação de pedido de amizade para o destinatário
+      await createFriendRequestNotification();
+      
       // Simular resposta automática após 3 segundos para demonstração
-      setTimeout(() => {
+      setTimeout(async () => {
         setFriendshipStatus('accepted');
+        
+        // Criar notificação de aceite de amizade para o remetente
+        await createFriendRequestAcceptedNotification();
+        
         alert(`🎉 ${profile.display_name} aceitou seu pedido de amizade! Agora vocês são amigos e ele aparecerá no seu Top 10 Amigos.`);
       }, 3000);
       
@@ -124,6 +140,130 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
       alert('Erro ao enviar pedido de amizade. Tente novamente.');
     } finally {
       setActionLoading('');
+    }
+  };
+
+  // Função para criar notificação de pedido de amizade
+  const createFriendRequestNotification = async () => {
+    if (!profile?.id || !currentUser?.id) return;
+
+    try {
+      console.log('Criando notificação de pedido de amizade...');
+      
+      const notificationData = {
+        profile_id: profile.id, // Para quem será enviada a notificação
+        type: 'friend_request',
+        payload: {
+          from_user: {
+            id: currentUser.id,
+            display_name: currentUser.display_name || 'Usuário',
+            photo_url: currentUser.photo_url,
+            username: currentUser.username || 'usuario'
+          },
+          action_url: `/perfil/${currentUser.username}`
+        },
+        read: false
+      };
+
+      // Tentar salvar no Supabase primeiro
+      if (supabase) {
+        const { error } = await supabase
+          .from('notifications')
+          .insert(notificationData);
+
+        if (!error) {
+          console.log('✅ Notificação salva no Supabase');
+          return;
+        } else {
+          console.warn('Erro no Supabase, usando localStorage:', error);
+        }
+      }
+
+      // Fallback: salvar no localStorage do destinatário (simulação)
+      const existingNotifications = JSON.parse(
+        localStorage.getItem(`notifications_${profile.id}`) || '[]'
+      );
+
+      const newNotification = {
+        id: Date.now().toString(),
+        type: 'friend_request',
+        title: 'Solicitação de amizade',
+        message: 'enviou uma solicitação de amizade',
+        read: false,
+        created_at: new Date().toISOString(),
+        from_user: notificationData.payload.from_user
+      };
+
+      const updatedNotifications = [newNotification, ...existingNotifications].slice(0, 50);
+      localStorage.setItem(`notifications_${profile.id}`, JSON.stringify(updatedNotifications));
+      
+      console.log('✅ Notificação salva no localStorage');
+      
+    } catch (error) {
+      console.error('Erro ao criar notificação:', error);
+    }
+  };
+
+  // Função para criar notificação de aceite de amizade
+  const createFriendRequestAcceptedNotification = async () => {
+    if (!profile?.id || !currentUser?.id) return;
+
+    try {
+      console.log('Criando notificação de aceite de amizade...');
+      
+      const notificationData = {
+        profile_id: currentUser.id, // Para quem enviou o pedido
+        type: 'friend_request_accepted',
+        payload: {
+          from_user: {
+            id: profile.id,
+            display_name: profile.display_name,
+            photo_url: profile.photo_url,
+            username: profile.username
+          },
+          action_url: `/perfil/${profile.username}`
+        },
+        read: false
+      };
+
+      // Tentar salvar no Supabase primeiro
+      if (supabase) {
+        const { error } = await supabase
+          .from('notifications')
+          .insert(notificationData);
+
+        if (!error) {
+          console.log('✅ Notificação de aceite salva no Supabase');
+        }
+      }
+
+      // Salvar também no localStorage local (para ver imediatamente)
+      const existingNotifications = JSON.parse(
+        localStorage.getItem(`notifications_${currentUser.id}`) || '[]'
+      );
+
+      const newNotification = {
+        id: Date.now().toString(),
+        type: 'friend_request_accepted',
+        title: 'Pedido aceito',
+        message: 'aceitou sua solicitação de amizade',
+        read: false,
+        created_at: new Date().toISOString(),
+        from_user: notificationData.payload.from_user
+      };
+
+      const updatedNotifications = [newNotification, ...existingNotifications].slice(0, 50);
+      localStorage.setItem(`notifications_${currentUser.id}`, JSON.stringify(updatedNotifications));
+      
+      // Disparar evento para atualizar o dropdown
+      window.dispatchEvent(new CustomEvent('notificationUpdate', {
+        detail: { notifications: updatedNotifications }
+      }));
+      
+      console.log('✅ Notificação de aceite criada e evento disparado');
+      
+    } catch (error) {
+      console.error('Erro ao criar notificação de aceite:', error);
     }
   };
 
@@ -161,6 +301,24 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
     } finally {
       setActionLoading('');
     }
+  };
+
+  // Função para abrir modal de mensagem
+  const handleOpenMessage = (targetUser: {
+    id: string;
+    name: string;
+    username: string;
+    photo?: string;
+    isOnline?: boolean;
+  }) => {
+    setMessageTarget(targetUser);
+    setMessageModalOpen(true);
+  };
+
+  // Função para fechar modal de mensagem
+  const handleCloseMessage = () => {
+    setMessageModalOpen(false);
+    setMessageTarget(null);
   };
 
   useEffect(() => {
@@ -505,6 +663,13 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                           size="sm" 
                           variant="outline"
                           className="w-full border-purple-300 text-purple-700 hover:bg-purple-50"
+                          onClick={() => handleOpenMessage({
+                            id: profile.id,
+                            name: profile.display_name,
+                            username: profile.username,
+                            photo: profile.photo_url,
+                            isOnline: isOnline
+                          })}
                         >
                           <Send className="h-4 w-4 mr-2" />
                           Enviar Mensagem
@@ -916,6 +1081,13 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                         variant="ghost" 
                         className="p-1 h-6 w-6 text-green-600 hover:bg-green-100"
                         title="Enviar mensagem"
+                        onClick={() => handleOpenMessage({
+                          id: 'juliocamposmachado',
+                          name: 'Julio Campos Machado',
+                          username: 'juliocamposmachado',
+                          photo: 'https://lh3.googleusercontent.com/a/ACg8ocKKxiAA-fM5eBsd8S3bGtqcF4N8nKWf1rkOLy7l4Qi=s96-c',
+                          isOnline: true
+                        })}
                       >
                         <MessageCircle className="h-3 w-3" />
                       </Button>
@@ -931,77 +1103,69 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                     </div>
                   </div>
                   
-                  {/* Outros amigos online reais */}
-                  {[
-                    { 
-                      name: 'Ana Carolina Santos', 
-                      username: 'ana_carol',
-                      avatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=100',
-                      status: 'Online há 2 min'
-                    },
-                    { 
-                      name: 'Carlos Eduardo Lima', 
-                      username: 'carlos_edu',
-                      avatar: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=100',
-                      status: 'Online agora'
-                    },
-                    { 
-                      name: 'Mariana Silva Costa', 
-                      username: 'mariana_silva',
-                      avatar: 'https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=100',
-                      status: 'Online há 1 min'
-                    },
-                    { 
-                      name: 'Roberto Nascimento', 
-                      username: 'roberto_n',
-                      avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=100',
-                      status: 'Online há 5 min'
-                    }
-                  ].map((friend, idx) => (
-                    <div key={idx} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer group">
-                      <div className="relative">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={friend.avatar} alt={friend.name} />
-                          <AvatarFallback className="text-xs bg-purple-500 text-white">
-                            {friend.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border border-white rounded-full"></div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm text-gray-800 truncate">
-                          {friend.name.split(' ').slice(0, 2).join(' ')}
-                        </h4>
-                        <p className="text-xs text-gray-500 truncate">
-                          {friend.status}
-                        </p>
-                      </div>
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          className="p-1 h-6 w-6 text-purple-600 hover:bg-purple-100"
-                          title="Enviar mensagem"
-                        >
-                          <MessageCircle className="h-3 w-3" />
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          className="p-1 h-6 w-6 text-green-600 hover:bg-green-100"
-                          title="Chamada de áudio"
-                          onClick={() => startAudioCall({
-                            id: `friend-${idx}`,
-                            name: friend.name,
-                            photo: friend.avatar,
-                            username: friend.username
-                          })}
-                        >
-                          <Phone className="h-3 w-3" />
-                        </Button>
-                      </div>
+                  {/* Amigo real - Rádio Tatuaé FM */}
+                  <div 
+                    className="flex items-center space-x-3 p-2 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer group"
+                    onClick={() => window.open('/perfil/radiotatuapefm', '_blank')}
+                  >
+                    <div className="relative">
+                      <Avatar className="h-8 w-8 border-2 border-green-300">
+                        <AvatarImage 
+                          src="https://yt3.googleusercontent.com/ytc/AIdro_mNKSJ4CzULsb3m0uYJKY08OQTfJL7NJNmf_3hEjpY8T-8=s176-c-k-c0x00ffffff-no-rj" 
+                          alt="Rádio Tatuaé FM" 
+                        />
+                        <AvatarFallback className="bg-red-500 text-white font-bold">
+                          RT
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border border-white rounded-full animate-pulse"></div>
                     </div>
-                  ))}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-sm text-gray-800 truncate">
+                        Rádio Tatuaé FM
+                      </h4>
+                      <p className="text-xs text-green-600 font-medium">
+                        🟢 Online agora • Rádio Oficial
+                      </p>
+                    </div>
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="p-1 h-6 w-6 text-purple-600 hover:bg-purple-100"
+                        title="Enviar mensagem"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenMessage({
+                            id: 'radiotatuapefm',
+                            name: 'Rádio Tatué FM',
+                            username: 'radiotatuapefm',
+                            photo: 'https://yt3.googleusercontent.com/ytc/AIdro_mNKSJ4CzULsb3m0uYJKY08OQTfJL7NJNmf_3hEjpY8T-8=s176-c-k-c0x00ffffff-no-rj',
+                            isOnline: true
+                          });
+                        }}
+                      >
+                        <MessageCircle className="h-3 w-3" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="p-1 h-6 w-6 text-green-600 hover:bg-green-100"
+                        title="Chamada de áudio"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          startAudioCall({
+                            id: 'radiotatuapefm',
+                            name: 'Rádio Tatuaé FM',
+                            photo: 'https://yt3.googleusercontent.com/ytc/AIdro_mNKSJ4CzULsb3m0uYJKY08OQTfJL7NJNmf_3hEjpY8T-8=s176-c-k-c0x00ffffff-no-rj',
+                            username: 'radiotatuapefm'
+                          });
+                        }}
+                      >
+                        <Phone className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
                 <Button 
                   variant="outline" 
@@ -1077,6 +1241,15 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
           onClose={endCall}
           callType={callState.callType}
           targetUser={callState.targetUser}
+        />
+      )}
+      
+      {/* Modal de Mensagem */}
+      {messageModalOpen && messageTarget && (
+        <MessageModal
+          isOpen={messageModalOpen}
+          onClose={handleCloseMessage}
+          targetUser={messageTarget}
         />
       )}
     </div>

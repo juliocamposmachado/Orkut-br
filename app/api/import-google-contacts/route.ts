@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
     // Filter out contacts that are already users
     const { data: existingUsers } = await supabase
       .from('profiles')
-      .select('id')
+      .select('email')
       .in('email', uniqueContacts.map(c => c.email))
 
     const existingEmails = new Set(existingUsers?.map(u => u.email) || [])

@@ -63,7 +63,16 @@ export default function AcceptInvitePage({ params }: { params: { token: string }
         console.error('Error loading invite:', error)
         setError('Convite não encontrado ou inválido')
       } else {
-        setInvite(data)
+        // Transform data to match interface
+        const inviteData: InviteData = {
+          id: data.id,
+          email: data.email,
+          name: data.name,
+          message: data.message,
+          status: data.status,
+          inviter: Array.isArray(data.inviter) ? data.inviter[0] : data.inviter
+        }
+        setInvite(inviteData)
       }
     } catch (error) {
       console.error('Error loading invite:', error)

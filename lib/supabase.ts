@@ -7,34 +7,44 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
 // Cliente mock para quando Supabase não está configurado
 const createMockClient = (): SupabaseClient => {
-  const mockFunction = () => Promise.resolve({ data: null, error: new Error('Supabase não configurado') })
+  const mockFunction = () => Promise.resolve({ data: null, error: { message: 'Supabase não configurado' } })
+  const mockSuccessFunction = () => Promise.resolve({ data: [], error: null })
+  
+  // Mock chain que retorna mais mocks
+  const createMockChain = () => ({
+    select: () => createMockChain(),
+    insert: () => createMockChain(),
+    update: () => createMockChain(),
+    delete: () => createMockChain(),
+    upsert: () => createMockChain(),
+    eq: () => createMockChain(),
+    or: () => createMockChain(),
+    neq: () => createMockChain(),
+    limit: () => createMockChain(),
+    order: () => createMockChain(),
+    ilike: () => createMockChain(),
+    single: () => mockFunction(),
+    maybeSingle: () => Promise.resolve({ data: null, error: null }),
+    then: (callback: Function) => callback({ data: null, error: null })
+  })
   
   return {
-    from: () => ({
-      select: () => mockFunction(),
-      insert: () => mockFunction(),
-      update: () => mockFunction(),
-      delete: () => mockFunction(),
-      upsert: () => mockFunction(),
-      eq: () => ({ select: () => mockFunction() }),
-      single: () => mockFunction(),
-      or: () => ({ select: () => mockFunction() }),
-      neq: () => ({ select: () => mockFunction() }),
-      limit: () => ({ select: () => mockFunction() }),
-      order: () => ({ select: () => mockFunction() }),
-      ilike: () => ({ select: () => mockFunction() })
-    }),
+    from: () => createMockChain(),
     auth: {
       getSession: () => Promise.resolve({ data: { session: null }, error: null }),
       signInWithPassword: () => mockFunction(),
+      signInWithOAuth: () => mockFunction(),
       signUp: () => mockFunction(),
-      signOut: () => mockFunction(),
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
+      signOut: () => Promise.resolve({ error: null }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+      getUser: () => Promise.resolve({ data: { user: null }, error: null })
     },
     storage: {
       from: () => ({
         upload: () => mockFunction(),
-        getPublicUrl: () => ({ data: { publicUrl: '' } })
+        getPublicUrl: () => ({ data: { publicUrl: '' } }),
+        download: () => mockFunction(),
+        remove: () => mockFunction()
       })
     },
     channel: () => ({

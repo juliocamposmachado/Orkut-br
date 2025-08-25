@@ -84,16 +84,17 @@ export const MessageModal: React.FC<MessageModalProps> = ({
 
   // Função para carregar ou criar conversa
   const loadConversation = async () => {
+    // Sempre inicializar com fallback primeiro para garantir que algo apareça
+    initializeFallbackMessages()
+    
     if (!currentUser || !targetUser.id) {
-      console.log('⚠️ Usuário ou target não disponível')
-      initializeFallbackMessages()
+      console.log('⚠️ Usuário ou target não disponível - usando apenas fallback')
       return;
     }
 
     // Verificar se Supabase está disponível
     if (!isSupabaseAvailable()) {
-      console.log('⚠️ Supabase não disponível, usando modo fallback')
-      initializeFallbackMessages()
+      console.log('⚠️ Supabase não disponível - usando apenas fallback')
       return;
     }
 

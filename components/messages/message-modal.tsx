@@ -15,6 +15,8 @@ import {
   CheckCheck
 } from 'lucide-react';
 import { useAuth } from '@/contexts/enhanced-auth-context';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'sonner';
 
 interface MessageModalProps {
   isOpen: boolean;
@@ -44,33 +46,10 @@ export const MessageModal: React.FC<MessageModalProps> = ({
 }) => {
   const { user: currentUser } = useAuth();
   const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      senderId: targetUser.id,
-      content: `Olá! Como você está? 😊`,
-      timestamp: new Date(Date.now() - 1000 * 60 * 30), // 30 min atrás
-      isRead: true,
-      isSent: true
-    },
-    {
-      id: '2',
-      senderId: currentUser?.id || '',
-      content: 'Oi! Estou bem, obrigado! E você?',
-      timestamp: new Date(Date.now() - 1000 * 60 * 25), // 25 min atrás
-      isRead: true,
-      isSent: true
-    },
-    {
-      id: '3',
-      senderId: targetUser.id,
-      content: 'Também estou bem! Vi seu último post, muito legal!',
-      timestamp: new Date(Date.now() - 1000 * 60 * 20), // 20 min atrás
-      isRead: true,
-      isSent: true
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -78,71 +57,242 @@ export const MessageModal: React.FC<MessageModalProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Carregar mensagens quando abre o modal
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && currentUser && targetUser.id) {
+      loadConversation();
       scrollToBottom();
-      // Focus no input quando abrir
       setTimeout(() => inputRef.current?.focus(), 100);
     }
-  }, [isOpen, messages]);
+  }, [isOpen, currentUser, targetUser.id]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // Função para carregar ou criar conversa
+  const loadConversation = async () => {
+    if (!currentUser || !targetUser.id || !supabase) {
+      // Modo fallback - usar mensagens simuladas
+      setMessages([
+        {
+          id: '1',
+          senderId: targetUser.id,
+          content: `Olá! Como você está? 😊`,
+          timestamp: new Date(Date.now() - 1000 * 60 * 30),
+          isRead: true,
+          isSent: true
+        },
+        {
+          id: '2', 
+          senderId: currentUser?.id || '',
+          content: 'Oi! Estou bem, obrigado! E você?',
+          timestamp: new Date(Date.now() - 1000 * 60 * 25),
+          isRead: true,
+          isSent: true
+        }
+      ]);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      console.log('🔍 Carregando conversa entre:', currentUser.id, 'e', targetUser.id);
+
+      // Buscar conversa existente (em ambas as direções)
+      const { data: conversation, error: convError } = await supabase
+        .from('conversations')
+        .select('*')
+        .or(`and(participant1_id.eq.${currentUser.id},participant2_id.eq.${targetUser.id}),and(participant1_id.eq.${targetUser.id},participant2_id.eq.${currentUser.id})`)
+        .single();
+
+      let convId = conversation?.id;
+
+      // Se não existe, criar nova conversa
+      if (!conversation || convError) {
+        console.log('💬 Criando nova conversa...');
+        const { data: newConv, error: createError } = await supabase
+          .from('conversations')
+          .insert({
+            participant1_id: currentUser.id,
+            participant2_id: targetUser.id
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('❌ Erro ao criar conversa:', createError);
+          toast.error('Erro ao criar conversa');
+          return;
+        }
+        
+        convId = newConv.id;
+        console.log('✅ Nova conversa criada:', convId);
+      }
+
+      setConversationId(convId);
+
+      // Carregar mensagens da conversa
+      if (convId) {
+        await loadMessages(convId);
+      }
+
+    } catch (error) {
+      console.error('❌ Erro ao carregar conversa:', error);
+      toast.error('Erro ao carregar mensagens');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Função para carregar mensagens
+  const loadMessages = async (convId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('conversation_id', convId)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('❌ Erro ao carregar mensagens:', error);
+        return;
+      }
+
+      if (data) {
+        const formattedMessages: Message[] = data.map(msg => ({
+          id: msg.id,
+          senderId: msg.sender_id,
+          content: msg.content,
+          timestamp: new Date(msg.created_at),
+          isRead: msg.is_read,
+          isSent: true
+        }));
+
+        setMessages(formattedMessages);
+        console.log('✅', formattedMessages.length, 'mensagens carregadas');
+      }
+    } catch (error) {
+      console.error('❌ Erro ao carregar mensagens:', error);
+    }
+  };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!message.trim() || !currentUser) return;
 
+    const messageContent = message.trim();
+    const tempId = `temp_${Date.now()}`;
+
     const newMessage: Message = {
-      id: Date.now().toString(),
+      id: tempId,
       senderId: currentUser.id,
-      content: message.trim(),
+      content: messageContent,
       timestamp: new Date(),
       isRead: false,
       isSent: false
     };
 
-    // Adicionar mensagem imediatamente
+    // Adicionar mensagem imediatamente (otimistic UI)
     setMessages(prev => [...prev, newMessage]);
     setMessage('');
 
-    // Simular envio
-    setTimeout(() => {
-      setMessages(prev => 
-        prev.map(msg => 
-          msg.id === newMessage.id 
-            ? { ...msg, isSent: true } 
-            : msg
-        )
-      );
-    }, 1000);
-
-    // Simular resposta automática (apenas para demonstração)
-    if (Math.random() > 0.5) {
-      setTimeout(() => {
-        setIsTyping(true);
-      }, 2000);
-
-      setTimeout(() => {
-        setIsTyping(false);
-        const responses = [
-          'Haha, interessante! 😄',
-          'Verdade! Concordo contigo.',
-          'Bacana! Vamos continuar conversando.',
-          'Que legal! Me conta mais.',
-          'Nossa, não sabia disso!',
-          'Muito bom! 👍'
-        ];
+    // Enviar para o banco de dados
+    if (supabase && conversationId) {
+      try {
+        console.log('📤 Enviando mensagem para o banco...');
         
-        const autoReply: Message = {
-          id: (Date.now() + 1).toString(),
-          senderId: targetUser.id,
-          content: responses[Math.floor(Math.random() * responses.length)],
-          timestamp: new Date(),
-          isRead: true,
-          isSent: true
-        };
+        const { data, error } = await supabase
+          .from('messages')
+          .insert({
+            conversation_id: conversationId,
+            sender_id: currentUser.id,
+            recipient_id: targetUser.id,
+            content: messageContent,
+            message_type: 'text',
+            is_read: false
+          })
+          .select()
+          .single();
+
+        if (error) {
+          console.error('❌ Erro ao enviar mensagem:', error);
+          toast.error('Erro ao enviar mensagem');
+          
+          // Remover mensagem da lista se houve erro
+          setMessages(prev => prev.filter(msg => msg.id !== tempId));
+          return;
+        }
+
+        if (data) {
+          // Atualizar mensagem com ID real e marcar como enviada
+          setMessages(prev => 
+            prev.map(msg => 
+              msg.id === tempId 
+                ? { 
+                    ...msg, 
+                    id: data.id, 
+                    isSent: true,
+                    timestamp: new Date(data.created_at)
+                  } 
+                : msg
+            )
+          );
+          
+          console.log('✅ Mensagem enviada com sucesso!');
+        }
+
+      } catch (error) {
+        console.error('❌ Erro ao enviar mensagem:', error);
+        toast.error('Erro ao enviar mensagem');
         
-        setMessages(prev => [...prev, autoReply]);
-      }, 3000);
+        // Remover mensagem da lista se houve erro
+        setMessages(prev => prev.filter(msg => msg.id !== tempId));
+      }
+    } else {
+      // Modo fallback - simular envio
+      console.log('⚠️ Modo fallback - simulando envio');
+      
+      setTimeout(() => {
+        setMessages(prev => 
+          prev.map(msg => 
+            msg.id === tempId 
+              ? { ...msg, isSent: true } 
+              : msg
+          )
+        );
+
+        // Simular resposta automática (apenas no modo fallback)
+        if (Math.random() > 0.5) {
+          setTimeout(() => {
+            setIsTyping(true);
+          }, 2000);
+
+          setTimeout(() => {
+            setIsTyping(false);
+            const responses = [
+              'Haha, interessante! 😄',
+              'Verdade! Concordo contigo.',
+              'Bacana! Vamos continuar conversando.',
+              'Que legal! Me conta mais.',
+              'Nossa, não sabia disso!',
+              'Muito bom! 👍'
+            ];
+            
+            const autoReply: Message = {
+              id: (Date.now() + 1).toString(),
+              senderId: targetUser.id,
+              content: responses[Math.floor(Math.random() * responses.length)],
+              timestamp: new Date(),
+              isRead: true,
+              isSent: true
+            };
+            
+            setMessages(prev => [...prev, autoReply]);
+          }, 3000);
+        }
+      }, 1000);
     }
   };
 

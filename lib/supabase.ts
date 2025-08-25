@@ -278,6 +278,57 @@ export type Database = {
           status?: 'pending' | 'accepted' | 'rejected'
         }
       }
+      messages: {
+        Row: {
+          id: string
+          conversation_id: string
+          sender_id: string
+          recipient_id: string
+          content: string
+          message_type: 'text' | 'image' | 'file'
+          is_read: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          conversation_id?: string
+          sender_id: string
+          recipient_id: string
+          content: string
+          message_type?: 'text' | 'image' | 'file'
+          is_read?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          is_read?: boolean
+          updated_at?: string
+        }
+      }
+      conversations: {
+        Row: {
+          id: string
+          participant1_id: string
+          participant2_id: string
+          last_message_id: string | null
+          updated_at: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          participant1_id: string
+          participant2_id: string
+          last_message_id?: string | null
+          updated_at?: string
+          created_at?: string
+        }
+        Update: {
+          last_message_id?: string | null
+          updated_at?: string
+        }
+      }
     }
   }
 }

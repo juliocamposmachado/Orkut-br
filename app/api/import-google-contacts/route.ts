@@ -18,12 +18,27 @@ export async function POST(request: NextRequest) {
     
     // Se useExistingSession for true, tenta usar o token da sessão atual
     if (body.useExistingSession && !accessToken) {
+      console.log('🔍 Verificando sessão Google existente:', {
+        hasProviderToken: !!session.provider_token,
+        provider: session.user.app_metadata?.provider,
+        providers: session.user.app_metadata?.providers,
+        identities: session.user.identities?.map(i => ({ provider: i.provider, id: i.id }))
+      })
+      
       // Verifica se o usuário está logado com Google e tem um token válido
-      if (session.provider_token && session.user.app_metadata?.provider === 'google') {
+      const isGoogleUser = session.user.app_metadata?.provider === 'google' || 
+                          session.user.app_metadata?.providers?.includes('google') ||
+                          session.user.identities?.some(i => i.provider === 'google')
+      
+      if (session.provider_token && isGoogleUser) {
         accessToken = session.provider_token
         console.log('✅ Usando token da sessão existente do Google')
       } else {
-        console.log('❌ Sessão Google não disponível ou token inválido')
+        console.log('❌ Sessão Google não disponível:', {
+          hasToken: !!session.provider_token,
+          isGoogle: isGoogleUser,
+          needsOAuth: true
+        })
         return NextResponse.json({ 
           error: 'Sessão Google não disponível. Faça login com Google primeiro.',
           needsAuth: true
@@ -150,12 +165,28 @@ export async function POST(request: NextRequest) {
 }
 
 // Get Google OAuth2 URL
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // Detectar URL base dinamicamente
+    const { headers } = request
+    const host = headers.get('host') || 'localhost:3000'
+    const protocol = host.includes('localhost') ? 'http' : 'https'
+    const baseUrl = `${protocol}://${host}`
+    const redirectUri = `${baseUrl}/api/import-google-contacts/callback`
+    
+    console.log('🔧 Configurando OAuth:', {
+      host,
+      protocol,
+      baseUrl,
+      redirectUri,
+      hasClientId: !!process.env.GOOGLE_CLIENT_ID,
+      hasClientSecret: !!process.env.GOOGLE_CLIENT_SECRET
+    })
+
     const oauth2Client = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
-      process.env.GOOGLE_REDIRECT_URI
+      redirectUri
     )
 
     const authUrl = oauth2Client.generateAuthUrl({
@@ -169,6 +200,7 @@ export async function GET() {
       prompt: 'consent'
     })
 
+    console.log('✅ Auth URL gerada:', authUrl)
     return NextResponse.json({ authUrl })
 
   } catch (error) {

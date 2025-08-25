@@ -30,10 +30,24 @@ export async function GET(request: NextRequest) {
       return new Response(html, { status: 400, headers: { 'Content-Type': 'text/html; charset=utf-8' } })
     }
 
+    // Detectar URL base dinamicamente para o callback
+    const { headers } = request
+    const host = headers.get('host') || 'localhost:3000'
+    const protocol = host.includes('localhost') ? 'http' : 'https'
+    const baseUrl = `${protocol}://${host}`
+    const redirectUri = `${baseUrl}/api/import-google-contacts/callback`
+    
+    console.log('🔧 Callback OAuth:', {
+      host,
+      redirectUri,
+      code: !!code,
+      error
+    })
+
     const oauth2Client = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
-      process.env.GOOGLE_REDIRECT_URI
+      redirectUri
     )
 
     const { tokens } = await oauth2Client.getToken(code)

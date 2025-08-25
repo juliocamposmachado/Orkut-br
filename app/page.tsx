@@ -44,7 +44,6 @@ import {
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import Link from 'next/link'
-import { SiWindows, SiAndroid, SiApple } from 'react-icons/si'
 import RadioTatuapeWidget from '@/components/RadioWidget'
 import { CommentsModal } from '@/components/posts/comments-modal'
 import { ShareModal } from '@/components/posts/share-modal'
@@ -537,7 +536,7 @@ export default function HomePage() {
                     className="w-full justify-start border-gray-300 text-gray-600 hover:bg-gray-50 cursor-not-allowed opacity-60"
                     disabled
                   >
-                    <SiWindows className="h-4 w-4 mr-2" />
+                    <Monitor className="h-4 w-4 mr-2" />
                     Windows 10
                   </Button>
                   <Button 
@@ -546,7 +545,7 @@ export default function HomePage() {
                     className="w-full justify-start border-gray-300 text-gray-600 hover:bg-gray-50 cursor-not-allowed opacity-60"
                     disabled
                   >
-                    <SiAndroid className="h-4 w-4 mr-2" />
+                    <Smartphone className="h-4 w-4 mr-2" />
                     Android
                   </Button>
                   <Button 
@@ -555,7 +554,7 @@ export default function HomePage() {
                     className="w-full justify-start border-gray-300 text-gray-600 hover:bg-gray-50 cursor-not-allowed opacity-60"
                     disabled
                   >
-                    <SiApple className="h-4 w-4 mr-2" />
+                    <Phone className="h-4 w-4 mr-2" />
                     iOS
                   </Button>
                 </div>

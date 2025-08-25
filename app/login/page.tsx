@@ -14,10 +14,9 @@ import { ForgotPasswordModal } from '@/components/auth/forgot-password-modal';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Eye, EyeOff, Smartphone, Monitor, Download } from 'lucide-react';
+import { Eye, EyeOff, Smartphone, Monitor, Download, Laptop, PhoneIcon as Phone } from 'lucide-react';
 import publicProfiles from '@/lib/seed-public-profiles.json';
 import { FcGoogle } from 'react-icons/fc';
-import { SiWindows, SiAndroid, SiApple } from 'react-icons/si';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -440,7 +439,7 @@ export default function LoginPage() {
                 className="bg-white/20 border-white/30 text-white hover:bg-white/30 transition-all duration-300 h-auto py-3 px-4 flex flex-col items-center space-y-2"
                 disabled
               >
-                <SiWindows className="h-8 w-8" />
+                <Monitor className="h-8 w-8" />
                 <div className="text-center">
                   <p className="font-medium text-sm">Windows 10</p>
                   <p className="text-xs opacity-80">Em breve</p>
@@ -453,7 +452,7 @@ export default function LoginPage() {
                 className="bg-white/20 border-white/30 text-white hover:bg-white/30 transition-all duration-300 h-auto py-3 px-4 flex flex-col items-center space-y-2"
                 disabled
               >
-                <SiAndroid className="h-8 w-8" />
+                <Smartphone className="h-8 w-8" />
                 <div className="text-center">
                   <p className="font-medium text-sm">Android</p>
                   <p className="text-xs opacity-80">Em breve</p>
@@ -466,7 +465,7 @@ export default function LoginPage() {
                 className="bg-white/20 border-white/30 text-white hover:bg-white/30 transition-all duration-300 h-auto py-3 px-4 flex flex-col items-center space-y-2"
                 disabled
               >
-                <SiApple className="h-8 w-8" />
+                <Phone className="h-8 w-8" />
                 <div className="text-center">
                   <p className="font-medium text-sm">iOS</p>
                   <p className="text-xs opacity-80">Em breve</p>

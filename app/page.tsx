@@ -49,7 +49,6 @@ import { SponsoredCarousel } from '@/components/ads/sponsored-carousel'
 import { MarqueeBanner } from '@/components/ui/marquee-banner'
 import { CallModal } from '@/components/call/call-modal'
 import { useCall } from '@/hooks/use-call'
-import { PhotoSyncDebug } from '@/components/debug/photo-sync-debug'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -869,8 +868,6 @@ export default function HomePage() {
       <Footer />
       <OrkyAssistant />
       
-      {/* Debug Component - Temporário */}
-      <PhotoSyncDebug />
       
       {/* Modal de Chamada */}
       {callState.isOpen && callState.targetUser && callState.callType && (

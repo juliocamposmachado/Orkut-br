@@ -322,19 +322,27 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
   
   // Função para salvar biografia
   const handleSaveBio = async (newBio: string) => {
-    if (!profile) return;
+    if (!profile || !currentUser) return;
     
     try {
-      // Simular salvamento - aqui você pode implementar a lógica real do Supabase
-      console.log('Salvando biografia:', newBio);
+      console.log('Salvando biografia no Supabase:', newBio);
       
-      // Atualizar o perfil local
+      // Salvar no Supabase
+      const { error } = await supabase
+        .from('profiles')
+        .update({ bio: newBio })
+        .eq('id', currentUser.id);
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Atualizar o perfil local apenas após sucesso no banco
       setProfile(prev => prev ? { ...prev, bio: newBio } : null);
       
-      // Mostrar sucesso
-      alert('Biografia atualizada com sucesso!');
+      console.log('✅ Biografia salva com sucesso no Supabase');
     } catch (error) {
-      console.error('Erro ao salvar biografia:', error);
+      console.error('❌ Erro ao salvar biografia:', error);
       alert('Erro ao salvar biografia. Tente novamente.');
     }
   };

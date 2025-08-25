@@ -40,6 +40,7 @@ import { CallModal } from '@/components/call/call-modal';
 import { useCall } from '@/hooks/use-call';
 import { BioEditor } from '@/components/profile/bio-editor';
 import { MessageModal } from '@/components/messages/message-modal';
+import { OnlineFriends } from '@/components/friends/online-friends';
 
 interface UserProfile {
   id: string;
@@ -1038,145 +1039,10 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
           {/* Right Sidebar */}
           <div className="space-y-6">
             {/* Amigos Online */}
-            <OrkutCard>
-              <OrkutCardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Users className="h-4 w-4 text-green-600" />
-                    <span>Amigos Online</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-xs text-gray-500">5 online</span>
-                  </div>
-                </div>
-              </OrkutCardHeader>
-              <OrkutCardContent>
-                <div className="space-y-2">
-                  {/* Julio sempre como primeiro amigo */}
-                  <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer">
-                    <div className="relative">
-                      <Avatar className="h-10 w-10 border-2 border-green-300">
-                        <AvatarImage 
-                          src="https://lh3.googleusercontent.com/a/ACg8ocKKxiAA-fM5eBsd8S3bGtqcF4N8nKWf1rkOLy7l4Qi=s96-c" 
-                          alt="Julio Campos Machado" 
-                        />
-                        <AvatarFallback className="bg-purple-500 text-white font-bold">
-                          JC
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-sm text-gray-800 truncate">
-                        Julio Campos Machado
-                      </h4>
-                      <p className="text-xs text-green-600 font-medium">
-                        🟢 Online agora • Criador
-                      </p>
-                    </div>
-                    <div className="flex space-x-1">
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="p-1 h-6 w-6 text-green-600 hover:bg-green-100"
-                        title="Enviar mensagem"
-                        onClick={() => handleOpenMessage({
-                          id: 'juliocamposmachado',
-                          name: 'Julio Campos Machado',
-                          username: 'juliocamposmachado',
-                          photo: 'https://lh3.googleusercontent.com/a/ACg8ocKKxiAA-fM5eBsd8S3bGtqcF4N8nKWf1rkOLy7l4Qi=s96-c',
-                          isOnline: true
-                        })}
-                      >
-                        <MessageCircle className="h-3 w-3" />
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="p-1 h-6 w-6 text-purple-600 hover:bg-purple-100"
-                        title="Ver perfil"
-                        onClick={() => window.open('/perfil/juliocamposmachado', '_blank')}
-                      >
-                        <Eye className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  {/* Amigo real - Rádio Tatuaé FM */}
-                  <div 
-                    className="flex items-center space-x-3 p-2 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer group"
-                    onClick={() => window.open('/perfil/radiotatuapefm', '_blank')}
-                  >
-                    <div className="relative">
-                      <Avatar className="h-8 w-8 border-2 border-green-300">
-                        <AvatarImage 
-                          src="https://yt3.googleusercontent.com/ytc/AIdro_mNKSJ4CzULsb3m0uYJKY08OQTfJL7NJNmf_3hEjpY8T-8=s176-c-k-c0x00ffffff-no-rj" 
-                          alt="Rádio Tatuaé FM" 
-                        />
-                        <AvatarFallback className="bg-red-500 text-white font-bold">
-                          RT
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border border-white rounded-full animate-pulse"></div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-sm text-gray-800 truncate">
-                        Rádio Tatuaé FM
-                      </h4>
-                      <p className="text-xs text-green-600 font-medium">
-                        🟢 Online agora • Rádio Oficial
-                      </p>
-                    </div>
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="p-1 h-6 w-6 text-purple-600 hover:bg-purple-100"
-                        title="Enviar mensagem"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenMessage({
-                            id: 'radiotatuapefm',
-                            name: 'Rádio Tatué FM',
-                            username: 'radiotatuapefm',
-                            photo: 'https://yt3.googleusercontent.com/ytc/AIdro_mNKSJ4CzULsb3m0uYJKY08OQTfJL7NJNmf_3hEjpY8T-8=s176-c-k-c0x00ffffff-no-rj',
-                            isOnline: true
-                          });
-                        }}
-                      >
-                        <MessageCircle className="h-3 w-3" />
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="p-1 h-6 w-6 text-green-600 hover:bg-green-100"
-                        title="Chamada de áudio"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          startAudioCall({
-                            id: 'radiotatuapefm',
-                            name: 'Rádio Tatuaé FM',
-                            photo: 'https://yt3.googleusercontent.com/ytc/AIdro_mNKSJ4CzULsb3m0uYJKY08OQTfJL7NJNmf_3hEjpY8T-8=s176-c-k-c0x00ffffff-no-rj',
-                            username: 'radiotatuapefm'
-                          });
-                        }}
-                      >
-                        <Phone className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full mt-3 border-purple-300 text-purple-700 hover:bg-purple-50"
-                  onClick={() => alert('Funcionalidade de lista completa de amigos será implementada!')}
-                >
-                  Ver Todos os Amigos
-                </Button>
-              </OrkutCardContent>
-            </OrkutCard>
+            <OnlineFriends 
+              onOpenMessage={handleOpenMessage}
+              onStartAudioCall={startAudioCall}
+            />
             
             {/* Minhas Comunidades */}
             <OrkutCard>

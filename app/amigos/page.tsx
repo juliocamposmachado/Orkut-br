@@ -66,6 +66,31 @@ export default function FriendsPage() {
     }
   }, [user, loading, router])
 
+  // Escutar eventos globais de atualização de amigos
+  useEffect(() => {
+    const handleFriendRequestAccepted = (event: any) => {
+      console.log('📨 Evento friendRequestAccepted recebido:', event.detail)
+      // Recarregar listas
+      loadFriends()
+      loadRequests()
+    }
+
+    const handleFriendsListUpdated = (event: any) => {
+      console.log('📨 Evento friendsListUpdated recebido:', event.detail)
+      // Recarregar listas
+      loadFriends()
+      loadRequests()
+    }
+
+    window.addEventListener('friendRequestAccepted', handleFriendRequestAccepted)
+    window.addEventListener('friendsListUpdated', handleFriendsListUpdated)
+
+    return () => {
+      window.removeEventListener('friendRequestAccepted', handleFriendRequestAccepted)
+      window.removeEventListener('friendsListUpdated', handleFriendsListUpdated)
+    }
+  }, [user])
+
   useEffect(() => {
     if (searchTerm.length >= 3) {
       searchUsers()

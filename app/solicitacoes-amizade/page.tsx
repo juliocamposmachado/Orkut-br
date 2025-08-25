@@ -138,6 +138,24 @@ export default function FriendRequestsPage() {
 
       toast.success(`Você aceitou a solicitação de ${request.from_user.display_name}! 🎉`);
       
+      // Disparar evento global para atualizar listas de amigos
+      window.dispatchEvent(new CustomEvent('friendRequestAccepted', {
+        detail: {
+          friend: request.from_user,
+          timestamp: new Date().toISOString()
+        }
+      }));
+      
+      console.log('✅ Evento friendRequestAccepted disparado');
+      
+      // Disparar também evento para atualizar contadores
+      window.dispatchEvent(new CustomEvent('friendsListUpdated', {
+        detail: {
+          action: 'friend_added',
+          friend: request.from_user
+        }
+      }));
+      
     } catch (error) {
       console.error('Erro ao aceitar pedido:', error);
       toast.error('Erro ao aceitar pedido de amizade');

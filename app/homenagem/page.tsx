@@ -43,23 +43,15 @@ export default function HomenagemdPage() {
               <div className="relative mx-auto w-64 h-64 mb-6">
                 <div className="absolute -inset-4 bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400 rounded-full animate-pulse opacity-75"></div>
                 <div className="absolute -inset-2 bg-white rounded-full shadow-2xl"></div>
-                <div className="relative w-64 h-64 rounded-full overflow-hidden border-4 border-white shadow-xl bg-gradient-to-br from-purple-200 to-pink-200 flex items-center justify-center">
-                  {/* Placeholder for Helen's photo - Replace src with actual photo URL */}
-                  <div className="text-center text-purple-700">
-                    <Heart className="w-16 h-16 mx-auto mb-2" />
-                    <p className="text-sm font-medium">Foto da Helen</p>
-                    <p className="text-xs opacity-75">Adicionar imagem aqui</p>
-                  </div>
-                  {/* Uncomment and replace with actual image URL when available
+                <div className="relative w-64 h-64 rounded-full overflow-hidden border-4 border-white shadow-xl">
                   <Image
-                    src="/path-to-helen-photo.jpg"
-                    alt="Helen Cristina Vitai"
+                    src="/helen vitai"
+                    alt="Helen Cristina Vitai - Em memória"
                     fill
                     className="object-cover"
                     sizes="(max-width: 768px) 200px, 256px"
                     priority
                   />
-                  */}
                 </div>
                 {/* Decorative corners */}
                 <div className="absolute -top-2 -left-2 w-8 h-8">

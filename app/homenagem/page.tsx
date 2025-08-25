@@ -97,7 +97,7 @@ export default function HomenagemdPage() {
                     <strong className="text-purple-800"> Helen Cristina Vitai</strong>, ocorrido em 03/08/2025.
                   </p>
                   <p className="text-gray-600">
-                    A pedido dos familiares, solicitamos que não compareçam ao velório.
+                    A pedido dos familiares, solicitamos que não compareçam de Visual ao velório.
                   </p>
                   
                   <div className="bg-purple-50 rounded-lg p-4 mt-4">
@@ -178,10 +178,10 @@ export default function HomenagemdPage() {
                     <div className="font-semibold text-xl text-yellow-800 text-center p-4 bg-yellow-100 rounded-lg">
                       <p className="mb-2">
                         A violência que tirou a vida de Helen é 
-                        <span className="text-red-600 font-bold block sm:inline">INACEITÁVEL</span>
+                        <span className="text-red-600 font-bold block sm:inline">INACEITÁVEL </span>
                       </p>
                       <p>
-                        e não representa os valores que defendemos.
+                         e não representa os valores que defendemos.
                       </p>
                     </div>
                   </div>

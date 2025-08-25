@@ -231,7 +231,7 @@ export default function FriendRequestsPage() {
       console.log('🚫 Rejeitando pedido de amizade...')
       
       // PASSO 1: Marcar notificação como lida/removida no banco
-      if (supabase) {
+      if (supabase && user) {
         try {
           const { error: notificationError } = await supabase
             .from('notifications')

@@ -33,7 +33,7 @@ import { useRouter } from 'next/navigation'
 
 interface Notification {
   id: string
-  type: 'like' | 'comment' | 'share' | 'friend_request' | 'friend_request_accepted' | 'mention'
+  type: 'like' | 'comment' | 'share' | 'friend_request' | 'friend_request_accepted' | 'mention' | 'message'
   title: string
   message: string
   read: boolean
@@ -48,6 +48,7 @@ interface Notification {
     id: number
     content: string
   }
+  message_preview?: string
 }
 
 export function NotificationsDropdown() {
@@ -140,6 +141,80 @@ export function NotificationsDropdown() {
     }
   }
 
+  // Escutar novas mensagens enviadas
+  useEffect(() => {
+    const handleNewMessage = (event: any) => {
+      const { message, sender, recipient } = event.detail
+      
+      // Só criar notificação para o destinatário
+      if (recipient.id === user?.id && sender.id !== user?.id) {
+        const messageNotification: Notification = {
+          id: `msg_${Date.now()}`,
+          type: 'message',
+          title: 'Nova mensagem',
+          message: 'enviou uma mensagem',
+          read: false,
+          created_at: new Date().toISOString(),
+          from_user: {
+            id: sender.id,
+            display_name: sender.name,
+            photo_url: sender.photo,
+            username: sender.username
+          },
+          message_preview: message.content.substring(0, 50)
+        }
+        
+        // Adicionar à lista de notificações
+        setNotifications(prev => {
+          // Evitar duplicatas de notificação de mensagem do mesmo usuário em curto período
+          const recentMessageFromSender = prev.find(n => 
+            n.type === 'message' && 
+            n.from_user.id === sender.id &&
+            Date.now() - new Date(n.created_at).getTime() < 30000 // 30 segundos
+          )
+          
+          if (recentMessageFromSender) {
+            // Atualizar a notificação existente com a nova mensagem
+            const updated = prev.map(n => 
+              n.id === recentMessageFromSender.id
+                ? { ...n, message_preview: message.content.substring(0, 50), created_at: new Date().toISOString(), read: false }
+                : n
+            )
+            localStorage.setItem(`notifications_${user?.id}`, JSON.stringify(updated))
+            return updated
+          } else {
+            const updated = [messageNotification, ...prev].slice(0, 50)
+            localStorage.setItem(`notifications_${user?.id}`, JSON.stringify(updated))
+            return updated
+          }
+        })
+        
+        // Atualizar contador
+        setUnreadCount(prev => prev + 1)
+        
+        // Toast de notificação
+        toast(`💬 ${sender.name} enviou uma mensagem`, {
+          description: message.content.substring(0, 100),
+          action: {
+            label: 'Responder',
+            onClick: () => {
+              // Abrir chat - implementar futuramente
+              setIsOpen(false)
+            },
+          },
+        })
+      }
+    }
+
+    // Escutar mensagens recebidas indiretamente via broadcast ou polling
+    window.addEventListener('newMessageSent', handleNewMessage)
+    
+    // Limpeza
+    return () => {
+      window.removeEventListener('newMessageSent', handleNewMessage)
+    }
+  }, [user])
+
   // Helper functions for notification titles and messages
   const getNotificationTitle = (type: string): string => {
     const titles: Record<string, string> = {
@@ -148,7 +223,8 @@ export function NotificationsDropdown() {
       'share': 'Compartilhou seu post',
       'friend_request': 'Solicitação de amizade',
       'friend_request_accepted': 'Pedido aceito',
-      'mention': 'Mencionou você'
+      'mention': 'Mencionou você',
+      'message': 'Nova mensagem'
     }
     return titles[type] || 'Nova notificação'
   }
@@ -160,7 +236,8 @@ export function NotificationsDropdown() {
       'share': 'compartilhou seu post',
       'friend_request': 'enviou uma solicitação de amizade',
       'friend_request_accepted': 'aceitou sua solicitação de amizade',
-      'mention': 'mencionou você'
+      'mention': 'mencionou você',
+      'message': 'enviou uma mensagem'
     }
     return messages[type] || 'nova atividade'
   }
@@ -185,6 +262,8 @@ export function NotificationsDropdown() {
         return <Check className="h-4 w-4 text-green-500" />
       case 'mention':
         return <Bell className="h-4 w-4 text-orange-500" />
+      case 'message':
+        return <MessageCircle className="h-4 w-4 text-pink-500" />
       default:
         return <Bell className="h-4 w-4 text-gray-500" />
     }
@@ -368,6 +447,12 @@ export function NotificationsDropdown() {
                           {notification.post && (
                             <p className="text-xs text-gray-600 italic truncate">
                               "{notification.post.content.substring(0, 50)}..."
+                            </p>
+                          )}
+                          
+                          {notification.message_preview && (
+                            <p className="text-xs text-gray-600 italic truncate">
+                              💬 "{notification.message_preview}"
                             </p>
                           )}
                           

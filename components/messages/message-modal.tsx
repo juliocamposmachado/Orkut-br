@@ -241,6 +241,32 @@ export const MessageModal: React.FC<MessageModalProps> = ({
           );
           
           console.log('✅ Mensagem enviada com sucesso!');
+          
+          // Disparar evento de nova mensagem para o destinatário
+          const messageEvent = new CustomEvent('newMessageSent', {
+            detail: {
+              message: {
+                id: data.id,
+                content: messageContent,
+                created_at: data.created_at,
+                conversation_id: conversationId
+              },
+              sender: {
+                id: currentUser.id,
+                name: currentUser.display_name || currentUser.username,
+                photo: currentUser.photo_url,
+                username: currentUser.username
+              },
+              recipient: {
+                id: targetUser.id,
+                name: targetUser.name,
+                photo: targetUser.photo,
+                username: targetUser.username
+              }
+            }
+          });
+          
+          window.dispatchEvent(messageEvent);
         }
 
       } catch (error) {

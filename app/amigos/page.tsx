@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import GoogleContactsImporter from '@/components/contacts/google-contacts-importer'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -912,37 +913,24 @@ export default function FriendsPage() {
                     </OrkutCardHeader>
                     <OrkutCardContent className="space-y-4">
                       
-                      {/* Google Import */}
+                      {/* Google Import - New Local Implementation */}
                       <div className="border rounded-lg p-4">
                         <div className="flex items-center gap-3 mb-3">
                           <Globe className="h-6 w-6 text-blue-600" />
                           <div>
                             <h4 className="font-medium text-gray-800">Google Contatos</h4>
-                            <p className="text-sm text-gray-600">Importação direta dos seus contatos</p>
+                            <p className="text-sm text-gray-600">Carrega contatos localmente e exibe uma tabela para seleção</p>
                           </div>
                         </div>
-                        <div className="space-y-2">
-                          <Button 
-                            onClick={importGoogleContacts}
-                            disabled={importingGoogle}
-                            className="w-full bg-blue-500 hover:bg-blue-600"
-                          >
-                            {importingGoogle ? (
-                              <>
-                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                Importando...
-                              </>
-                            ) : (
-                              <>
-                                <Globe className="h-4 w-4 mr-2" />
-                                Importar do Google
-                              </>
-                            )}
-                          </Button>
-                          <p className="text-xs text-gray-500">
-                            💡 Se você fez login com Google, seus contatos serão importados automaticamente!
-                          </p>
-                        </div>
+                        <GoogleContactsImporter
+                          onContactsImported={(count) => {
+                            alert(`✅ ${count} contatos importados com sucesso!`)
+                            loadContacts()
+                          }}
+                          onError={(error) => {
+                            alert(`❌ Erro: ${error}`)
+                          }}
+                        />
                       </div>
 
                       {/* CSV Upload */}

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 // Interface para os posts
 interface Post {
@@ -180,7 +181,31 @@ export async function POST(request: NextRequest) {
       try {
         console.log(`🔄 Salvando post no Supabase: ${author_name}`)
         
-        const { data, error } = await supabase
+        // Obter o token de autenticação dos headers da requisição
+        const authHeader = request.headers.get('authorization')
+        let serverSupabase = supabase
+        
+        // Se há token de autorização, usar cliente autenticado
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+          const token = authHeader.replace('Bearer ', '')
+          // Criar cliente com sessão autenticada usando o token JWT
+          serverSupabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+            {
+              global: {
+                headers: {
+                  Authorization: `Bearer ${token}`
+                }
+              }
+            }
+          )
+          console.log('🔒 Usando cliente Supabase autenticado com JWT')
+        } else {
+          console.log('🔓 Usando cliente Supabase não autenticado')
+        }
+        
+        const { data, error } = await serverSupabase
           .from('posts')
           .insert({
             content: newPost.content,

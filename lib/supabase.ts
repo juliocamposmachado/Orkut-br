@@ -133,6 +133,7 @@ export type Database = {
           visibility: 'public' | 'friends'
           likes_count: number
           comments_count: number
+          shares_count: number
           is_dj_post: boolean | null
           created_at: string
         }
@@ -144,6 +145,7 @@ export type Database = {
           visibility?: 'public' | 'friends'
           likes_count?: number
           comments_count?: number
+          shares_count?: number
           is_dj_post?: boolean | null
           created_at?: string
         }
@@ -155,6 +157,7 @@ export type Database = {
           visibility?: 'public' | 'friends'
           likes_count?: number
           comments_count?: number
+          shares_count?: number
           is_dj_post?: boolean | null
           created_at?: string
         }

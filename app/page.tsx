@@ -9,6 +9,7 @@ import { OrkyAssistant } from '@/components/voice/orky-assistant'
 import { Feed } from '@/components/Feed'
 import { GlobalFeed } from '@/components/GlobalFeed'
 import { CreatePost } from '@/components/CreatePost'
+import SmartMusicCard from '@/components/SmartMusicCard'
 import { Footer } from '@/components/layout/footer'
 import { OrkutCard, OrkutCardContent, OrkutCardHeader } from '@/components/ui/orkut-card'
 import { Button } from '@/components/ui/button'
@@ -704,6 +705,9 @@ export default function HomePage() {
               // Trigger refresh do GlobalFeed quando um novo post é criado
               console.log('🎉 Post criado, GlobalFeed será atualizado automaticamente via evento')
             }} />
+            
+            {/* DJ Orky Smart Music Card - informações inteligentes sobre a música atual */}
+            <SmartMusicCard />
             
             {/* Feed Global Otimizado */}
             <GlobalFeed />

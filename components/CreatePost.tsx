@@ -43,11 +43,24 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         author_name: profile?.display_name
       })
       
+      // Obter sessão atual do Supabase para enviar token JWT
+      const { data: { session } } = await supabase.auth.getSession()
+      const authToken = session?.access_token
+      
+      console.log('🔑 Token de autenticação:', authToken ? 'Encontrado' : 'Não encontrado')
+      
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      }
+      
+      // Adicionar token de autorização se disponível
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`
+      }
+      
       const response = await fetch('/api/posts-db', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           content: content.trim(),
           author: user.id,

@@ -3,7 +3,16 @@
 import { useState, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { toast } from 'sonner'
+// import { toast } from 'sonner' // Temporariamente removido para build
+
+// Função temporária para substituir toast
+const toast = {
+  error: (message: string) => alert(`Erro: ${message}`),
+  success: (message: string, options?: any) => {
+    const description = options?.description ? ` - ${options.description}` : '';
+    alert(`Sucesso: ${message}${description}`);
+  }
+};
 import { Upload, X, Camera, Image as ImageIcon, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { uploadProfileImage, uploadPostImage } from '@/lib/uploadService'
@@ -48,7 +57,7 @@ export function ImageUpload({
     // Validação
     const validation = validateImage(file)
     if (!validation.valid) {
-      toast.error(validation.error)
+      toast.error(validation.error || 'Erro na validação do arquivo')
       return
     }
 

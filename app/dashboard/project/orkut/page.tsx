@@ -720,7 +720,7 @@ const DeveloperDashboard = () => {
                 onClick={openMainSite}
                 variant="outline" 
                 size="sm"
-                className="border-white/20 text-white hover:bg-white/10"
+                className="border-purple-400 bg-purple-600/20 text-white hover:bg-purple-500/30 hover:border-purple-300"
               >
                 <ExternalLink className="h-4 w-4 mr-2" />
                 Abrir Site Principal
@@ -811,7 +811,7 @@ const DeveloperDashboard = () => {
                 <Button 
                   onClick={runWebRTCTest}
                   variant="outline"
-                  className="border-white/30 bg-white/5 text-white hover:bg-white/20 hover:text-white"
+                  className="border-blue-400 bg-blue-600/20 text-blue-100 hover:bg-blue-500/30 hover:text-white hover:border-blue-300"
                   disabled={isRunningTests}
                 >
                   <Wifi className="h-4 w-4 mr-2" />
@@ -821,7 +821,7 @@ const DeveloperDashboard = () => {
                 <Button 
                   onClick={runDatabaseTest}
                   variant="outline"
-                  className="border-white/30 bg-white/5 text-white hover:bg-white/20 hover:text-white"
+                  className="border-emerald-400 bg-emerald-600/20 text-emerald-100 hover:bg-emerald-500/30 hover:text-white hover:border-emerald-300"
                   disabled={isRunningTests}
                 >
                   <Database className="h-4 w-4 mr-2" />
@@ -831,7 +831,7 @@ const DeveloperDashboard = () => {
                 <Button 
                   onClick={runAITest}
                   variant="outline"
-                  className="border-white/30 bg-white/5 text-white hover:bg-white/20 hover:text-white"
+                  className="border-violet-400 bg-violet-600/20 text-violet-100 hover:bg-violet-500/30 hover:text-white hover:border-violet-300"
                   disabled={isRunningTests}
                 >
                   <Bot className="h-4 w-4 mr-2" />
@@ -841,7 +841,7 @@ const DeveloperDashboard = () => {
                 <Button 
                   onClick={runRadioTest}
                   variant="outline"
-                  className="border-white/30 bg-white/5 text-white hover:bg-white/20 hover:text-white"
+                  className="border-orange-400 bg-orange-600/20 text-orange-100 hover:bg-orange-500/30 hover:text-white hover:border-orange-300"
                   disabled={isRunningTests}
                 >
                   <Radio className="h-4 w-4 mr-2" />
@@ -854,7 +854,7 @@ const DeveloperDashboard = () => {
                 <Button 
                   onClick={testPostCreation}
                   variant="outline"
-                  className="border-green-500/30 bg-green-500/10 text-green-300 hover:bg-green-500/20 hover:text-green-200"
+                  className="border-green-400 bg-green-600/20 text-green-100 hover:bg-green-500/30 hover:text-white hover:border-green-300"
                   disabled={isRunningTests}
                 >
                   <MessageCircle className="h-4 w-4 mr-2" />
@@ -864,7 +864,7 @@ const DeveloperDashboard = () => {
                 <Button 
                   onClick={testPhotoUpload}
                   variant="outline"
-                  className="border-blue-500/30 bg-blue-500/10 text-blue-300 hover:bg-blue-500/20 hover:text-blue-200"
+                  className="border-cyan-400 bg-cyan-600/20 text-cyan-100 hover:bg-cyan-500/30 hover:text-white hover:border-cyan-300"
                   disabled={isRunningTests}
                 >
                   <Camera className="h-4 w-4 mr-2" />
@@ -874,7 +874,7 @@ const DeveloperDashboard = () => {
                 <Button 
                   onClick={testAudioCall}
                   variant="outline"
-                  className="border-yellow-500/30 bg-yellow-500/10 text-yellow-300 hover:bg-yellow-500/20 hover:text-yellow-200"
+                  className="border-yellow-400 bg-yellow-600/20 text-yellow-100 hover:bg-yellow-500/30 hover:text-white hover:border-yellow-300"
                   disabled={isRunningTests}
                 >
                   <Phone className="h-4 w-4 mr-2" />
@@ -884,7 +884,7 @@ const DeveloperDashboard = () => {
                 <Button 
                   onClick={testVideoCall}
                   variant="outline"
-                  className="border-purple-500/30 bg-purple-500/10 text-purple-300 hover:bg-purple-500/20 hover:text-purple-200"
+                  className="border-pink-400 bg-pink-600/20 text-pink-100 hover:bg-pink-500/30 hover:text-white hover:border-pink-300"
                   disabled={isRunningTests}
                 >
                   <Video className="h-4 w-4 mr-2" />
@@ -911,7 +911,7 @@ const DeveloperDashboard = () => {
                 <Button 
                   onClick={clearDiagnostics}
                   variant="outline"
-                  className="border-white/20 text-white hover:bg-white/10"
+                  className="border-red-400 bg-red-600/20 text-red-100 hover:bg-red-500/30 hover:text-white hover:border-red-300"
                 >
                   Limpar
                 </Button>
@@ -935,7 +935,7 @@ const DeveloperDashboard = () => {
                 <Button 
                   onClick={checkSystemStatus}
                   variant="outline"
-                  className="border-white/30 bg-white/5 text-white hover:bg-white/20 hover:text-white justify-start"
+                  className="border-blue-400 bg-blue-600/20 text-blue-100 hover:bg-blue-500/30 hover:text-white hover:border-blue-300 justify-start"
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Atualizar Status do Sistema
@@ -944,7 +944,7 @@ const DeveloperDashboard = () => {
                 <Button 
                   onClick={openLogs}
                   variant="outline"
-                  className="border-white/30 bg-white/5 text-white hover:bg-white/20 hover:text-white justify-start"
+                  className="border-emerald-400 bg-emerald-600/20 text-emerald-100 hover:bg-emerald-500/30 hover:text-white hover:border-emerald-300 justify-start"
                 >
                   <FileText className="h-4 w-4 mr-2" />
                   Visualizar Logs do Sistema
@@ -953,7 +953,7 @@ const DeveloperDashboard = () => {
                 <Button 
                   onClick={() => window.open('https://github.com/juliocamposmachado/Orkut-br', '_blank')}
                   variant="outline"
-                  className="border-white/30 bg-white/5 text-white hover:bg-white/20 hover:text-white justify-start"
+                  className="border-violet-400 bg-violet-600/20 text-violet-100 hover:bg-violet-500/30 hover:text-white hover:border-violet-300 justify-start"
                 >
                   <GitBranch className="h-4 w-4 mr-2" />
                   Repositório no GitHub
@@ -962,7 +962,7 @@ const DeveloperDashboard = () => {
                 <Button 
                   onClick={() => alert('Console do desenvolvedor: F12\nNetwork tab: Monitorar requisições\nApplication tab: LocalStorage/SessionStorage')}
                   variant="outline"
-                  className="border-white/30 bg-white/5 text-white hover:bg-white/20 hover:text-white justify-start"
+                  className="border-orange-400 bg-orange-600/20 text-orange-100 hover:bg-orange-500/30 hover:text-white hover:border-orange-300 justify-start"
                 >
                   <Terminal className="h-4 w-4 mr-2" />
                   Ferramentas do Navegador
@@ -1077,7 +1077,7 @@ const DeveloperDashboard = () => {
                   onClick={clearChatHistory}
                   variant="outline"
                   size="sm"
-                  className="border-white/20 text-white hover:bg-white/10"
+                  className="border-red-400 bg-red-600/20 text-red-100 hover:bg-red-500/30 hover:text-white hover:border-red-300"
                   disabled={chatMessages.length === 0}
                 >
                   Limpar
@@ -1098,7 +1098,7 @@ const DeveloperDashboard = () => {
                   key={index}
                   variant="outline"
                   size="sm"
-                  className="text-xs border-white/20 text-white/80 hover:bg-white/10 hover:text-white"
+                  className="text-xs border-purple-400 bg-purple-600/20 text-purple-100 hover:bg-purple-500/30 hover:text-white hover:border-purple-300"
                   onClick={() => setChatInput(suggestion)}
                   disabled={isChatLoading}
                 >

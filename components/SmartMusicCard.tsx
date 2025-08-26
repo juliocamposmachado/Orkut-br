@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Music, Radio, Sparkles, Clock, RefreshCw, ExternalLink } from 'lucide-react'
+import { Loader2, Music, Radio, Sparkles, Clock, RefreshCw, ExternalLink, Heart } from 'lucide-react'
 
 interface CurrentSong {
   artist: string
@@ -28,6 +28,9 @@ const SmartMusicCard: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
+  const [userStartTime] = useState<Date>(new Date()) // Momento em que o usuário entrou no site
+  const [showInvitation, setShowInvitation] = useState(true) // Controla se mostra convite ou análise
+  const [lastAnalysisTime, setLastAnalysisTime] = useState<Date | null>(null) // Último momento de análise musical
 
   // Função para buscar a música atual
   const fetchCurrentSong = async (): Promise<CurrentSong | null> => {
@@ -94,6 +97,26 @@ const SmartMusicCard: React.FC = () => {
     }
   }
 
+  // Array de frases convidativas para incentivo à rádio
+  const invitationMessages = [
+    "🎵 Que tal relaxar ouvindo nossa seleção musical? A Rádio Tatuapé FM tem o melhor da música para você! 📻✨",
+    "🎶 Sua trilha sonora perfeita está aqui! Sintonize a Rádio Tatuapé FM e deixe a música embalar seu momento 🎧💫",
+    "📻 Música boa não para! Venha curtir os sucessos que tocam na Rádio Tatuapé FM - sua companhia musical favorita! 🎵❤️",
+    "🎤 Momentos especiais pedem músicas especiais! A Rádio Tatuapé FM está aqui para alegrar seu dia 🌟📻",
+    "🎸 Rock, pop, MPB e muito mais! Na Rádio Tatuapé FM você encontra todos os estilos que ama 🎵🔥",
+    "💿 Nossos DJs selecionaram os melhores hits para você! Não perca - Rádio Tatuapé FM no ar! 📻🎶",
+    "🎹 Cada música conta uma história... Deixe a Rádio Tatuapé FM contar a sua através dos nossos sons! 🎵📖",
+    "🌈 Cores e sons se misturam na Rádio Tatuapé FM! Venha viver essa experiência musical única conosco! 🎶✨",
+    "🎺 Do clássico ao contemporâneo, temos tudo que você precisa ouvir! Rádio Tatuapé FM - sempre no seu coração! 💕📻",
+    "🥳 Que festa é a nossa programação! Junte-se a nós na Rádio Tatuapé FM e celebre a boa música! 🎉🎵"
+  ]
+
+  // Função para gerar mensagem convidativa aleatória
+  const generateInvitationMessage = (): string => {
+    const randomIndex = Math.floor(Math.random() * invitationMessages.length)
+    return invitationMessages[randomIndex]
+  }
+
   // Função para gerar fallback quando a API falha
   const generateFallback = (artist: string, song: string): MusicAnalysis => {
     const fallbacks = [
@@ -115,32 +138,90 @@ const SmartMusicCard: React.FC = () => {
     }
   }
 
+  // Função para verificar se deve fazer análise musical
+  const shouldAnalyzeMusic = (): boolean => {
+    const now = new Date()
+    const timeOnSite = (now.getTime() - userStartTime.getTime()) / 1000 / 60 // minutos no site
+    
+    // Só faz análise após 10 minutos no site
+    if (timeOnSite < 10) {
+      return false
+    }
+    
+    // Se nunca fez análise e já passou 10 minutos, fazer agora
+    if (!lastAnalysisTime) {
+      return true
+    }
+    
+    // Verificar se já passaram 10 minutos desde a última análise
+    const timeSinceLastAnalysis = (now.getTime() - lastAnalysisTime.getTime()) / 1000 / 60
+    return timeSinceLastAnalysis >= 10
+  }
+
   // Função principal para atualizar dados
   const updateMusicCard = async () => {
     setLoading(true)
     setError(null)
 
     try {
-      // Buscar música atual
+      // Buscar música atual sempre (para mostrar o que está tocando)
       const song = await fetchCurrentSong()
       
       if (!song) {
-        setError('Nenhuma música está tocando no momento')
-        setLoading(false)
+        // Se não conseguiu buscar música, mostrar apenas mensagem convidativa
+        const invitationContent = generateInvitationMessage()
+        setAnalysis({
+          success: true,
+          content: invitationContent,
+          artist: "Rádio Tatuapé FM",
+          song: "Programação Musical",
+          timestamp: new Date().toISOString(),
+          fallback: false
+        })
+        setCurrentSong({
+          artist: "Rádio Tatuapé FM",
+          song: "🎵 Sua música favorita está aqui!",
+          timestamp: new Date().toISOString()
+        })
+        setShowInvitation(true)
+        setLastUpdate(new Date())
         return
       }
 
       setCurrentSong(song)
 
-      // Buscar análise da música
-      const analysis = await fetchMusicAnalysis(song.artist, song.song)
-      
-      if (analysis && analysis.success) {
-        setAnalysis(analysis)
+      // Verificar se deve fazer análise musical ou mostrar convite
+      if (shouldAnalyzeMusic()) {
+        console.log('🎵 Fazendo análise musical - tempo adequado!')
+        
+        // Fazer análise musical do Gemini
+        const analysis = await fetchMusicAnalysis(song.artist, song.song)
+        
+        if (analysis && analysis.success) {
+          setAnalysis(analysis)
+          setShowInvitation(false)
+          setLastAnalysisTime(new Date()) // Marcar o momento da análise
+        } else {
+          // Usar fallback em caso de erro na API
+          const fallbackAnalysis = generateFallback(song.artist, song.song)
+          setAnalysis(fallbackAnalysis)
+          setShowInvitation(false)
+          setLastAnalysisTime(new Date())
+        }
       } else {
-        // Usar fallback em caso de erro na API
-        const fallbackAnalysis = generateFallback(song.artist, song.song)
-        setAnalysis(fallbackAnalysis)
+        console.log('🎶 Mostrando mensagem convidativa - aguardando tempo para análise')
+        
+        // Mostrar mensagem convidativa em vez de análise
+        const invitationContent = generateInvitationMessage()
+        setAnalysis({
+          success: true,
+          content: invitationContent,
+          artist: song.artist,
+          song: song.song,
+          timestamp: new Date().toISOString(),
+          fallback: false
+        })
+        setShowInvitation(true)
       }
 
       setLastUpdate(new Date())
@@ -156,8 +237,10 @@ const SmartMusicCard: React.FC = () => {
   useEffect(() => {
     updateMusicCard()
     
-    // Atualizar sincronizado com RadioWidget - intervalo otimizado
-    const interval = setInterval(updateMusicCard, 90000) // 90s (1.5min)
+    // Intervalo inteligente:
+    // - Primeiros 10 min: frases convidativas a cada 30s
+    // - Após 10 min: alterna entre convites (30s) e análises (10min)
+    const interval = setInterval(updateMusicCard, 30000) // 30s para ser mais dinâmico
     
     return () => clearInterval(interval)
   }, [])

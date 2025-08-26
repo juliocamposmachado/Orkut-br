@@ -15,6 +15,10 @@ interface Post {
   created_at: string
   is_dj_post?: boolean
   shares_count?: number
+  // Campos do avatar personalizado
+  avatar_id?: string | null
+  avatar_emoji?: string | null
+  avatar_name?: string | null
 }
 
 // Dados em memória como fallback (para desenvolvimento)
@@ -30,7 +34,28 @@ let memoryPosts: Post[] = [
     comments_count: 8,
     shares_count: 12,
     created_at: new Date(Date.now() - 1000).toISOString(),
-    is_dj_post: false
+    is_dj_post: false,
+    // Exemplo com avatar
+    avatar_id: null,
+    avatar_emoji: null,
+    avatar_name: null
+  },
+  {
+    id: Date.now() - 2000,
+    content: "Testando o novo sistema de avatars! 🎭 Que nostalgia dos anos 2000! 💫",
+    author: "demo-user",
+    author_name: "Usuário Demo",
+    author_photo: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+    visibility: "public",
+    likes_count: 12,
+    comments_count: 3,
+    shares_count: 2,
+    created_at: new Date(Date.now() - 2000).toISOString(),
+    is_dj_post: false,
+    // Avatar exemplo
+    avatar_id: "cool-guy",
+    avatar_emoji: "😎",
+    avatar_name: "Cara Legal"
   }
 ]
 
@@ -66,6 +91,9 @@ export async function GET(request: NextRequest) {
             comments_count,
             shares_count,
             is_dj_post,
+            avatar_id,
+            avatar_emoji,
+            avatar_name,
             created_at
           `)
         
@@ -131,7 +159,19 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     console.log('🔍 Dados recebidos:', body)
     
-    const { content, author, author_name, author_photo, visibility = 'public', is_dj_post = false, shares_count = 0 } = body
+    const { 
+      content, 
+      author, 
+      author_name, 
+      author_photo, 
+      visibility = 'public', 
+      is_dj_post = false, 
+      shares_count = 0,
+      // Novos campos do avatar
+      avatar_id = null,
+      avatar_emoji = null,
+      avatar_name = null
+    } = body
 
     // Validações básicas
     if (!content || !author) {
@@ -161,7 +201,11 @@ export async function POST(request: NextRequest) {
       comments_count: 0,
       shares_count: shares_count || 0,
       created_at: new Date().toISOString(),
-      is_dj_post: is_dj_post || false
+      is_dj_post: is_dj_post || false,
+      // Campos do avatar personalizado
+      avatar_id: avatar_id || null,
+      avatar_emoji: avatar_emoji || null,
+      avatar_name: avatar_name || null
     }
     
     console.log('📝 Post criado:', newPost)
@@ -230,7 +274,11 @@ export async function POST(request: NextRequest) {
           likes_count: newPost.likes_count || 0,
           comments_count: newPost.comments_count || 0,
           shares_count: newPost.shares_count || 0,
-          is_dj_post: newPost.is_dj_post || false
+          is_dj_post: newPost.is_dj_post || false,
+          // Campos do avatar personalizado
+          avatar_id: newPost.avatar_id,
+          avatar_emoji: newPost.avatar_emoji,
+          avatar_name: newPost.avatar_name
         }
         
         console.log('📤 Enviando para Supabase:', insertData)

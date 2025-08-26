@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 // Configuração do Gemini AI para análise musical
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent"
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY_MUSIC // Chave específica para música
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY_MUSIC || 'AIzaSyDBzVSol7wdgCBy9MiekzTmgXhQIO959c4' // Nova chave para análise musical
 
 export async function POST(request: NextRequest) {
   try {

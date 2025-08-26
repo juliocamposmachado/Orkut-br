@@ -22,6 +22,10 @@ export interface Post {
   created_at: string
   is_dj_post?: boolean
   shares_count?: number
+  // Novos campos para avatar do post
+  avatar_id?: string | null
+  avatar_emoji?: string | null
+  avatar_name?: string | null
 }
 
 interface PostCardProps {
@@ -105,8 +109,20 @@ export function PostCard({ post }: PostCardProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={currentPost.author_photo || undefined} alt={currentPost.author_name} />
-              <AvatarFallback>{currentPost.author_name.charAt(0).toUpperCase()}</AvatarFallback>
+              {/* Usar avatar específico do post se disponível, senão usar foto do usuário */}
+              {currentPost.avatar_emoji ? (
+                <div 
+                  className="w-full h-full flex items-center justify-center text-2xl bg-gradient-to-br from-purple-100 to-pink-100 border-2 border-purple-200 cursor-help"
+                  title={`Avatar: ${currentPost.avatar_name || 'Avatar personalizado'}`}
+                >
+                  {currentPost.avatar_emoji}
+                </div>
+              ) : (
+                <>
+                  <AvatarImage src={currentPost.author_photo || undefined} alt={currentPost.author_name} />
+                  <AvatarFallback>{currentPost.author_name.charAt(0).toUpperCase()}</AvatarFallback>
+                </>
+              )}
             </Avatar>
             <div>
               <div className="flex items-center gap-2">

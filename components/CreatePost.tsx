@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { supabase } from '@/lib/supabase'
-import { Camera, Image, Smile, Send, Globe, Users, ChevronDown, CheckCircle } from 'lucide-react'
+import { Camera, Image, Smile, Send, Globe, Users, ChevronDown, CheckCircle, UserCircle } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +15,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
+import { AvatarSelector } from '@/components/posts/avatar-selector'
+import { type OrkutAvatar } from '@/data/orkut-avatars'
 
 interface CreatePostProps {
   onPostCreated?: () => void
@@ -25,6 +27,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const [content, setContent] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [visibility, setVisibility] = useState<'public' | 'friends'>('public')
+  const [selectedAvatar, setSelectedAvatar] = useState<OrkutAvatar | null>(null)
 
   // Check if we have valid Supabase configuration
   const hasSupabaseConfig = process.env.NEXT_PUBLIC_SUPABASE_URL && 
@@ -83,7 +86,11 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           author_name: profile?.display_name || profile?.username || 'Usuário',
           author_photo: profile?.photo_url || null,
           visibility: visibility,
-          is_dj_post: false
+          is_dj_post: false,
+          // Dados do avatar selecionado
+          avatar_id: selectedAvatar?.id || null,
+          avatar_emoji: selectedAvatar?.emoji || null,
+          avatar_name: selectedAvatar?.name || null
         })
       })
       
@@ -111,7 +118,9 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       // Dispara evento para o Feed atualizar
       window.dispatchEvent(new CustomEvent('new-post-created', { detail: result.post }))
       
+      // Resetar formulário
       setContent('')
+      setSelectedAvatar(null) // Limpar avatar selecionado
       onPostCreated?.()
       
       console.log('🎉 Post publicado e salvo permanentemente no seu perfil!')
@@ -164,35 +173,62 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           />
           
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-purple-600 hover:bg-purple-50"
+            >
+              <Camera className="h-4 w-4 mr-1" />
+              Foto
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-purple-600 hover:bg-purple-50"
+            >
+              <Image className="h-4 w-4 mr-1" />
+              Imagem
+            </Button>
+            <AvatarSelector
+              selectedAvatar={selectedAvatar}
+              onAvatarSelect={setSelectedAvatar}
+            >
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="text-purple-600 hover:bg-purple-50"
+                className={`transition-colors ${
+                  selectedAvatar 
+                    ? 'text-purple-700 bg-purple-100 hover:bg-purple-200' 
+                    : 'text-purple-600 hover:bg-purple-50'
+                }`}
               >
-                <Camera className="h-4 w-4 mr-1" />
-                Foto
+                {selectedAvatar ? (
+                  <>
+                    <span className="mr-1 text-sm">{selectedAvatar.emoji}</span>
+                    Avatar
+                  </>
+                ) : (
+                  <>
+                    <UserCircle className="h-4 w-4 mr-1" />
+                    Avatar
+                  </>
+                )}
               </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="text-purple-600 hover:bg-purple-50"
-              >
-                <Image className="h-4 w-4 mr-1" />
-                Imagem
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="text-purple-600 hover:bg-purple-50"
-              >
-                <Smile className="h-4 w-4 mr-1" />
-                Emoji
-              </Button>
-            </div>
+            </AvatarSelector>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-purple-600 hover:bg-purple-50"
+            >
+              <Smile className="h-4 w-4 mr-1" />
+              Emoji
+            </Button>
+          </div>
             
             <div className="flex items-center space-x-2">
               {/* Seletor de Privacidade */}

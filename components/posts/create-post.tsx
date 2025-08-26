@@ -7,9 +7,11 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Card, CardContent } from '@/components/ui/card'
-import { ImageIcon, MapPin, Smile, Loader2 } from 'lucide-react'
+import { ImageIcon, MapPin, Smile, Loader2, UserCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { MoodSelector } from '@/components/status/mood-selector'
+import { AvatarSelector } from '@/components/posts/avatar-selector'
+import { type OrkutAvatar } from '@/data/orkut-avatars'
 
 interface CreatePostProps {
   onPostCreated?: () => void
@@ -21,6 +23,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const [isPublishing, setIsPublishing] = useState(false)
   const [imageFiles, setImageFiles] = useState<File[]>([])
   const [imagePreviews, setImagePreviews] = useState<string[]>([])
+  const [selectedAvatar, setSelectedAvatar] = useState<OrkutAvatar | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -143,7 +146,11 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           author_photo: profile.photo_url,
           visibility: 'public',
           image_urls: imageUrls.length > 0 ? imageUrls : null,
-          is_dj_post: false
+          is_dj_post: false,
+          // Incluir dados do avatar selecionado
+          avatar_id: selectedAvatar?.id || null,
+          avatar_emoji: selectedAvatar?.emoji || null,
+          avatar_name: selectedAvatar?.name || null
         }
 
         // Get current session to obtain access token
@@ -211,6 +218,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       setContent('')
       setImageFiles([])
       setImagePreviews([])
+      setSelectedAvatar(null) // Resetar avatar selecionado
       
       // Notify parent component
       if (onPostCreated) {
@@ -354,6 +362,33 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                     Humor
                   </Button>
                 </MoodSelector>
+                
+                <AvatarSelector
+                  selectedAvatar={selectedAvatar}
+                  onAvatarSelect={setSelectedAvatar}
+                >
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className={`border-purple-300 hover:bg-purple-50 ${
+                      selectedAvatar ? 'text-purple-700 bg-purple-50' : 'text-purple-700'
+                    }`}
+                    disabled={isPublishing}
+                  >
+                    {selectedAvatar ? (
+                      <>
+                        <span className="text-base mr-2">{selectedAvatar.emoji}</span>
+                        Avatar
+                      </>
+                    ) : (
+                      <>
+                        <UserCircle className="h-4 w-4 mr-2" />
+                        Avatar
+                      </>
+                    )}
+                  </Button>
+                </AvatarSelector>
               </div>
 
               <Button

@@ -186,37 +186,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
           console.log('📋 Fontes verificadas:', photoSources.filter(Boolean))
         }
         
-        // Se há foto do Google e não temos foto, ou se a foto mudou, atualizar
-        if (googlePhoto && (!data.photo_url || data.photo_url !== googlePhoto)) {
-          console.log('🖼️ Atualizando foto do perfil com dados do Google:', googlePhoto)
-          
-          // Atualizar no banco
-          const { error: updateError } = await supabase
-            .from('profiles')
-            .update({ photo_url: googlePhoto })
-            .eq('id', user.id)
-          
-          if (updateError) {
-            console.error('❌ Erro ao atualizar foto no banco:', updateError)
-          } else {
-            console.log('✅ Foto atualizada no banco com sucesso')
-          }
-          
-          // Atualizar estado local
-          setProfile({
-            ...data,
-            photo_url: googlePhoto,
-            email_confirmed: !!user.email_confirmed_at,
-            email_confirmed_at: user.email_confirmed_at || null
-          })
-        } else {
-          console.log('📷 Mantendo foto atual do perfil:', data.photo_url)
-          setProfile({
-            ...data,
-            email_confirmed: !!user.email_confirmed_at,
-            email_confirmed_at: user.email_confirmed_at || null
-          })
-        }
+        // Usar foto do Google apenas se o perfil não tiver foto própria
+        const displayPhoto = data.photo_url || googlePhoto
+        
+        console.log('📷 Usando foto para exibição:', {
+          'perfil_tem_foto': !!data.photo_url,
+          'google_tem_foto': !!googlePhoto,
+          'usando_foto_do': data.photo_url ? 'Banco' : (googlePhoto ? 'Google' : 'Padrão')
+        })
+        
+        setProfile({
+          ...data,
+          photo_url: displayPhoto, // Priorizar foto do banco, usar Google como fallback
+          email_confirmed: !!user.email_confirmed_at,
+          email_confirmed_at: user.email_confirmed_at || null
+        })
       } else {
         // Create profile if it doesn't exist
         await createUserProfile(user, {
@@ -439,14 +423,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const createUserProfile = async (user: any, userData: { username: string, displayName: string }) => {
     try {
-      // Extrair foto do Google se disponível
-      const googlePhoto = user.user_metadata?.avatar_url || user.user_metadata?.picture || null
+      // Tentar obter foto do Google para salvar no banco na criação
+      let googlePhoto = null
+      
+      // Verificar múltiplas fontes de foto do Google
+      const photoSources = [
+        user.user_metadata?.avatar_url,
+        user.user_metadata?.picture, 
+        user.user_metadata?.photo_url,
+        // Verificar também nas identities (mais confiável)
+        user.identities?.[0]?.identity_data?.avatar_url,
+        user.identities?.[0]?.identity_data?.picture,
+      ]
+      
+      // Pegar a primeira foto válida (que não seja do Pexels)
+      for (const photo of photoSources) {
+        if (photo && typeof photo === 'string' && !photo.includes('pexels.com')) {
+          googlePhoto = photo
+          console.log('✅ Foto do Google encontrada para criação de perfil:', photo)
+          break
+        }
+      }
       
       const profileData = {
         id: user.id,
         username: userData.username,
         display_name: userData.displayName,
-        photo_url: googlePhoto,
+        photo_url: googlePhoto, // Salvar foto do Google no banco na criação
         bio: null,
         location: null,
         birthday: null,

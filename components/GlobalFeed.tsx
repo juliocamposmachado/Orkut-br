@@ -21,19 +21,21 @@ import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 interface GlobalFeedPost {
-  id: number
-  post_id: number
+  id: number | string
   author: string
   author_name: string
   author_photo: string | null
   content: string
   likes_count: number
   comments_count: number
-  shares_count: number
+  shares_count?: number
   visibility: string
-  is_dj_post: boolean
+  is_dj_post?: boolean
   created_at: string
-  updated_at: string
+  // Avatar fields
+  avatar_id?: string | null
+  avatar_emoji?: string | null
+  avatar_name?: string | null
 }
 
 interface GlobalFeedProps {
@@ -60,7 +62,7 @@ export function GlobalFeed({ className = '' }: GlobalFeedProps) {
         setLoadingMore(true)
       }
 
-      const response = await fetch(`/api/global-feed?limit=20&offset=${currentOffset}`)
+      const response = await fetch(`/api/posts-db?limit=20&offset=${currentOffset}`)
       const result = await response.json()
 
       if (result.success) {
@@ -89,13 +91,13 @@ export function GlobalFeed({ className = '' }: GlobalFeedProps) {
     }
   }, [])
 
-  const handleLike = async (postId: number) => {
+  const handleLike = async (postId: number | string) => {
     if (!user) return
 
     try {
       // Otimistic update
       setPosts(prev => prev.map(post => 
-        post.post_id === postId 
+        post.id === postId 
           ? { ...post, likes_count: post.likes_count + 1 }
           : post
       ))
@@ -115,7 +117,7 @@ export function GlobalFeed({ className = '' }: GlobalFeedProps) {
       if (!result.success) {
         // Reverter mudança otimista se falhar
         setPosts(prev => prev.map(post => 
-          post.post_id === postId 
+          post.id === postId 
             ? { ...post, likes_count: post.likes_count - 1 }
             : post
         ))
@@ -125,7 +127,7 @@ export function GlobalFeed({ className = '' }: GlobalFeedProps) {
       console.error('Erro ao curtir post:', error)
       // Reverter mudança otimista
       setPosts(prev => prev.map(post => 
-        post.post_id === postId 
+        post.id === postId 
           ? { ...post, likes_count: post.likes_count - 1 }
           : post
       ))
@@ -297,7 +299,7 @@ export function GlobalFeed({ className = '' }: GlobalFeedProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleLike(post.post_id)}
+                    onClick={() => handleLike(post.id)}
                     className="text-gray-600 hover:text-red-500 hover:bg-red-50"
                   >
                     <Heart className="h-4 w-4 mr-1" />

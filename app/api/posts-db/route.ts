@@ -129,10 +129,13 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    console.log('🔍 Dados recebidos:', body)
+    
     const { content, author, author_name, author_photo, visibility = 'public', is_dj_post = false, shares_count = 0 } = body
 
     // Validações básicas
     if (!content || !author) {
+      console.error('❌ Dados obrigatórios ausentes:', { content: !!content, author: !!author })
       return NextResponse.json(
         { success: false, error: 'Conteúdo e autor são obrigatórios' },
         { status: 400 }
@@ -150,16 +153,18 @@ export async function POST(request: NextRequest) {
     const newPost: Post = {
       id: Date.now() + Math.random(), // ID único
       content: content.trim(),
-      author,
-      author_name,
+      author: author || 'unknown',
+      author_name: author_name || 'Usuário Anônimo',
       author_photo: author_photo || null,
       visibility,
       likes_count: 0,
       comments_count: 0,
-      shares_count: 0,
+      shares_count: shares_count || 0,
       created_at: new Date().toISOString(),
-      is_dj_post
+      is_dj_post: is_dj_post || false
     }
+    
+    console.log('📝 Post criado:', newPost)
 
     let savedPost = newPost
     let source = 'memory'
@@ -179,7 +184,7 @@ export async function POST(request: NextRequest) {
     if (hasValidSupabase && supabase) {
       // Tentar salvar no Supabase primeiro
       try {
-        console.log(`🔄 Salvando post no Supabase: ${author_name}`)
+        console.log(`🔄 Salvando post no Supabase: ${author_name || 'Usuário'}`)
         
         // Obter o token de autenticação dos headers da requisição
         const authHeader = request.headers.get('authorization')
@@ -202,22 +207,27 @@ export async function POST(request: NextRequest) {
           )
           console.log('🔒 Usando cliente Supabase autenticado com JWT')
         } else {
-          console.log('🔓 Usando cliente Supabase não autenticado')
+          console.log('🔓 Usando cliente Supabase não autenticado - tentando inserção pública')
         }
+        
+        // Preparar dados para inserção, removendo campos undefined
+        const insertData = {
+          content: newPost.content,
+          author: newPost.author,
+          author_name: newPost.author_name || 'Usuário',
+          author_photo: newPost.author_photo,
+          visibility: newPost.visibility,
+          likes_count: newPost.likes_count || 0,
+          comments_count: newPost.comments_count || 0,
+          shares_count: newPost.shares_count || 0,
+          is_dj_post: newPost.is_dj_post || false
+        }
+        
+        console.log('📤 Enviando para Supabase:', insertData)
         
         const { data, error } = await serverSupabase
           .from('posts')
-          .insert({
-            content: newPost.content,
-            author: newPost.author,
-            author_name: newPost.author_name,
-            author_photo: newPost.author_photo,
-            visibility: newPost.visibility,
-            likes_count: newPost.likes_count,
-            comments_count: newPost.comments_count,
-            shares_count: newPost.shares_count,
-            is_dj_post: newPost.is_dj_post
-          })
+          .insert(insertData)
           .select()
           .single()
 

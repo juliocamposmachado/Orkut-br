@@ -36,11 +36,26 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
 
     setIsLoading(true)
     try {
+      // Debug: Verificar dados do usuário e perfil
+      console.log('🔍 [DEBUG] Dados do usuário:', {
+        user_id: user?.id,
+        user_email: user?.email,
+        user_exists: !!user
+      })
+      console.log('🔍 [DEBUG] Dados do perfil:', {
+        profile_id: profile?.id,
+        display_name: profile?.display_name,
+        photo_url: profile?.photo_url,
+        username: profile?.username,
+        profile_exists: !!profile
+      })
+      
       // Criar post permanente no banco de dados
       console.log('🚀 Criando post permanente:', {
         content: content.trim(),
         author: user.id,
-        author_name: profile?.display_name
+        author_name: profile?.display_name || profile?.username || 'Usuário',
+        author_photo: profile?.photo_url
       })
       
       // Obter sessão atual do Supabase para enviar token JWT
@@ -48,6 +63,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       const authToken = session?.access_token
       
       console.log('🔑 Token de autenticação:', authToken ? 'Encontrado' : 'Não encontrado')
+      console.log('🔍 Session user:', session?.user?.id)
       
       const headers: HeadersInit = {
         'Content-Type': 'application/json',
@@ -58,13 +74,13 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         headers['Authorization'] = `Bearer ${authToken}`
       }
       
-      const response = await fetch('/api/posts-db', {
+      const response = await fetch('/api/posts-simple', {
         method: 'POST',
         headers,
         body: JSON.stringify({
           content: content.trim(),
           author: user.id,
-          author_name: profile?.display_name || 'Usuário',
+          author_name: profile?.display_name || profile?.username || 'Usuário',
           author_photo: profile?.photo_url || null,
           visibility: visibility,
           is_dj_post: false

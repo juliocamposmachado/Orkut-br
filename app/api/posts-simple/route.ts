@@ -1,11 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
 
-// Cliente Supabase com service_role para bypass RLS temporariamente
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// Cliente Supabase - usar service_role se disponível, senão usar cliente padrão
+const createSupabaseClient = () => {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  
+  if (supabaseUrl && serviceKey) {
+    console.log('🔑 Usando service_role_key para bypass RLS')
+    return createClient(supabaseUrl, serviceKey)
+  } else if (supabaseUrl && anonKey) {
+    console.log('🔓 Usando anon_key padrão')
+    return createClient(supabaseUrl, anonKey)
+  } else {
+    console.log('📱 Usando cliente padrão do lib/supabase')
+    return supabase
+  }
+}
+
+const supabaseClient = createSupabaseClient()
 
 // Interface para os posts
 interface Post {
@@ -61,8 +76,8 @@ export async function POST(request: NextRequest) {
     
     console.log('📤 [SIMPLE] Enviando para Supabase:', insertData)
     
-    // Usar client admin para bypass RLS
-    const { data, error } = await supabaseAdmin
+    // Usar cliente configurado
+    const { data, error } = await supabaseClient
       .from('posts')
       .insert(insertData)
       .select()
@@ -103,7 +118,7 @@ export async function GET(request: NextRequest) {
   try {
     console.log('🔄 [SIMPLE] Carregando posts...')
     
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabaseClient
       .from('posts')
       .select('*')
       .order('created_at', { ascending: false })

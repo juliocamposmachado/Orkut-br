@@ -134,42 +134,67 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         created_at: new Date().toISOString()
       }
 
-      // Try to save to Supabase first
+      // Use the posts-db API for proper data handling
       try {
-        const { data, error } = await supabase
-          .from('posts')
-          .insert(postData)
-          .select()
-          .single()
+        const apiData = {
+          content: content.trim(),
+          author: profile.id || user.id, // Usar profile.id que referencia a tabela profiles
+          author_name: profile.display_name || profile.username || 'Usuário',
+          author_photo: profile.photo_url,
+          visibility: 'public',
+          image_urls: imageUrls.length > 0 ? imageUrls : null,
+          is_dj_post: false
+        }
 
-        if (error) {
-          console.error('Supabase insert error:', error)
-          // Continue with fallback
-        } else {
+        const response = await fetch('/api/posts-db', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${user.access_token || ''}`
+          },
+          body: JSON.stringify(apiData)
+        })
+
+        const result = await response.json()
+
+        if (result.success) {
           toast.success('Post publicado com sucesso!')
+          console.log('Post saved via API:', result.source)
+        } else {
+          throw new Error(result.error || 'Erro ao publicar post')
         }
-      } catch (dbError) {
-        console.error('Database error:', dbError)
-      }
-
-      // Fallback: save to localStorage for offline functionality
-      try {
-        const existingPosts = JSON.parse(localStorage.getItem('offline_posts') || '[]')
-        const newPost = {
-          id: Date.now(),
-          ...postData,
-          author: {
-            id: user.id,
-            display_name: profile.display_name,
-            photo_url: profile.photo_url,
-            username: profile.username
-          }
-        }
+      } catch (apiError) {
+        console.error('API error:', apiError)
         
-        existingPosts.unshift(newPost)
-        localStorage.setItem('offline_posts', JSON.stringify(existingPosts.slice(0, 50))) // Keep only 50 latest posts
-      } catch (storageError) {
-        console.error('LocalStorage error:', storageError)
+        // Fallback: save to localStorage for offline functionality
+        try {
+          const existingPosts = JSON.parse(localStorage.getItem('offline_posts') || '[]')
+          const newPost = {
+            id: Date.now(),
+            content: content.trim(),
+            author: user.id,
+            author_name: profile.display_name || profile.username || 'Usuário',
+            author_photo: profile.photo_url,
+            image_urls: imageUrls,
+            likes_count: 0,
+            comments_count: 0,
+            created_at: new Date().toISOString(),
+            author_profile: {
+              id: user.id,
+              display_name: profile.display_name,
+              photo_url: profile.photo_url,
+              username: profile.username
+            }
+          }
+          
+          existingPosts.unshift(newPost)
+          localStorage.setItem('offline_posts', JSON.stringify(existingPosts.slice(0, 50)))
+          
+          toast.success('Post salvo localmente (modo offline)')
+        } catch (storageError) {
+          console.error('LocalStorage error:', storageError)
+          toast.error('Erro ao publicar post')
+        }
       }
 
       // Reset form

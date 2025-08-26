@@ -74,12 +74,12 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         headers['Authorization'] = `Bearer ${authToken}`
       }
       
-      const response = await fetch('/api/posts-simple', {
+      const response = await fetch('/api/posts-db', {
         method: 'POST',
         headers,
         body: JSON.stringify({
           content: content.trim(),
-          author: user.id,
+          author: profile?.id || user.id, // Usar profile.id que referencia a tabela profiles
           author_name: profile?.display_name || profile?.username || 'Usuário',
           author_photo: profile?.photo_url || null,
           visibility: visibility,

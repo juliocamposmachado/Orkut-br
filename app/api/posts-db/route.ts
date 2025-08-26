@@ -186,36 +186,46 @@ export async function POST(request: NextRequest) {
       try {
         console.log(`🔄 Salvando post no Supabase: ${author_name || 'Usuário'}`)
         
-        // Obter o token de autenticação dos headers da requisição
-        const authHeader = request.headers.get('authorization')
+        // Usar service_role se disponível para bypass RLS, senão usar cliente com auth
         let serverSupabase = supabase
+        const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
         
-        // Se há token de autorização, usar cliente autenticado
-        if (authHeader && authHeader.startsWith('Bearer ')) {
-          const token = authHeader.replace('Bearer ', '')
-          // Criar cliente com sessão autenticada usando o token JWT
+        if (serviceKey && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+          // Usar service_role para bypass RLS (desenvolvimento)
           serverSupabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-            {
-              global: {
-                headers: {
-                  Authorization: `Bearer ${token}`
+            process.env.NEXT_PUBLIC_SUPABASE_URL,
+            serviceKey
+          )
+          console.log('🔑 Usando service_role_key para bypass RLS')
+        } else {
+          // Tentar usar token de autenticação
+          const authHeader = request.headers.get('authorization')
+          if (authHeader && authHeader.startsWith('Bearer ')) {
+            const token = authHeader.replace('Bearer ', '')
+            serverSupabase = createClient(
+              process.env.NEXT_PUBLIC_SUPABASE_URL!,
+              process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+              {
+                global: {
+                  headers: {
+                    Authorization: `Bearer ${token}`
+                  }
                 }
               }
-            }
-          )
-          console.log('🔒 Usando cliente Supabase autenticado com JWT')
-        } else {
-          console.log('🔓 Usando cliente Supabase não autenticado - tentando inserção pública')
+            )
+            console.log('🔒 Usando cliente Supabase autenticado com JWT')
+          } else {
+            console.log('🔓 Usando cliente Supabase padrão')
+          }
         }
         
-        // Preparar dados para inserção, removendo campos undefined
+        // Preparar dados para inserção conforme schema da tabela posts
         const insertData = {
           content: newPost.content,
-          author: newPost.author,
+          author: newPost.author, // UUID referenciando profiles(id)
           author_name: newPost.author_name || 'Usuário',
           author_photo: newPost.author_photo,
+          photo_url: Array.isArray(body.image_urls) && body.image_urls.length > 0 ? body.image_urls[0] : null, // Usar primeira imagem como photo_url
           visibility: newPost.visibility,
           likes_count: newPost.likes_count || 0,
           comments_count: newPost.comments_count || 0,

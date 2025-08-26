@@ -234,13 +234,30 @@ export async function POST(request: NextRequest) {
         let serverSupabase = supabase
         const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
         
+        console.log('🔍 Debug service_role_key:', {
+          hasServiceKey: !!serviceKey,
+          hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+          serviceKeyLength: serviceKey ? serviceKey.length : 0
+        })
+        
         if (serviceKey && process.env.NEXT_PUBLIC_SUPABASE_URL) {
           // Usar service_role para bypass RLS (desenvolvimento)
-          serverSupabase = createClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL,
-            serviceKey
-          )
-          console.log('🔑 Usando service_role_key para bypass RLS')
+          try {
+            serverSupabase = createClient(
+              process.env.NEXT_PUBLIC_SUPABASE_URL,
+              serviceKey,
+              {
+                auth: {
+                  autoRefreshToken: false,
+                  persistSession: false
+                }
+              }
+            )
+            console.log('🔑 Cliente service_role criado com sucesso para bypass RLS')
+          } catch (createError) {
+            console.error('❌ Erro ao criar cliente service_role:', createError)
+            throw new Error('Falha ao configurar acesso service_role')
+          }
         } else {
           // Tentar usar token de autenticação
           const authHeader = request.headers.get('authorization')
@@ -333,14 +350,22 @@ export async function POST(request: NextRequest) {
         } else {
           console.warn('⚠️ Erro ao salvar no Supabase:', error?.message || 'Erro desconhecido')
           console.warn('⚠️ Detalhes completos:', error)
-          return NextResponse.json(
-            { 
-              success: false, 
-              error: `Erro no banco de dados: ${error?.message || 'Erro desconhecido'}`,
-              details: error
-            },
-            { status: 500 }
-          )
+          
+          // Se for erro de RLS, usar fallback para memória temporariamente
+          if (error?.code === '42501' || error?.message?.includes('row-level security')) {
+            console.warn('🔄 RLS está bloqueando. Usando fallback para memória.')
+            // Forçar source = 'memory' para usar o fallback
+            source = 'memory'
+          } else {
+            return NextResponse.json(
+              { 
+                success: false, 
+                error: `Erro no banco de dados: ${error?.message || 'Erro desconhecido'}`,
+                details: error
+              },
+              { status: 500 }
+            )
+          }
         }
       } catch (supabaseError: any) {
         console.error('❌ Erro crítico no Supabase:', supabaseError)

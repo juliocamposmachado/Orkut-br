@@ -22,7 +22,13 @@ import {
   Code,
   Terminal,
   GitBranch,
-  Zap
+  Zap,
+  MessageCircle,
+  Camera,
+  Phone,
+  Video,
+  Send,
+  Loader2
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -46,6 +52,13 @@ interface DiagnosticResult {
   details?: string
 }
 
+interface ChatMessage {
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  timestamp: number
+}
+
 const DeveloperDashboard = () => {
   const [systemStatus, setSystemStatus] = useState<SystemStatus>({
     database: 'checking',
@@ -55,6 +68,11 @@ const DeveloperDashboard = () => {
   })
   const [diagnostics, setDiagnostics] = useState<DiagnosticResult[]>([])
   const [isRunningTests, setIsRunningTests] = useState(false)
+  
+  // Chat states
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([])
+  const [chatInput, setChatInput] = useState('')
+  const [isChatLoading, setIsChatLoading] = useState(false)
 
   // Verificar status do sistema ao carregar
   useEffect(() => {
@@ -306,6 +324,329 @@ const DeveloperDashboard = () => {
     }
   }
 
+  // Novas funções de teste
+  const testPostCreation = async () => {
+    const newDiagnostic: DiagnosticResult = {
+      name: 'Post Creation Test',
+      status: 'running',
+      message: 'Testando criação de posts...'
+    }
+    setDiagnostics(prev => [...prev, newDiagnostic])
+
+    try {
+      const testPost = {
+        content: 'Teste de post do dashboard - ' + new Date().toLocaleString(),
+        author: 'Dashboard Test',
+        timestamp: Date.now()
+      }
+
+      const response = await fetch('/api/posts-db', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(testPost)
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setDiagnostics(prev => prev.map(d => 
+          d.name === 'Post Creation Test' 
+            ? { 
+                ...d, 
+                status: 'success', 
+                message: 'Post criado com sucesso!',
+                details: `ID: ${data.id || 'N/A'} - Salvo no banco de dados`
+              }
+            : d
+        ))
+      } else {
+        throw new Error(`HTTP ${response.status}`)
+      }
+    } catch (error) {
+      setDiagnostics(prev => prev.map(d => 
+        d.name === 'Post Creation Test' 
+          ? { 
+              ...d, 
+              status: 'error', 
+              message: 'Erro ao criar post', 
+              details: error instanceof Error ? error.message : 'Erro desconhecido'
+            }
+          : d
+      ))
+    }
+  }
+
+  const testPhotoUpload = async () => {
+    const newDiagnostic: DiagnosticResult = {
+      name: 'Photo Upload Test',
+      status: 'running',
+      message: 'Testando upload de fotos...'
+    }
+    setDiagnostics(prev => [...prev, newDiagnostic])
+
+    try {
+      // Simular um arquivo de teste (pixel transparente 1x1)
+      const canvas = document.createElement('canvas')
+      canvas.width = 1
+      canvas.height = 1
+      
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          throw new Error('Erro ao criar imagem de teste')
+        }
+
+        const formData = new FormData()
+        formData.append('file', blob, 'test-image.png')
+        formData.append('type', 'profile')
+
+        try {
+          const response = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData
+          })
+
+          if (response.ok) {
+            const data = await response.json()
+            setDiagnostics(prev => prev.map(d => 
+              d.name === 'Photo Upload Test' 
+                ? { 
+                    ...d, 
+                    status: 'success', 
+                    message: 'Upload de foto funcionando!',
+                    details: `URL: ${data.url || 'N/A'} - Arquivo processado`
+                  }
+                : d
+            ))
+          } else if (response.status === 404) {
+            setDiagnostics(prev => prev.map(d => 
+              d.name === 'Photo Upload Test' 
+                ? { 
+                    ...d, 
+                    status: 'warning', 
+                    message: 'Endpoint de upload não implementado',
+                    details: 'API /api/upload não encontrada - funcionalidade pendente'
+                  }
+                : d
+            ))
+          } else {
+            throw new Error(`HTTP ${response.status}`)
+          }
+        } catch (fetchError) {
+          setDiagnostics(prev => prev.map(d => 
+            d.name === 'Photo Upload Test' 
+              ? { 
+                  ...d, 
+                  status: 'error', 
+                  message: 'Erro no upload', 
+                  details: fetchError instanceof Error ? fetchError.message : 'Erro na requisição'
+                }
+              : d
+          ))
+        }
+      }, 'image/png')
+    } catch (error) {
+      setDiagnostics(prev => prev.map(d => 
+        d.name === 'Photo Upload Test' 
+          ? { 
+              ...d, 
+              status: 'error', 
+              message: 'Erro no teste de upload', 
+              details: error instanceof Error ? error.message : 'Erro desconhecido'
+            }
+          : d
+      ))
+    }
+  }
+
+  const testAudioCall = async () => {
+    const newDiagnostic: DiagnosticResult = {
+      name: 'Audio Call Test',
+      status: 'running',
+      message: 'Testando funcionalidade de chamada de áudio...'
+    }
+    setDiagnostics(prev => [...prev, newDiagnostic])
+
+    try {
+      // Testar acesso ao microfone
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: true, 
+        video: false 
+      })
+      
+      // Testar WebRTC peer connection
+      const pc = new RTCPeerConnection({
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+      })
+      
+      // Adicionar stream ao peer connection
+      stream.getTracks().forEach(track => {
+        pc.addTrack(track, stream)
+      })
+      
+      // Simular offer/answer
+      const offer = await pc.createOffer()
+      await pc.setLocalDescription(offer)
+      
+      // Cleanup
+      stream.getTracks().forEach(track => track.stop())
+      pc.close()
+      
+      setDiagnostics(prev => prev.map(d => 
+        d.name === 'Audio Call Test' 
+          ? { 
+              ...d, 
+              status: 'success', 
+              message: 'Sistema de áudio funcionando!',
+              details: 'Microfone acessível, WebRTC configurado, pronto para chamadas'
+            }
+          : d
+      ))
+    } catch (error) {
+      setDiagnostics(prev => prev.map(d => 
+        d.name === 'Audio Call Test' 
+          ? { 
+              ...d, 
+              status: 'error', 
+              message: 'Erro no sistema de áudio', 
+              details: error instanceof Error ? error.message : 'Verifique permissões do microfone'
+            }
+          : d
+      ))
+    }
+  }
+
+  const testVideoCall = async () => {
+    const newDiagnostic: DiagnosticResult = {
+      name: 'Video Call Test',
+      status: 'running',
+      message: 'Testando funcionalidade de chamada de vídeo...'
+    }
+    setDiagnostics(prev => [...prev, newDiagnostic])
+
+    try {
+      // Testar acesso à câmera e microfone
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: true, 
+        video: true 
+      })
+      
+      // Testar WebRTC peer connection
+      const pc = new RTCPeerConnection({
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+      })
+      
+      // Adicionar stream ao peer connection
+      stream.getTracks().forEach(track => {
+        pc.addTrack(track, stream)
+      })
+      
+      // Simular offer/answer
+      const offer = await pc.createOffer()
+      await pc.setLocalDescription(offer)
+      
+      // Verificar resolução de vídeo
+      const videoTrack = stream.getVideoTracks()[0]
+      const settings = videoTrack.getSettings()
+      
+      // Cleanup
+      stream.getTracks().forEach(track => track.stop())
+      pc.close()
+      
+      setDiagnostics(prev => prev.map(d => 
+        d.name === 'Video Call Test' 
+          ? { 
+              ...d, 
+              status: 'success', 
+              message: 'Sistema de vídeo funcionando!',
+              details: `Resolução: ${settings.width}x${settings.height} - Câmera e áudio prontos`
+            }
+          : d
+      ))
+    } catch (error) {
+      setDiagnostics(prev => prev.map(d => 
+        d.name === 'Video Call Test' 
+          ? { 
+              ...d, 
+              status: 'error', 
+              message: 'Erro no sistema de vídeo', 
+              details: error instanceof Error ? error.message : 'Verifique permissões da câmera/microfone'
+            }
+          : d
+      ))
+    }
+  }
+
+  // Funções do Chat com IA
+  const sendChatMessage = async () => {
+    if (!chatInput.trim() || isChatLoading) return
+
+    const currentMessage = chatInput // Salvar a mensagem antes de limpar o input
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: currentMessage,
+      timestamp: Date.now()
+    }
+
+    setChatMessages(prev => [...prev, userMessage])
+    setChatInput('')
+    setIsChatLoading(true)
+
+    try {
+      // Coletar informações do sistema para contexto
+      const systemContext = {
+        systemStatus,
+        diagnostics: diagnostics.slice(-5), // últimos 5 diagnósticos
+        timestamp: new Date().toISOString(),
+        url: window.location.href,
+        userAgent: navigator.userAgent
+      }
+
+      const response = await fetch('/api/gemini/chat-logs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: currentMessage,
+          context: systemContext,
+          chatHistory: chatMessages.slice(-10) // últimas 10 mensagens para contexto
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        const assistantMessage: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: data.response || 'Desculpe, não consegui processar sua mensagem.',
+          timestamp: Date.now()
+        }
+        setChatMessages(prev => [...prev, assistantMessage])
+      } else {
+        throw new Error(`HTTP ${response.status}`)
+      }
+    } catch (error) {
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: `Erro ao conectar com a IA: ${error instanceof Error ? error.message : 'Erro desconhecido'}. Verifique se a API Gemini está configurada.`,
+        timestamp: Date.now()
+      }
+      setChatMessages(prev => [...prev, errorMessage])
+    }
+
+    setIsChatLoading(false)
+  }
+
+  const clearChatHistory = () => {
+    setChatMessages([])
+  }
+
+  const handleChatKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      sendChatMessage()
+    }
+  }
+
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'online':
@@ -470,7 +811,7 @@ const DeveloperDashboard = () => {
                 <Button 
                   onClick={runWebRTCTest}
                   variant="outline"
-                  className="border-white/20 text-white hover:bg-white/10"
+                  className="border-white/30 bg-white/5 text-white hover:bg-white/20 hover:text-white"
                   disabled={isRunningTests}
                 >
                   <Wifi className="h-4 w-4 mr-2" />
@@ -480,7 +821,7 @@ const DeveloperDashboard = () => {
                 <Button 
                   onClick={runDatabaseTest}
                   variant="outline"
-                  className="border-white/20 text-white hover:bg-white/10"
+                  className="border-white/30 bg-white/5 text-white hover:bg-white/20 hover:text-white"
                   disabled={isRunningTests}
                 >
                   <Database className="h-4 w-4 mr-2" />
@@ -490,7 +831,7 @@ const DeveloperDashboard = () => {
                 <Button 
                   onClick={runAITest}
                   variant="outline"
-                  className="border-white/20 text-white hover:bg-white/10"
+                  className="border-white/30 bg-white/5 text-white hover:bg-white/20 hover:text-white"
                   disabled={isRunningTests}
                 >
                   <Bot className="h-4 w-4 mr-2" />
@@ -500,11 +841,54 @@ const DeveloperDashboard = () => {
                 <Button 
                   onClick={runRadioTest}
                   variant="outline"
-                  className="border-white/20 text-white hover:bg-white/10"
+                  className="border-white/30 bg-white/5 text-white hover:bg-white/20 hover:text-white"
                   disabled={isRunningTests}
                 >
                   <Radio className="h-4 w-4 mr-2" />
                   Teste Rádio
+                </Button>
+              </div>
+              
+              {/* Novos Testes de Funcionalidades */}
+              <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/10">
+                <Button 
+                  onClick={testPostCreation}
+                  variant="outline"
+                  className="border-green-500/30 bg-green-500/10 text-green-300 hover:bg-green-500/20 hover:text-green-200"
+                  disabled={isRunningTests}
+                >
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Testar Post
+                </Button>
+
+                <Button 
+                  onClick={testPhotoUpload}
+                  variant="outline"
+                  className="border-blue-500/30 bg-blue-500/10 text-blue-300 hover:bg-blue-500/20 hover:text-blue-200"
+                  disabled={isRunningTests}
+                >
+                  <Camera className="h-4 w-4 mr-2" />
+                  Testar Foto
+                </Button>
+
+                <Button 
+                  onClick={testAudioCall}
+                  variant="outline"
+                  className="border-yellow-500/30 bg-yellow-500/10 text-yellow-300 hover:bg-yellow-500/20 hover:text-yellow-200"
+                  disabled={isRunningTests}
+                >
+                  <Phone className="h-4 w-4 mr-2" />
+                  Testar Áudio
+                </Button>
+
+                <Button 
+                  onClick={testVideoCall}
+                  variant="outline"
+                  className="border-purple-500/30 bg-purple-500/10 text-purple-300 hover:bg-purple-500/20 hover:text-purple-200"
+                  disabled={isRunningTests}
+                >
+                  <Video className="h-4 w-4 mr-2" />
+                  Testar Vídeo
                 </Button>
               </div>
 
@@ -551,7 +935,7 @@ const DeveloperDashboard = () => {
                 <Button 
                   onClick={checkSystemStatus}
                   variant="outline"
-                  className="border-white/20 text-white hover:bg-white/10 justify-start"
+                  className="border-white/30 bg-white/5 text-white hover:bg-white/20 hover:text-white justify-start"
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Atualizar Status do Sistema
@@ -560,7 +944,7 @@ const DeveloperDashboard = () => {
                 <Button 
                   onClick={openLogs}
                   variant="outline"
-                  className="border-white/20 text-white hover:bg-white/10 justify-start"
+                  className="border-white/30 bg-white/5 text-white hover:bg-white/20 hover:text-white justify-start"
                 >
                   <FileText className="h-4 w-4 mr-2" />
                   Visualizar Logs do Sistema
@@ -569,7 +953,7 @@ const DeveloperDashboard = () => {
                 <Button 
                   onClick={() => window.open('https://github.com/juliocamposmachado/Orkut-br', '_blank')}
                   variant="outline"
-                  className="border-white/20 text-white hover:bg-white/10 justify-start"
+                  className="border-white/30 bg-white/5 text-white hover:bg-white/20 hover:text-white justify-start"
                 >
                   <GitBranch className="h-4 w-4 mr-2" />
                   Repositório no GitHub
@@ -578,7 +962,7 @@ const DeveloperDashboard = () => {
                 <Button 
                   onClick={() => alert('Console do desenvolvedor: F12\nNetwork tab: Monitorar requisições\nApplication tab: LocalStorage/SessionStorage')}
                   variant="outline"
-                  className="border-white/20 text-white hover:bg-white/10 justify-start"
+                  className="border-white/30 bg-white/5 text-white hover:bg-white/20 hover:text-white justify-start"
                 >
                   <Terminal className="h-4 w-4 mr-2" />
                   Ferramentas do Navegador
@@ -587,6 +971,143 @@ const DeveloperDashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Chat com IA Gemini */}
+        <Card className="bg-black/20 border-white/10 text-white mt-8">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Bot className="h-5 w-5 mr-2" />
+                Chat com IA Gemini - Análise de Logs
+              </div>
+              <Badge 
+                variant="outline" 
+                className={`text-xs ${
+                  systemStatus.ai === 'online' ? 'border-green-500 text-green-400' :
+                  systemStatus.ai === 'offline' ? 'border-red-500 text-red-400' :
+                  'border-yellow-500 text-yellow-400'
+                }`}
+              >
+                {getStatusText(systemStatus.ai)}
+              </Badge>
+            </CardTitle>
+            <CardDescription className="text-white/70">
+              Converse com a IA sobre logs do sistema, erros e diagnósticos
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Chat Messages */}
+            <div className="h-64 overflow-y-auto bg-black/30 rounded-lg p-4 space-y-3">
+              {chatMessages.length === 0 ? (
+                <div className="flex items-center justify-center h-full text-white/60">
+                  <div className="text-center">
+                    <Bot className="h-12 w-12 mx-auto mb-2 text-white/40" />
+                    <p className="text-sm">Pergunte sobre logs, erros, status do sistema...</p>
+                    <p className="text-xs mt-1">Ex: "Analise os últimos erros" ou "Como está o sistema?"</p>
+                  </div>
+                </div>
+              ) : (
+                chatMessages.map((message) => (
+                  <div 
+                    key={message.id} 
+                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div 
+                      className={`max-w-xs lg:max-w-md px-3 py-2 rounded-lg ${
+                        message.role === 'user' 
+                          ? 'bg-purple-600 text-white' 
+                          : 'bg-white/10 text-white border border-white/20'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-2 mb-1">
+                        {message.role === 'assistant' && <Bot className="h-4 w-4 text-purple-300" />}
+                        {message.role === 'user' && <span className="text-xs opacity-75">Você</span>}
+                        <span className="text-xs opacity-75">
+                          {new Date(message.timestamp).toLocaleTimeString()}
+                        </span>
+                      </div>
+                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    </div>
+                  </div>
+                ))
+              )}
+              {isChatLoading && (
+                <div className="flex justify-start">
+                  <div className="bg-white/10 border border-white/20 px-3 py-2 rounded-lg">
+                    <div className="flex items-center space-x-2">
+                      <Bot className="h-4 w-4 text-purple-300" />
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="text-sm">IA está pensando...</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Chat Input */}
+            <div className="flex space-x-2">
+              <div className="flex-1">
+                <textarea
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={handleChatKeyPress}
+                  placeholder="Digite sua pergunta sobre logs, sistema, erros..."
+                  className="w-full px-3 py-2 bg-black/30 border border-white/20 rounded-lg text-white placeholder-white/50 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  rows={2}
+                  disabled={isChatLoading}
+                />
+                <p className="text-xs text-white/60 mt-1">
+                  Enter para enviar • Shift+Enter para nova linha
+                </p>
+              </div>
+              <div className="flex flex-col space-y-2">
+                <Button 
+                  onClick={sendChatMessage}
+                  disabled={!chatInput.trim() || isChatLoading}
+                  className="bg-purple-600 hover:bg-purple-700 disabled:opacity-50"
+                  size="sm"
+                >
+                  {isChatLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                </Button>
+                <Button 
+                  onClick={clearChatHistory}
+                  variant="outline"
+                  size="sm"
+                  className="border-white/20 text-white hover:bg-white/10"
+                  disabled={chatMessages.length === 0}
+                >
+                  Limpar
+                </Button>
+              </div>
+            </div>
+
+            {/* Mensagens Sugeridas */}
+            <div className="flex flex-wrap gap-2">
+              {[
+                "Como está o sistema?",
+                "Analise os últimos erros",
+                "Status do banco de dados",
+                "Problemas de WebRTC?",
+                "Logs da API"
+              ].map((suggestion, index) => (
+                <Button
+                  key={index}
+                  variant="outline"
+                  size="sm"
+                  className="text-xs border-white/20 text-white/80 hover:bg-white/10 hover:text-white"
+                  onClick={() => setChatInput(suggestion)}
+                  disabled={isChatLoading}
+                >
+                  {suggestion}
+                </Button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Diagnostic Results */}
         {diagnostics.length > 0 && (

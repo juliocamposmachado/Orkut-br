@@ -8,8 +8,7 @@ import { WebRTCProvider } from '@/contexts/webrtc-context';
 import { Toaster } from '@/components/ui/sonner';
 import { StructuredData } from '@/components/seo/structured-data';
 import { CallManager } from '@/components/calls/call-manager';
-import { WebRTCDiagnostics } from '@/components/webrtc-diagnostics';
-import { WebRTCTest } from '@/components/webrtc-test';
+// WebRTC diagnostics moved to developer dashboard
 // import { EventListenerMonitor } from '@/components/debug/event-listener-monitor';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -137,8 +136,7 @@ export default function RootLayout({
               <VoiceProvider>
                 {children}
                 <CallManager />
-                <WebRTCDiagnostics />
-                <WebRTCTest />
+                {/* WebRTC diagnostics moved to developer dashboard */}
                 {/* <EventListenerMonitor /> */}
                 <Toaster />
               </VoiceProvider>

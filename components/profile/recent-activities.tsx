@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { ProxiedAvatar } from '@/components/ui/proxied-avatar'
 import { MessageCircle, Heart, Users, Camera, Settings, Clock } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -179,15 +179,12 @@ export function RecentActivities({ profileId, userProfile, loading = false }: Re
         return (
           <div key={activity.id} className="border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors">
             <div className="flex items-start space-x-3">
-              <Avatar className="h-8 w-8 flex-shrink-0">
-                <AvatarImage 
-                  src={userProfile.photo_url || undefined} 
-                  alt={userProfile.display_name} 
-                />
-                <AvatarFallback className="text-xs bg-purple-500 text-white">
-                  {userProfile.display_name?.charAt(0)?.toUpperCase() || '?'}
-                </AvatarFallback>
-              </Avatar>
+              <ProxiedAvatar 
+                src={userProfile.photo_url} 
+                alt={userProfile.display_name}
+                size={32}
+                className="h-8 w-8 flex-shrink-0"
+              />
               
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between">

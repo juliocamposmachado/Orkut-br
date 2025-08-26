@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
+import { getProxiedImageUrl } from '@/hooks/use-google-image-proxy'
 
 // Enhanced types for user profile
 type Profile = {

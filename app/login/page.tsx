@@ -115,27 +115,10 @@ export default function LoginPage() {
     }
   }
 
-  const handleDeveloperLogin = async () => {
-    const devCredentials = {
-      email: 'julioscouter',
-      password: 'Julio@2025'
-    }
-
-    setIsLoading(true)
-    try {
-      // Preencher os campos automaticamente
-      setEmail(devCredentials.email)
-      setPassword(devCredentials.password)
-      
-      // Tentar fazer login
-      await signIn(devCredentials.email, devCredentials.password)
-      toast.success('🛠️ Login de desenvolvedor realizado! Bem-vindo!')
-      router.push('/')
-    } catch (error: any) {
-      toast.error(`Erro ao fazer login de desenvolvedor: ${error.message}. Verifique se a conta existe no banco de dados.`)
-    } finally {
-      setIsLoading(false)
-    }
+  const handleDeveloperAccess = () => {
+    // Redirecionar diretamente para o dashboard sem autenticação
+    toast.success('🛠️ Redirecionando para o Dashboard do Desenvolvedor!')
+    router.push('/dashboard/project/orkut')
   }
 
   const handleGoogleLogin = async () => {
@@ -303,7 +286,7 @@ export default function LoginPage() {
               {/* Developer Login */}
               <div className="mt-6 pt-6 border-t border-gray-200">
                 <Button
-                  onClick={handleDeveloperLogin}
+                  onClick={handleDeveloperAccess}
                   disabled={isLoading}
                   variant="outline"
                   className="w-full mb-3 border-purple-300 hover:bg-purple-50 text-purple-700 font-medium py-2.5"

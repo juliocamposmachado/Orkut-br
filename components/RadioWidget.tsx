@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { ExternalLink, Music, Users, RefreshCw } from 'lucide-react';
+import { ExternalLink, Music, Users, RefreshCw, Radio } from 'lucide-react';
 
 interface RadioWidgetProps {
   className?: string;
@@ -102,17 +102,8 @@ const RadioTatuapeWidget: React.FC<RadioWidgetProps> = ({
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white">
         <div className="flex items-center space-x-3">
-          <div className="relative w-12 h-12">
-            <div className="absolute inset-0 w-12 h-12 rounded-full bg-black/40 shadow-lg"></div>
-            <img 
-              src="/logo-radio-tatuape-fm.png" 
-              alt="Rádio Tatuapé FM" 
-              className="relative w-12 h-12 rounded-full object-cover"
-              onError={(e) => {
-                console.log('Erro ao carregar logo da rádio');
-                e.currentTarget.style.display = 'none';
-              }}
-            />
+          <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
+            <Radio className="w-6 h-6 text-white" />
           </div>
           <div className="flex-1">
             <h3 className="font-bold text-lg">Rádio Tatuapé FM</h3>

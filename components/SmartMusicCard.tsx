@@ -211,17 +211,6 @@ const SmartMusicCard: React.FC = () => {
           <div className="flex items-center space-x-3">
             {/* Logo da Rádio */}
             <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-purple-300">
-              <Image
-                src="/logoradiotatuapefm.png"
-                alt="Rádio Tatuapé FM"
-                width={48}
-                height={48}
-                className="object-cover"
-                onError={(e) => {
-                  // Fallback para quando a imagem não carrega
-                  (e.target as HTMLImageElement).style.display = 'none'
-                }}
-              />
               <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                 <Radio className="h-6 w-6 text-white" />
               </div>

@@ -12,6 +12,7 @@ import { CreatePost } from '@/components/CreatePost'
 import SmartMusicCard from '@/components/SmartMusicCard'
 import { Footer } from '@/components/layout/footer'
 import { OrkutCard, OrkutCardContent, OrkutCardHeader } from '@/components/ui/orkut-card'
+import AIAssistant from '@/components/AIAssistant'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -1206,6 +1207,7 @@ export default function HomePage() {
 
       <Footer />
       <OrkyAssistant />
+      <AIAssistant />
       
       
       {/* Modal de Chamada */}

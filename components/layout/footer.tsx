@@ -133,6 +133,24 @@ export function Footer() {
                 <Globe className="h-4 w-4" />
                 Teste de Deploy
               </a>
+              
+              {/* Logs da IA */}
+              <a 
+                href="/pages/logs.html" 
+                className="inline-flex items-center gap-2 bg-purple-700 hover:bg-purple-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              >
+                <Settings className="h-4 w-4" />
+                Logs da IA
+              </a>
+              
+              {/* Teste IA */}
+              <a 
+                href="/ai-test" 
+                className="inline-flex items-center gap-2 bg-pink-700 hover:bg-pink-600 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              >
+                <Code className="h-4 w-4" />
+                Teste IA
+              </a>
             </div>
             
             <p className="text-xs text-purple-400 mt-4">

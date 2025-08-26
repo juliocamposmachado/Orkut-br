@@ -246,6 +246,36 @@ export async function POST(request: NextRequest) {
           source = 'database'
           console.log(`✅ Post permanentemente salvo no banco: ${author_name}`)
           
+          // Criar atividade recente para o usuário
+          try {
+            const activityResponse = await fetch('/api/recent-activities', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                ...(request.headers.get('authorization') ? {
+                  'Authorization': request.headers.get('authorization')!
+                } : {})
+              },
+              body: JSON.stringify({
+                profile_id: author,
+                activity_type: 'post',
+                activity_data: {
+                  post_id: data.id,
+                  content: content.trim().substring(0, 100) + (content.length > 100 ? '...' : ''),
+                  post_content: content.trim()
+                }
+              })
+            })
+            
+            if (activityResponse.ok) {
+              console.log('✅ Atividade recente criada para o post')
+            } else {
+              console.warn('⚠️ Erro ao criar atividade recente:', await activityResponse.text())
+            }
+          } catch (activityError) {
+            console.warn('⚠️ Erro ao criar atividade recente:', activityError)
+          }
+          
           return NextResponse.json({
             success: true,
             post: savedPost,

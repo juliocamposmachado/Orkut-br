@@ -53,25 +53,51 @@ export async function GET(request: NextRequest) {
       try {
         console.log('🔄 Carregando posts do Supabase...')
         
-        let query = supabase
-          .from('posts')
-          .select(`
-            id,
-            content,
-            author,
-            author_name,
-            author_photo,
-            visibility,
-            likes_count,
-            comments_count,
-            shares_count,
-            is_dj_post,
-            created_at
-          `)
+        // CORREÇÃO: Usar global_feed para feed global, posts para perfis específicos
+        let query;
+        let tableName;
         
-        // Se for para carregar posts do perfil de um usuário específico
         if (profile_posts && user_id) {
-          query = query.eq('author', user_id)
+          // Para posts do perfil: buscar diretamente da tabela posts
+          console.log('📋 Carregando posts do perfil do usuário:', user_id)
+          tableName = 'posts'
+          query = supabase
+            .from('posts')
+            .select(`
+              id,
+              content,
+              author,
+              author_name,
+              author_photo,
+              visibility,
+              likes_count,
+              comments_count,
+              shares_count,
+              is_dj_post,
+              created_at
+            `)
+            .eq('author', user_id)
+        } else {
+          // Para feed global: buscar da tabela global_feed (mais otimizada)
+          console.log('🌍 Carregando feed global da tabela global_feed')
+          tableName = 'global_feed'
+          query = supabase
+            .from('global_feed')
+            .select(`
+              id,
+              post_id,
+              content,
+              author,
+              author_name,
+              author_photo,
+              visibility,
+              likes_count,
+              comments_count,
+              shares_count,
+              is_dj_post,
+              created_at
+            `)
+            .eq('visibility', 'public')
         }
         
         const { data, error } = await query
@@ -79,16 +105,22 @@ export async function GET(request: NextRequest) {
           .limit(100)
 
         if (!error && data) {
-          console.log(`✅ Posts carregados do Supabase: ${data.length}`)
+          console.log(`✅ Posts carregados do Supabase (${tableName}): ${data.length}`)
+          
+          // Para global_feed, mapear post_id para id se necessário
+          const processedData = tableName === 'global_feed' 
+            ? data.map((post: any) => ({ ...post, id: post.post_id || post.id }))
+            : data
           
           return NextResponse.json({
             success: true,
-            posts: data,
+            posts: processedData,
             total: data.length,
-            source: 'database'
+            source: 'database',
+            table: tableName
           })
         } else {
-          console.warn('⚠️ Erro no Supabase:', error?.message || 'Erro desconhecido')
+          console.warn(`⚠️ Erro no Supabase (${tableName}):`, error?.message || 'Erro desconhecido')
           throw new Error(`Supabase: ${error?.message || 'Erro desconhecido'}`)
         }
       } catch (supabaseError) {
@@ -212,8 +244,14 @@ export async function POST(request: NextRequest) {
           console.log('🔓 [API] Usando cliente Supabase não autenticado')
         }
         
-        // CORRIGIDO: Dados para inserção SEM campos problemáticos
-        const insertData = {
+        // CORREÇÃO URGENTE: Inserir diretamente no global_feed para contornar trigger problemático
+        console.log('🔧 [API] Usando estratégia de contorno - inserindo diretamente no global_feed')
+        
+        // Gerar ID único para o post
+        const postId = Date.now() + Math.floor(Math.random() * 1000)
+        
+        const feedInsertData = {
+          post_id: postId,
           content: newPost.content,
           author: newPost.author,
           author_name: newPost.author_name,
@@ -222,27 +260,43 @@ export async function POST(request: NextRequest) {
           likes_count: newPost.likes_count,
           comments_count: newPost.comments_count,
           shares_count: newPost.shares_count,
-          is_dj_post: newPost.is_dj_post
-          // Removido: avatar_url e outros campos que causavam erro
+          is_dj_post: newPost.is_dj_post,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         }
         
-        console.log('📤 [API] Dados sendo enviados para Supabase:', insertData)
+        console.log('📤 [API] Inserindo diretamente no global_feed:', feedInsertData)
         
         const { data, error } = await serverSupabase
-          .from('posts')
-          .insert(insertData)
+          .from('global_feed')
+          .insert(feedInsertData)
           .select()
           .single()
 
         if (!error && data) {
-          savedPost = data as Post
+          // Mapear dados para formato esperado
+          savedPost = {
+            id: data.post_id,
+            content: data.content,
+            author: data.author,
+            author_name: data.author_name,
+            author_photo: data.author_photo,
+            visibility: data.visibility,
+            likes_count: data.likes_count,
+            comments_count: data.comments_count,
+            shares_count: data.shares_count,
+            is_dj_post: data.is_dj_post,
+            created_at: data.created_at
+          } as Post
+          
           source = 'database'
-          console.log(`✅ [API] Post permanentemente salvo no banco: ${author_name}`)
+          console.log(`✅ [API] Post salvo com sucesso contornando problema: ${author_name}`)
+          console.log(`🎯 [API] Post inserido diretamente no feed global - ID: ${data.post_id}`)
           
           return NextResponse.json({
             success: true,
             post: savedPost,
-            message: 'Post criado e salvo permanentemente',
+            message: 'Post criado e salvo com sucesso! (Usando estratégia de contorno)',
             source
           })
         } else {

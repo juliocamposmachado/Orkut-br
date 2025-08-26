@@ -146,12 +146,22 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           is_dj_post: false
         }
 
+        // Get current session to obtain access token
+        const { data: { session } } = await supabase.auth.getSession()
+        const authToken = session?.access_token
+
+        const headers: HeadersInit = {
+          'Content-Type': 'application/json',
+        }
+        
+        // Add authorization token if available
+        if (authToken) {
+          headers['Authorization'] = `Bearer ${authToken}`
+        }
+
         const response = await fetch('/api/posts-db', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${user.access_token || ''}`
-          },
+          headers,
           body: JSON.stringify(apiData)
         })
 

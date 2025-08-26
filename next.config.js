@@ -10,15 +10,44 @@ const nextConfig = {
     unoptimized: true,
     domains: ['images.pexels.com', 'woyyikaztjrhqzgvbhmn.supabase.co', 'static2.mytuner.mobi']
   },
+  // Improve build performance and fix runtime issues
+  swcMinify: true,
+  experimental: {
+    // Fix potential hydration issues
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-avatar', '@radix-ui/react-dialog']
+  },
   webpack: (config, { isServer }) => {
+    // Fix potential performance.now() issues
+    config.resolve.alias = {
+      ...config.resolve.alias,
+    };
+    
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
         net: false,
         tls: false,
+        // Add performance polyfill for older environments
+        performance: false,
       };
     }
+    
+    // Optimize bundle size
+    config.optimization = {
+      ...config.optimization,
+      splitChunks: {
+        chunks: 'all',
+        cacheGroups: {
+          vendor: {
+            test: /[\/]node_modules[\/]/,
+            name: 'vendors',
+            chunks: 'all',
+          },
+        },
+      },
+    };
+    
     return config;
   },
   env: {

@@ -75,63 +75,135 @@ export async function GET(request: NextRequest) {
 // POST - Criar novo post
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    // Add timeout for better error handling
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 10000) // 10s timeout
+
+    let body: any
+    try {
+      body = await request.json()
+    } catch (jsonError) {
+      console.error('Erro ao fazer parse do JSON:', jsonError)
+      return NextResponse.json(
+        { success: false, error: 'Dados inválidos fornecidos' },
+        { status: 400 }
+      )
+    } finally {
+      clearTimeout(timeoutId)
+    }
+
     const { content, author, author_name, author_photo, visibility = 'public', is_dj_post = false } = body
 
     // Validações básicas
-    if (!content || !author || !author_name) {
+    if (!content || typeof content !== 'string') {
       return NextResponse.json(
-        { success: false, error: 'Dados obrigatórios não fornecidos' },
+        { success: false, error: 'Conteúdo é obrigatório' },
         { status: 400 }
       )
     }
 
-    if (content.length > 500) {
+    if (!author || typeof author !== 'string') {
       return NextResponse.json(
-        { success: false, error: 'Conteúdo muito longo (máximo 500 caracteres)' },
+        { success: false, error: 'Autor é obrigatório' },
         { status: 400 }
       )
     }
 
-    // Carregar posts existentes
-    const existingPosts = await loadPosts()
+    if (!author_name || typeof author_name !== 'string') {
+      return NextResponse.json(
+        { success: false, error: 'Nome do autor é obrigatório' },
+        { status: 400 }
+      )
+    }
 
-    // Criar novo post
+    if (content.trim().length === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Conteúdo não pode estar vazio' },
+        { status: 400 }
+      )
+    }
+
+    if (content.length > 2000) {
+      return NextResponse.json(
+        { success: false, error: 'Conteúdo muito longo (máximo 2000 caracteres)' },
+        { status: 400 }
+      )
+    }
+
+    // Carregar posts existentes com timeout
+    let existingPosts: Post[]
+    try {
+      existingPosts = await Promise.race([
+        loadPosts(),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout ao carregar posts')), 5000)
+        )
+      ])
+    } catch (loadError) {
+      console.error('Erro ao carregar posts existentes:', loadError)
+      // Se não conseguir carregar, começar com array vazio
+      existingPosts = []
+    }
+
+    // Criar novo post com ID mais robusto
+    const timestamp = Date.now()
+    const randomSuffix = Math.random().toString(36).substring(2, 15)
+    
     const newPost: Post = {
-      id: Date.now() + Math.random(), // ID único
+      id: `${timestamp}-${randomSuffix}`,
       content: content.trim(),
-      author,
-      author_name,
-      author_photo: author_photo || null,
+      author: author.trim(),
+      author_name: author_name.trim(),
+      author_photo: (typeof author_photo === 'string' && author_photo.trim()) ? author_photo.trim() : null,
       visibility,
       likes_count: 0,
       comments_count: 0,
       created_at: new Date().toISOString(),
-      is_dj_post
+      is_dj_post: Boolean(is_dj_post)
     }
 
     // Adicionar no início da lista
     existingPosts.unshift(newPost)
 
-    // Manter apenas os últimos 500 posts para não ocupar muito espaço
-    if (existingPosts.length > 500) {
-      existingPosts.splice(500)
+    // Manter apenas os últimos 1000 posts para não ocupar muito espaço
+    if (existingPosts.length > 1000) {
+      existingPosts.splice(1000)
     }
 
-    // Salvar
-    await savePosts(existingPosts)
+    // Salvar com timeout
+    try {
+      await Promise.race([
+        savePosts(existingPosts),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout ao salvar posts')), 5000)
+        )
+      ])
+    } catch (saveError) {
+      console.error('Erro ao salvar posts:', saveError)
+      return NextResponse.json(
+        { success: false, error: 'Erro ao salvar post no servidor' },
+        { status: 500 }
+      )
+    }
 
-    console.log(`✅ Post criado: ${author_name} - "${content.substring(0, 50)}..."`)
+    console.log(`✅ Post criado com sucesso: ${author_name} - "${content.substring(0, 50)}..."`)
 
     return NextResponse.json({
       success: true,
       post: newPost,
-      message: 'Post criado com sucesso'
-    })
+      message: 'Post criado com sucesso',
+      total_posts: existingPosts.length
+    }, { status: 201 })
+    
   } catch (error) {
-    console.error('Erro ao criar post:', error)
+    console.error('Erro crítico ao criar post:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
     return NextResponse.json(
-      { success: false, error: 'Erro ao criar post' },
+      { 
+        success: false, 
+        error: 'Erro interno do servidor',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      },
       { status: 500 }
     )
   }

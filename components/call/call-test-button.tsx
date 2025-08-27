@@ -15,7 +15,7 @@ export function CallTestButton() {
   const { onlineUsers, startAudioCall, startVideoCall } = useWebRTC()
   const [isTestingCall, setIsTestingCall] = useState(false)
 
-  if (!user || process.env.NODE_ENV !== 'development') return null
+  if (!user) return null // Temporariamente habilitado em produção para teste
 
   const handleTestAudioCall = async (targetUserId: string) => {
     setIsTestingCall(true)

@@ -203,14 +203,60 @@ export function AuthProvider({ children }: AuthProviderProps) {
         })
       } else {
         // Create profile if it doesn't exist
+        const baseUsername = user.email?.split('@')[0] || 'user'
+        const uniqueUsername = await generateUniqueUsername(baseUsername)
+        
         await createUserProfile(user, {
-          username: user.email?.split('@')[0] || 'user',
+          username: uniqueUsername,
           displayName: user.email?.split('@')[0] || 'Usuário'
         })
       }
     } catch (error) {
       console.error('Error handling user profile:', error)
     }
+  }
+
+  const generateUniqueUsername = async (baseUsername: string): Promise<string> => {
+    if (!isSupabaseConfigured()) {
+      return baseUsername
+    }
+
+    // Limpar o baseUsername (remover caracteres especiais)
+    const cleanUsername = baseUsername.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
+    
+    // Verificar se o username base está disponível
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('username', cleanUsername)
+      .single()
+
+    if (!existingProfile) {
+      return cleanUsername
+    }
+
+    // Se não estiver disponível, tentar variações
+    let counter = 1
+    let uniqueUsername = `${cleanUsername}${counter}`
+    
+    while (counter < 100) { // Limite para evitar loop infinito
+      const { data: existingVariation } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('username', uniqueUsername)
+        .single()
+
+      if (!existingVariation) {
+        return uniqueUsername
+      }
+      
+      counter++
+      uniqueUsername = `${cleanUsername}${counter}`
+    }
+
+    // Se ainda não conseguiu, usar timestamp
+    const timestamp = Date.now().toString().slice(-6)
+    return `${cleanUsername}${timestamp}`
   }
 
   const initFallbackAuth = async () => {

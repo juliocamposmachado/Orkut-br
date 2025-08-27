@@ -70,19 +70,39 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             
-            {/* Botão Google - Principal */}
-            <Button
-              onClick={handleGoogleLogin}
-              disabled={isLoading}
-              size="lg"
-              className="w-full bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 font-semibold py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-200"
-            >
-              <FcGoogle className="mr-3 text-2xl" />
-              {isLoading ? 'Conectando...' : 'Continuar com Google'}
-            </Button>
+            {/* Botões Google */}
+            <div className="space-y-3">
+              <Button
+                onClick={handleGoogleLogin}
+                disabled={isLoading}
+                size="lg"
+                className="w-full bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 font-semibold py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                <FcGoogle className="mr-3 text-2xl" />
+                {isLoading ? 'Conectando...' : 'Entrar com Google'}
+              </Button>
+              
+              <Button
+                onClick={handleGoogleLogin}
+                disabled={isLoading}
+                size="lg"
+                variant="outline"
+                className="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 border-2 border-blue-300 font-semibold py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                <FcGoogle className="mr-3 text-2xl" />
+                {isLoading ? 'Conectando...' : 'Cadastrar-se com Google'}
+              </Button>
+            </div>
+            
             <p className="text-center text-sm text-gray-600">
               Rápido, seguro e sem senhas para lembrar! 🚀
             </p>
+            
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
+              <p className="text-xs text-blue-700">
+                ✨ <strong>Novos usuários:</strong> Use "Cadastrar-se" para criar sua conta automaticamente!
+              </p>
+            </div>
             
             {/* Seção Expansível - Info Técnica */}
             <Collapsible open={isOpen} onOpenChange={setIsOpen}>

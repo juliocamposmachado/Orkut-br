@@ -69,8 +69,10 @@ export async function POST(request: NextRequest) {
 
     const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
+    console.log('📝 Criando notificação de chamada no banco...')
+    
     // Criar notificação de chamada no banco
-    const { error: notificationError } = await supabase
+    const { data: notificationData, error: notificationError } = await supabase
       .from('notifications')
       .insert({
         profile_id: targetUserId,
@@ -87,15 +89,47 @@ export async function POST(request: NextRequest) {
           offer: offer,
           timestamp: new Date().toISOString()
         },
-        read: false
+        read: false,
+        created_at: new Date().toISOString()
       })
+      .select()
+      .single()
 
     if (notificationError) {
-      console.error('Erro ao criar notificação:', notificationError)
+      console.error('❌ Erro ao criar notificação:', notificationError)
       return NextResponse.json(
-        { error: 'Erro ao enviar notificação de chamada' },
+        { error: 'Erro ao enviar notificação de chamada', details: notificationError.message },
         { status: 500 }
       )
+    }
+    
+    console.log('✅ Notificação criada com sucesso:', notificationData)
+    
+    // Tentar enviar via realtime também para garantir
+    try {
+      const realtimePayload = {
+        type: 'incoming_call',
+        call_id: callId,
+        call_type: callType,
+        from_user: {
+          id: callerProfile.id,
+          username: callerProfile.username,
+          display_name: callerProfile.display_name,
+          photo_url: callerProfile.photo_url
+        },
+        timestamp: new Date().toISOString()
+      }
+      
+      // Broadcast via realtime channel
+      await supabase.channel(`call_notifications_${targetUserId}`).send({
+        type: 'broadcast',
+        event: 'incoming_call',
+        payload: realtimePayload
+      })
+      
+      console.log('✅ Sinal realtime enviado')
+    } catch (realtimeError) {
+      console.warn('⚠️ Erro no realtime (não crítico):', realtimeError)
     }
 
     // Criar registro da chamada na tabela call_signals para WebRTC

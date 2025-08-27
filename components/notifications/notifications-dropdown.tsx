@@ -24,7 +24,9 @@ import {
   Settings,
   Check,
   Trash2,
-  X
+  X,
+  Phone,
+  Video
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -33,7 +35,7 @@ import { useRouter } from 'next/navigation'
 
 interface Notification {
   id: string
-  type: 'like' | 'comment' | 'share' | 'friend_request' | 'friend_request_accepted' | 'mention' | 'message'
+  type: 'like' | 'comment' | 'share' | 'friend_request' | 'friend_request_accepted' | 'mention' | 'message' | 'incoming_call'
   title: string
   message: string
   read: boolean
@@ -49,6 +51,10 @@ interface Notification {
     content: string
   }
   message_preview?: string
+  call_data?: {
+    call_id: string
+    call_type: 'audio' | 'video'
+  }
 }
 
 export function NotificationsDropdown() {
@@ -109,6 +115,10 @@ export function NotificationsDropdown() {
               post: dbNotif.payload?.post ? {
                 id: dbNotif.payload.post.id,
                 content: dbNotif.payload.post.content
+              } : undefined,
+              call_data: dbNotif.payload?.call_id ? {
+                call_id: dbNotif.payload.call_id,
+                call_type: dbNotif.payload.call_type
               } : undefined
             }))
             
@@ -224,7 +234,8 @@ export function NotificationsDropdown() {
       'friend_request': 'Solicitação de amizade',
       'friend_request_accepted': 'Pedido aceito',
       'mention': 'Mencionou você',
-      'message': 'Nova mensagem'
+      'message': 'Nova mensagem',
+      'incoming_call': 'Chamada recebida'
     }
     return titles[type] || 'Nova notificação'
   }
@@ -237,7 +248,8 @@ export function NotificationsDropdown() {
       'friend_request': 'enviou uma solicitação de amizade',
       'friend_request_accepted': 'aceitou sua solicitação de amizade',
       'mention': 'mencionou você',
-      'message': 'enviou uma mensagem'
+      'message': 'enviou uma mensagem',
+      'incoming_call': 'está chamando você'
     }
     return messages[type] || 'nova atividade'
   }
@@ -264,6 +276,8 @@ export function NotificationsDropdown() {
         return <Bell className="h-4 w-4 text-orange-500" />
       case 'message':
         return <MessageCircle className="h-4 w-4 text-pink-500" />
+      case 'incoming_call':
+        return <Phone className="h-4 w-4 text-green-600" />
       default:
         return <Bell className="h-4 w-4 text-gray-500" />
     }

@@ -6,10 +6,12 @@ export const dynamic = 'force-dynamic'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/enhanced-auth-context';
 import { toast } from 'sonner';
-import { ChevronDown, ChevronUp, BarChart3 } from 'lucide-react';
+import { Eye, EyeOff, ChevronDown, ChevronUp, BarChart3 } from 'lucide-react';
 import { FcGoogle } from 'react-icons/fc';
 import { 
   Collapsible,
@@ -18,10 +20,17 @@ import {
 } from '@/components/ui/collapsible';
 
 export default function LoginPage() {
+  // Estados para login tradicional
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  
+  // Estados para login Google e UI
   const [isOpen, setIsOpen] = useState(false)
   const [buttonText, setButtonText] = useState('Continuar com Google')
-  const { signInWithGoogle } = useAuth()
+  
+  const { signIn, signInWithGoogle } = useAuth()
   const router = useRouter()
 
   const handleGoogleLogin = async () => {
@@ -50,6 +59,22 @@ export default function LoginPage() {
     router.push('/dashboard/project/orkut')
   }
 
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email || !password) return
+
+    setIsLoading(true)
+    try {
+      await signIn(email, password)
+      toast.success('Login realizado com sucesso!')
+      router.push('/')
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao fazer login')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 via-purple-500 to-pink-500 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
@@ -69,79 +94,143 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Card Principal */}
+        {/* Card Principal com Tabs */}
         <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
-          <CardHeader className="pb-6">
-            <CardTitle className="text-center text-2xl text-gray-800">Entre no Orkut</CardTitle>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-center text-gray-800">Entre ou cadastre-se</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            
-            {/* Botão Google Unificado */}
-            <div className="space-y-4">
+          <CardContent>
+            <Tabs defaultValue="signin" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="signin">Entrar</TabsTrigger>
+                <TabsTrigger value="signup">Cadastrar</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="signin" className="space-y-4 mt-4">
+                <form onSubmit={handleSignIn} className="space-y-4">
+                  <div>
+                    <Input
+                      type="email"
+                      placeholder="E-mail"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="border-purple-300 focus:ring-purple-500"
+                    />
+                  </div>
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Senha"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="border-purple-300 focus:ring-purple-500 pr-10"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-1 top-1/2 transform -translate-y-1/2 p-1 h-auto"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-gray-500" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-gray-500" />
+                      )}
+                    </Button>
+                  </div>
+                  
+                  <div className="text-right">
+                    <button
+                      type="button"
+                      onClick={() => router.push('/cadastro')}
+                      className="text-sm text-purple-600 hover:text-purple-800 underline"
+                    >
+                      Esqueceu a senha?
+                    </button>
+                  </div>
+                  
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                  >
+                    {isLoading ? 'Entrando...' : 'Entrar'}
+                  </Button>
+                </form>
+              </TabsContent>
+
+              <TabsContent value="signup" className="space-y-4 mt-4">
+                <div className="text-center space-y-3">
+                  <p className="text-sm text-gray-600">Para criar uma conta nova:</p>
+                  <Button
+                    onClick={() => router.push('/cadastro')}
+                    className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600"
+                  >
+                    Ir para Página de Cadastro
+                  </Button>
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            {/* Divisor */}
+            <div className="mt-6 pt-6 border-t border-gray-200">
+              {/* Botão Google */}
               <Button
                 onClick={handleGoogleLogin}
                 disabled={isLoading}
-                size="lg"
-                className="w-full bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 font-semibold py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                variant="outline"
+                className="w-full border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-2.5"
               >
-                <FcGoogle className="mr-3 text-2xl" />
-                {isLoading ? 'Conectando...' : 'Continuar com Google'}
+                <FcGoogle className="mr-3 text-xl" />
+                Continuar com Google
               </Button>
-            </div>
-            
-            <p className="text-center text-sm text-gray-600">
-              Rápido, seguro e sem senhas para lembrar! 🚀
-            </p>
-            
-            <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
-              <p className="text-xs text-green-700">
-                🆕 <strong>Usuários novos e existentes:</strong> O mesmo botão funciona para login e cadastro automaticamente!
+              <p className="text-xs text-gray-500 mt-2 text-center">
+                Rápido, seguro e sem senhas para lembrar! 🚀
               </p>
-            </div>
-            
-            {/* Seção Expansível - Info Técnica */}
-            <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-              <CollapsibleTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  className="w-full p-3 text-sm text-blue-600 hover:bg-blue-50 transition-colors"
-                >
-                  <span className="mr-2">ℹ️</span>
-                  Sobre o nome técnico do Google
-                  {isOpen ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />}
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="px-4">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm space-y-3">
-                  <p className="text-blue-700 font-medium">
-                    <strong>Sobre o nome técnico na tela de login:</strong>
-                  </p>
-                  <p className="text-blue-600 leading-relaxed">
-                    Utilizamos o <strong>Supabase</strong> como plataforma de banco de dados, 
-                    que gera automaticamente nomes técnicos não editáveis.
-                  </p>
-                  <p className="text-blue-600 leading-relaxed">
-                    Quando você clicar no botão Google, pode aparecer um nome como 
-                    <span className="font-mono bg-blue-100 px-1 rounded mx-1">
-                      "woyyikaztjrhqzgvbhmn.supabase.co"
-                    </span>
-                    - é o identificador automático da plataforma.
-                  </p>
-                  <p className="text-blue-700 font-medium">
-                    <strong>Pedimos desculpas pelo inconveniente!</strong>
-                  </p>
-                  <p className="text-blue-600">
-                    O sistema funciona perfeitamente, continue utilizando normalmente! 🚀
-                  </p>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-
-            {/* Divisor */}
-            <div className="border-t border-gray-200 pt-4">
+              
+              {/* Seção Expansível - Info Técnica */}
+              <Collapsible open={isOpen} onOpenChange={setIsOpen} className="mt-3">
+                <CollapsibleTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    className="w-full p-3 text-sm text-blue-600 hover:bg-blue-50 transition-colors"
+                  >
+                    <span className="mr-2">ℹ️</span>
+                    Sobre o nome técnico do Google
+                    {isOpen ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />}
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="px-4">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm space-y-3">
+                    <p className="text-blue-700 font-medium">
+                      <strong>Sobre o nome técnico na tela de login:</strong>
+                    </p>
+                    <p className="text-blue-600 leading-relaxed">
+                      Utilizamos o <strong>Supabase</strong> como plataforma de banco de dados, 
+                      que gera automaticamente nomes técnicos não editáveis.
+                    </p>
+                    <p className="text-blue-600 leading-relaxed">
+                      Quando você clicar no botão Google, pode aparecer um nome como 
+                      <span className="font-mono bg-blue-100 px-1 rounded mx-1">
+                        "woyyikaztjrhqzgvbhmn.supabase.co"
+                      </span>
+                      - é o identificador automático da plataforma.
+                    </p>
+                    <p className="text-blue-700 font-medium">
+                      <strong>Pedimos desculpas pelo inconveniente!</strong>
+                    </p>
+                    <p className="text-blue-600">
+                      O sistema funciona perfeitamente, continue utilizando normalmente! 🚀
+                    </p>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
               
               {/* Botões dos Desenvolvedores */}
-              <div className="space-y-3">
+              <div className="space-y-3 mt-4">
                 <Button
                   onClick={handleDeveloperAccess}
                   disabled={isLoading}
@@ -149,7 +238,7 @@ export default function LoginPage() {
                   className="w-full border-purple-300 hover:bg-purple-50 text-purple-700 font-medium py-3"
                 >
                   <span className="mr-2 text-lg">🛠️</span>
-                  Dashboard do Desenvolvedor
+                  Área do Programador
                 </Button>
                 
                 <Button
@@ -176,7 +265,6 @@ export default function LoginPage() {
                 </Button>
               </div>
             </div>
-
           </CardContent>
         </Card>
 

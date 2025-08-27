@@ -193,8 +193,127 @@ export default function LoginPage() {
             </p>
           </div>
           
+          {/* Download Apps Section */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 mb-4">
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-bold text-white mb-1">Baixe nossos Apps!</h3>
+              <p className="text-sm text-purple-200">Leve o Orkut para qualquer lugar 🚀</p>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {/* Windows App */}
+              <Button 
+                variant="outline" 
+                className="bg-white/20 border-white/30 text-white hover:bg-white/30 transition-all duration-300 h-auto py-3 px-4 flex flex-col items-center space-y-2"
+                disabled
+              >
+                <div className="text-2xl">💻</div>
+                <div className="text-center">
+                  <p className="font-medium text-sm">Windows</p>
+                  <p className="text-xs opacity-80">Em breve</p>
+                </div>
+              </Button>
+              
+              {/* Android App */}
+              <Button 
+                variant="outline" 
+                className="bg-white/20 border-white/30 text-white hover:bg-white/30 transition-all duration-300 h-auto py-3 px-4 flex flex-col items-center space-y-2"
+                disabled
+              >
+                <div className="text-2xl">📱</div>
+                <div className="text-center">
+                  <p className="font-medium text-sm">Android</p>
+                  <p className="text-xs opacity-80">Em breve</p>
+                </div>
+              </Button>
+              
+              {/* iOS App */}
+              <Button 
+                variant="outline" 
+                className="bg-white/20 border-white/30 text-white hover:bg-white/30 transition-all duration-300 h-auto py-3 px-4 flex flex-col items-center space-y-2"
+                disabled
+              >
+                <div className="text-2xl">📱</div>
+                <div className="text-center">
+                  <p className="font-medium text-sm">iOS</p>
+                  <p className="text-xs opacity-80">Em breve</p>
+                </div>
+              </Button>
+            </div>
+            
+            <div className="mt-3 text-center">
+              <p className="text-xs text-purple-200 opacity-80">
+                💡 Versões nativas para uma experiência ainda melhor!
+              </p>
+            </div>
+          </div>
+
+          {/* Tecnologias Usadas */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 text-sm mb-4">
+            <div className="text-center mb-4">
+              <h3 className="text-white font-bold mb-2">⚡ Feito com as melhores tecnologias</h3>
+              <p className="text-purple-200 text-xs">Agradecemos a todas as ferramentas que tornaram este projeto possível!</p>
+            </div>
+            
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+              <div className="bg-white/10 rounded-lg p-3 hover:bg-white/20 transition-colors">
+                <div className="text-xl mb-1">🤖</div>
+                <p className="text-xs font-medium text-white">Claude 4</p>
+                <p className="text-xs text-purple-200">Sonnet</p>
+              </div>
+              
+              <div className="bg-white/10 rounded-lg p-3 hover:bg-white/20 transition-colors">
+                <div className="text-xl mb-1">💎</div>
+                <p className="text-xs font-medium text-white">Gemini</p>
+                <p className="text-xs text-purple-200">AI</p>
+              </div>
+              
+              <div className="bg-white/10 rounded-lg p-3 hover:bg-white/20 transition-colors">
+                <div className="text-xl mb-1">🔥</div>
+                <p className="text-xs font-medium text-white">Warp AI</p>
+                <p className="text-xs text-purple-200">Terminal</p>
+              </div>
+              
+              <div className="bg-white/10 rounded-lg p-3 hover:bg-white/20 transition-colors">
+                <div className="text-xl mb-1">▲</div>
+                <p className="text-xs font-medium text-white">Vercel</p>
+                <p className="text-xs text-purple-200">Deploy</p>
+              </div>
+              
+              <div className="bg-white/10 rounded-lg p-3 hover:bg-white/20 transition-colors">
+                <div className="text-xl mb-1">🗄️</div>
+                <p className="text-xs font-medium text-white">Supabase</p>
+                <p className="text-xs text-purple-200">Database</p>
+              </div>
+              
+              <div className="bg-white/10 rounded-lg p-3 hover:bg-white/20 transition-colors">
+                <div className="text-xl mb-1">🔍</div>
+                <p className="text-xs font-medium text-white">Google</p>
+                <p className="text-xs text-purple-200">Auth</p>
+              </div>
+              
+              <div className="bg-white/10 rounded-lg p-3 hover:bg-white/20 transition-colors">
+                <div className="text-xl mb-1">⚡</div>
+                <p className="text-xs font-medium text-white">Next.js</p>
+                <p className="text-xs text-purple-200">React</p>
+              </div>
+              
+              <div className="bg-white/10 rounded-lg p-3 hover:bg-white/20 transition-colors">
+                <div className="text-xl mb-1">🎨</div>
+                <p className="text-xs font-medium text-white">Tailwind</p>
+                <p className="text-xs text-purple-200">CSS</p>
+              </div>
+            </div>
+            
+            <div className="border-t border-white/20 pt-3 mt-4">
+              <p className="text-center text-xs text-purple-200">
+                💜 Obrigado por tornarem este sonho possível! 🚀
+              </p>
+            </div>
+          </div>
+
           {/* Tributo */}
-          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 text-sm mt-4">
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 text-sm">
             <p className="mb-2 text-purple-200">
               🙏 <strong>Tributo ao criador original:</strong>
             </p>

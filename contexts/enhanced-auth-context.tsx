@@ -203,13 +203,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
         })
       } else {
         // Create profile if it doesn't exist
-        const baseUsername = user.email?.split('@')[0] || 'user'
-        const uniqueUsername = await generateUniqueUsername(baseUsername)
+        console.log('🆕 [CREATE USER] Perfil não encontrado, criando novo usuário...')
+        console.log('📧 [CREATE USER] Email:', user.email)
         
-        await createUserProfile(user, {
-          username: uniqueUsername,
-          displayName: user.email?.split('@')[0] || 'Usuário'
-        })
+        try {
+          const baseUsername = user.email?.split('@')[0] || 'user'
+          console.log('👤 [CREATE USER] Base username:', baseUsername)
+          
+          const uniqueUsername = await generateUniqueUsername(baseUsername)
+          console.log('✨ [CREATE USER] Username único gerado:', uniqueUsername)
+          
+          await createUserProfile(supabaseUser, {
+            username: uniqueUsername,
+            displayName: user.email?.split('@')[0] || 'Usuário'
+          })
+          
+          console.log('🎉 [CREATE USER] Perfil criado com sucesso!')
+        } catch (profileError) {
+          console.error('❌ [CREATE USER] Erro ao criar perfil:', profileError)
+          // Não interromper o fluxo, usuário pode tentar novamente
+          toast.error('Erro ao criar perfil. Tente fazer login novamente.')
+        }
       }
     } catch (error) {
       console.error('Error handling user profile:', error)
@@ -224,29 +238,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Limpar o baseUsername (remover caracteres especiais)
     const cleanUsername = baseUsername.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()
     
-    // Verificar se o username base está disponível
-    const { data: existingProfile } = await supabase
+    // Verificar se o username base está disponível (usar .maybeSingle() em vez de .single())
+    const { data: existingProfile, error } = await supabase
       .from('profiles')
       .select('username')
       .eq('username', cleanUsername)
-      .single()
+      .maybeSingle()
 
-    if (!existingProfile) {
+    // Se não houve erro e não encontrou nenhum perfil, username está disponível
+    if (!error && !existingProfile) {
+      console.log(`✅ Username '${cleanUsername}' está disponível`)
       return cleanUsername
     }
+
+    console.log(`⚠️ Username '${cleanUsername}' já existe, gerando variação...`)
 
     // Se não estiver disponível, tentar variações
     let counter = 1
     let uniqueUsername = `${cleanUsername}${counter}`
     
     while (counter < 100) { // Limite para evitar loop infinito
-      const { data: existingVariation } = await supabase
+      const { data: existingVariation, error: variationError } = await supabase
         .from('profiles')
         .select('username')
         .eq('username', uniqueUsername)
-        .single()
+        .maybeSingle()
 
-      if (!existingVariation) {
+      // Se não houve erro e não encontrou nenhum perfil, username está disponível
+      if (!variationError && !existingVariation) {
+        console.log(`✅ Username variação '${uniqueUsername}' está disponível`)
         return uniqueUsername
       }
       
@@ -256,7 +276,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     // Se ainda não conseguiu, usar timestamp
     const timestamp = Date.now().toString().slice(-6)
-    return `${cleanUsername}${timestamp}`
+    const timestampUsername = `${cleanUsername}${timestamp}`
+    console.log(`🔄 Usando username com timestamp: '${timestampUsername}'`)
+    return timestampUsername
   }
 
   const initFallbackAuth = async () => {
@@ -468,6 +490,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   const createUserProfile = async (user: any, userData: { username: string, displayName: string }) => {
+    console.log('📄 [CREATE PROFILE] Iniciando criação de perfil...')
+    console.log('📄 [CREATE PROFILE] User ID:', user.id)
+    console.log('📄 [CREATE PROFILE] Username:', userData.username)
+    console.log('📄 [CREATE PROFILE] Display Name:', userData.displayName)
+    
     try {
       // Tentar obter foto do Google para salvar no banco na criação
       let googlePhoto = null
@@ -486,48 +513,97 @@ export function AuthProvider({ children }: AuthProviderProps) {
       for (const photo of photoSources) {
         if (photo && typeof photo === 'string' && !photo.includes('pexels.com')) {
           googlePhoto = photo
-          console.log('✅ Foto do Google encontrada para criação de perfil:', photo)
+          console.log('✅ [CREATE PROFILE] Foto do Google encontrada:', photo)
           break
         }
       }
       
-      const profileData = {
-        id: user.id,
-        username: userData.username,
-        display_name: userData.displayName,
-        photo_url: googlePhoto, // Salvar foto do Google no banco na criação
-        bio: null,
-        location: null,
-        birthday: null,
-        relationship: 'Solteiro(a)',
-        fans_count: 0
+      if (!googlePhoto) {
+        console.log('🖼️ [CREATE PROFILE] Nenhuma foto do Google encontrada, usando foto padrão')
       }
+      
+      // Dados completos para inserir na tabela profiles
+      const profileData = {
+        id: user.id,                                    // UUID obrigatório
+        username: userData.username,                     // text NOT NULL UNIQUE
+        display_name: userData.displayName,              // text NOT NULL
+        photo_url: googlePhoto || null,                  // text (padrão será aplicado pelo banco)
+        relationship: 'Solteiro(a)',                     // text (padrão)
+        location: '',                                    // text (padrão vazio)
+        birthday: null,                                  // date (opcional)
+        bio: '',                                         // text (padrão vazio)
+        fans_count: 0,                                   // integer (padrão 0)
+        scrapy_count: 0,                                 // integer (padrão 0)
+        profile_views: 0,                                // integer (padrão 0)
+        birth_date: null,                                // date (opcional)
+        email: user.email || null,                       // text (opcional)
+        phone: null,                                     // text (opcional)
+        whatsapp_enabled: false,                         // boolean (padrão false)
+        privacy_settings: {                              // jsonb (padrão)
+          phone_visibility: 'friends',
+          profile_visibility: 'public'
+        },
+        posts_count: 0,                                  // integer (padrão 0)
+        avatar_thumbnails: null                          // jsonb (opcional)
+      }
+      
+      console.log('📊 [CREATE PROFILE] Dados do perfil a serem inseridos:', {
+        id: profileData.id,
+        username: profileData.username,
+        display_name: profileData.display_name,
+        photo_url: profileData.photo_url ? 'SIM' : 'NÃO',
+        email: profileData.email
+      })
 
-      const { error } = await supabase
+      const { data: insertedData, error } = await supabase
         .from('profiles')
         .insert([profileData])
+        .select('*')
+        .single()
 
       if (error) {
-        console.error('Error creating profile:', error)
+        console.error('❌ [CREATE PROFILE] Erro na inserção:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        })
         throw error
       }
+      
+      console.log('✅ [CREATE PROFILE] Perfil inserido com sucesso!')
+      console.log('📊 [CREATE PROFILE] Dados inseridos:', insertedData)
 
-      // Reload profile
-      const { data } = await supabase
+      // Se conseguiu inserir, carregar o perfil completo
+      const { data: fullProfile, error: selectError } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single()
+        
+      if (selectError) {
+        console.error('❌ [CREATE PROFILE] Erro ao carregar perfil após criação:', selectError)
+        throw selectError
+      }
 
-      if (data) {
+      if (fullProfile) {
+        console.log('✅ [CREATE PROFILE] Perfil carregado com sucesso!')
+        console.log('📊 [CREATE PROFILE] Dados do perfil:', fullProfile)
+        
         setProfile({
-          ...data,
+          ...fullProfile,
           email_confirmed: !!user.email_confirmed_at,
           email_confirmed_at: user.email_confirmed_at || null
         })
+        
+        console.log('🎉 [CREATE PROFILE] SetProfile chamado com sucesso!')
+      } else {
+        console.error('❌ [CREATE PROFILE] Perfil não encontrado após criação')
+        throw new Error('Perfil não encontrado após criação')
       }
+      
     } catch (error) {
-      console.error('Error in createUserProfile:', error)
+      console.error('❌ [CREATE PROFILE] Erro geral na criação do perfil:', error)
       throw error
     }
   }

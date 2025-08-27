@@ -101,30 +101,49 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
   }, [user])
   
   const initializeSignaling = async () => {
-    if (!user) return
+    if (!user) {
+      console.log('❌ Não foi possível inicializar signaling: usuário não autenticado')
+      return
+    }
     
-    // Subscribe to call signals using Supabase realtime
-    const callsChannel = supabase
-      .channel('webrtc_calls')
-      .on('postgres_changes', 
-        { 
-          event: 'INSERT', 
-          schema: 'public', 
-          table: 'call_signals',
-          filter: `to_user_id=eq.${user.id}`
-        }, 
-        (payload) => {
-          console.log('📡 Sinal WebRTC recebido:', payload)
-          handleSignalingMessage(payload.new)
-        }
-      )
-      .subscribe()
+    console.log('🚀 Inicializando signaling para usuário:', user.id)
     
-    // Update user online status
-    await updateOnlineStatus(true)
-    
-    // Load online users
-    await loadOnlineUsers()
+    try {
+      // Subscribe to call signals using Supabase realtime
+      const callsChannel = supabase
+        .channel('webrtc_calls')
+        .on('postgres_changes', 
+          { 
+            event: 'INSERT', 
+            schema: 'public', 
+            table: 'call_signals',
+            filter: `to_user_id=eq.${user.id}`
+          }, 
+          (payload) => {
+            console.log('📡 Sinal WebRTC recebido:', payload)
+            handleSignalingMessage(payload.new)
+          }
+        )
+        .subscribe((status, error) => {
+          if (error) {
+            console.error('❌ Erro na subscrição do canal:', error)
+          } else {
+            console.log('✅ Canal de signaling subscrito com sucesso:', status)
+          }
+        })
+      
+      // Update user online status
+      console.log('🔄 Atualizando status online...')
+      await updateOnlineStatus(true)
+      
+      // Load online users
+      console.log('👥 Carregando usuários online...')
+      await loadOnlineUsers()
+      
+      console.log('✅ Signaling inicializado com sucesso')
+    } catch (error) {
+      console.error('❌ Erro ao inicializar signaling:', error)
+    }
   }
   
   const updateOnlineStatus = async (isOnline: boolean) => {

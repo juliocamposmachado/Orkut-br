@@ -388,27 +388,35 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
       setLoading(true);
       setError(null);
 
-      console.log('Buscando perfil para username:', username);
+      console.log('🔍 Buscando perfil para username:', username);
+      console.log('👤 Usuário atual:', { id: currentUser?.id, email: currentUser?.email });
 
       // Primeiro, tenta buscar no Supabase
       try {
+        console.log('🔗 Tentando buscar no Supabase...');
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('username', username)
           .single();
 
+        console.log('📊 Resultado Supabase:', { data, error });
+        
         if (!error && data) {
-          console.log('Perfil encontrado no Supabase:', data);
+          console.log('✅ Perfil encontrado no Supabase:', data);
           setProfile(data);
           return;
+        } else {
+          console.log('❌ Erro ou perfil não encontrado no Supabase:', error?.message);
         }
       } catch (supabaseError) {
-        console.log('Supabase indisponível, usando dados fallback');
+        console.log('⚠️ Supabase indisponível, usando dados fallback:', supabaseError);
       }
 
       // Fallback: usar dados do contexto de auth se for o próprio usuário
-      if (currentUser && username === 'juliocamposmachado') {
+      if (currentUser && (username === 'juliocamposmachado' || username === currentUser.email?.split('@')[0])) {
+        console.log('🔄 Usando fallback profile para o usuário atual...');
+        
         const fallbackProfile: UserProfile = {
           id: currentUser.id,
           display_name: 'Julio Campos Machado',
@@ -429,16 +437,45 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
           birth_date: '1990-01-01'
         };
         
-        console.log('Usando perfil fallback:', fallbackProfile);
+        console.log('✅ Usando perfil fallback:', fallbackProfile);
         setProfile(fallbackProfile);
+        
+        // Tentar criar o perfil no Supabase se não existir
+        try {
+          console.log('🔧 Tentando criar perfil no Supabase...');
+          const { error: insertError } = await supabase
+            .from('profiles')
+            .upsert({
+              id: currentUser.id,
+              username: fallbackProfile.username,
+              display_name: fallbackProfile.display_name,
+              bio: fallbackProfile.bio,
+              location: fallbackProfile.location,
+              relationship: fallbackProfile.relationship,
+              fans_count: 0,
+              created_at: new Date().toISOString()
+            }, {
+              onConflict: 'id'
+            });
+          
+          if (insertError) {
+            console.log('⚠️ Erro ao criar perfil no Supabase:', insertError.message);
+          } else {
+            console.log('✅ Perfil criado/atualizado no Supabase');
+          }
+        } catch (createError) {
+          console.log('⚠️ Erro ao tentar criar perfil:', createError);
+        }
+        
         return;
       }
 
       // Se não encontrou nem no Supabase nem é o usuário atual, erro
+      console.log('❌ Perfil não encontrado');
       setError('Perfil não encontrado');
       
     } catch (err) {
-      console.error('Erro ao carregar perfil:', err);
+      console.error('❌ Erro geral ao carregar perfil:', err);
       setError('Erro ao carregar perfil');
     } finally {
       setLoading(false);
@@ -482,28 +519,55 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
   
   // Função para salvar biografia
   const handleSaveBio = async (newBio: string) => {
-    if (!profile || !currentUser) return;
+    if (!profile || !currentUser) {
+      console.error('❌ Dados insuficientes para salvar:', { profile: !!profile, currentUser: !!currentUser });
+      alert('Erro: Dados do usuário não disponíveis.');
+      return;
+    }
     
     try {
-      console.log('Salvando biografia no Supabase:', newBio);
+      console.log('🔄 Iniciando salvamento da biografia...');
+      console.log('📝 Nova biografia:', newBio);
+      console.log('👤 ID do usuário:', currentUser.id);
+      
+      // Verificar se o Supabase está configurado
+      console.log('🔗 Testando conexão com Supabase...');
       
       // Salvar no Supabase
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .update({ bio: newBio })
-        .eq('id', currentUser.id);
+        .eq('id', currentUser.id)
+        .select();
+      
+      console.log('📊 Resposta do Supabase:', { data, error });
       
       if (error) {
-        throw error;
+        console.error('❌ Erro detalhado do Supabase:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw new Error(`Erro do banco: ${error.message}`);
+      }
+      
+      // Verificar se algum registro foi atualizado
+      if (data && data.length === 0) {
+        console.warn('⚠️ Nenhum perfil foi atualizado - pode ser que o perfil não exista no banco');
+        throw new Error('Perfil não encontrado no banco de dados');
       }
       
       // Atualizar o perfil local apenas após sucesso no banco
       setProfile(prev => prev ? { ...prev, bio: newBio } : null);
       
-      console.log('✅ Biografia salva com sucesso no Supabase');
-    } catch (error) {
+      console.log('✅ Biografia salva com sucesso!');
+      alert('Biografia salva com sucesso!');
+      
+    } catch (error: any) {
       console.error('❌ Erro ao salvar biografia:', error);
-      alert('Erro ao salvar biografia. Tente novamente.');
+      const errorMessage = error?.message || 'Erro desconhecido';
+      alert(`Erro ao salvar biografia: ${errorMessage}`);
     }
   };
   

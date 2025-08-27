@@ -27,7 +27,9 @@ import {
   Menu,
   MoreHorizontal,
   Heart,
-  UserPlus
+  UserPlus,
+  Github,
+  ExternalLink
 } from 'lucide-react'
 import { useAuth } from '@/contexts/enhanced-auth-context'
 import { useVoice } from '@/contexts/voice-context'
@@ -109,6 +111,21 @@ export function Navbar() {
                 )
               })}
             </div>
+          </div>
+
+          {/* GitHub Button - Centro */}
+          <div className="hidden md:flex">
+            <Link 
+              href="https://github.com/juliocamposmachado/Orkut-br"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-4 py-2 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg border border-white/30 flex items-center space-x-2"
+              title="Ver código-fonte no GitHub"
+            >
+              <Github className="h-4 w-4 group-hover:rotate-12 transition-transform duration-200" />
+              <span className="text-sm font-medium">Código-fonte</span>
+              <ExternalLink className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity duration-200" />
+            </Link>
           </div>
 
           {/* Right Side - Facebook Style */}
@@ -204,7 +221,7 @@ export function Navbar() {
       {/* Mobile Navigation */}
       <div className="md:hidden border-t border-white/20">
         <div className="flex justify-around py-2">
-          {navItems.slice(0, 5).map((item) => {
+          {navItems.slice(0, 4).map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href
             return (
@@ -227,6 +244,23 @@ export function Navbar() {
               </Link>
             )
           })}
+          
+          {/* GitHub Button Mobile */}
+          <Link 
+            href="https://github.com/juliocamposmachado/Orkut-br"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="cursor-pointer"
+          >
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-white hover:bg-white/20 transition-all duration-200 flex-col h-auto py-2 cursor-pointer"
+            >
+              <Github className="h-4 w-4" />
+              <span className="text-xs mt-1">github</span>
+            </Button>
+          </Link>
         </div>
       </div>
     </nav>

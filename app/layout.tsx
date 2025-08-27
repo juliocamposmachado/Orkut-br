@@ -27,32 +27,44 @@ const getBaseUrl = () => {
 
 export const metadata: Metadata = {
   metadataBase: new URL(getBaseUrl()),
-  applicationName: 'Orkut BR - Rede Social Brasileira',
+  applicationName: 'Orkut BR - Full-Stack Social Network Platform',
   title: {
-    default: 'Orkut BR 2025 - Nova Rede Social Brasileira | Desenvolvida por Julio Campos Machado',
-    template: '%s | Orkut BR - A Rede Social que o Brasil Merece'
+    default: 'Orkut BR - Modern Social Network | Next.js + Supabase + WebRTC | Julio Campos Machado',
+    template: '%s | Orkut BR - Full-Stack Development Portfolio'
   },
-  description: 'Orkut BR é a nova rede social brasileira desenvolvida com tecnologia moderna. Conecte-se com amigos, crie comunidades, compartilhe fotos e reviva a nostalgia do Orkut original. Sistema completo com login Google, chamadas de voz/vídeo, WebRTC e assistente de IA integrado. Desenvolvido por Julio Campos Machado.',
+  description: 'Orkut BR: Full-stack social network platform built with Next.js 13, React, TypeScript, Supabase, WebRTC, and modern web technologies. Features real-time messaging, video/audio calls, OAuth authentication, and responsive design. Portfolio project demonstrating advanced web development skills by Julio Campos Machado.',
   keywords: [
-    // Palavras-chave principais
-    'orkut', 'orkut br', 'orkut brasil', 'orkut 2025', 'novo orkut', 'orkut brasileiro',
-    'rede social', 'rede social brasileira', 'social network brasil', 'comunidades online',
+    // Full-Stack Development
+    'full stack developer', 'next.js developer', 'react developer', 'typescript developer',
+    'supabase developer', 'vercel deployment', 'web development portfolio',
     
-    // Funcionalidades
-    'scraps', 'recados', 'depoimentos', 'testemunhais', 'amigos online', 'comunidades',
-    'fotos perfil', 'álbuns fotos', 'chamadas vídeo', 'chamadas áudio', 'webrtc',
+    // Frontend Technologies
+    'nextjs 13', 'react 18', 'typescript', 'tailwindcss', 'responsive design',
+    'modern web development', 'component architecture', 'server components',
     
-    // Nostalgia e comparações
-    'orkut original', 'orkut clone', 'orkut revival', 'orkut retrô', 'nostalgia anos 2000',
-    'orkut voltou', 'orkut de volta', 'social network nostalgia',
+    // Backend & Database
+    'supabase', 'postgresql', 'real-time database', 'row level security',
+    'database design', 'authentication system', 'oauth integration',
     
-    // Desenvolvedor e empresa
-    'julio campos machado', 'julio cesar campos machado', 'like look solutions',
-    'desenvolvedor full stack', 'programador brasileiro', 'tech entrepreneur',
+    // Advanced Features
+    'webrtc implementation', 'real-time messaging', 'video calls', 'audio calls',
+    'peer-to-peer communication', 'socket connections', 'real-time updates',
     
-    // Tecnologia
-    'nextjs', 'react', 'supabase', 'vercel', 'tailwindcss', 'typescript',
-    'claude ai', 'gemini ai', 'warp terminal', 'google auth'
+    // Development Tools & Practices
+    'vercel deployment', 'git version control', 'ci/cd pipeline',
+    'performance optimization', 'seo optimization', 'web vitals',
+    
+    // Technical Skills Demonstration
+    'social network architecture', 'scalable web applications', 'modern web stack',
+    'production ready code', 'best practices', 'clean architecture',
+    
+    // Developer Identity
+    'julio campos machado', 'full stack portfolio', 'brazilian developer',
+    'like look solutions', 'web development expert', 'software engineer',
+    
+    // Project Context (Secondary)
+    'orkut clone', 'social media platform', 'community platform',
+    'nostalgic social network', 'brazilian social media'
   ],
   authors: [{
     name: 'Julio Campos Machado',
@@ -75,20 +87,20 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'pt_BR',
     url: 'https://orkut-br-oficial.vercel.app',
-    siteName: 'ORKUT.BR - FEITO HISTÓRICO',
-    title: '🚀🔥 ORKUT.BR - Rede Social Completa em 3 Dias! TRIO MARCIANO',
-    description: 'FEITO HISTÓRICO: Rede social completa criada em 72 HORAS! Login Google, fotos, amizades, WebRTC. Criado pelo TRIO MARCIANO: Julio Cesar + Claude AI + Warp Terminal. 100% funcional!',
+    siteName: 'Orkut BR - Full-Stack Development Portfolio',
+    title: 'Orkut BR - Modern Social Network | Next.js + Supabase + WebRTC',
+    description: 'Full-stack social network platform showcasing advanced web development skills. Built with Next.js 13, React, TypeScript, Supabase, WebRTC. Features real-time messaging, video calls, OAuth authentication. Portfolio project by Julio Campos Machado.',
     images: [{
       url: '/Orkutredes.png',
       width: 1200,
       height: 630,
-      alt: 'ORKUT.BR - Rede Social Completa em 3 Dias - TRIO MARCIANO'
+      alt: 'Orkut BR - Full-Stack Social Network Platform - Next.js + Supabase + WebRTC'
     }]
   },
   twitter: {
     card: 'summary_large_image',
-    title: '🚀 ORKUT.BR - Rede Social Completa em 3 Dias!',
-    description: 'FEITO HISTÓRICO: 72 horas para criar uma rede social completa! TRIO MARCIANO em ação: Julio + Claude + Warp. 100% funcional!',
+    title: 'Orkut BR - Full-Stack Social Network | Next.js + Supabase',
+    description: 'Modern social network platform built with Next.js, React, TypeScript, Supabase, WebRTC. Real-time features, video calls, OAuth. Portfolio by Julio Campos Machado.',
     images: ['/Orkutredes.png'],
     creator: '@juliocamposmachado'
   },

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/enhanced-auth-context'
+import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
@@ -38,11 +39,21 @@ export function OnlineStatusToggle({ isOwnProfile, className }: OnlineStatusTogg
     if (!user) return
     
     try {
+      // Obter token de autenticação
+      const { data: { session } } = await supabase.auth.getSession()
+      const authToken = session?.access_token
+      
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      }
+      
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`
+      }
+      
       const response = await fetch('/api/user_presence', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           action: 'mark_online'
         })
@@ -64,11 +75,21 @@ export function OnlineStatusToggle({ isOwnProfile, className }: OnlineStatusTogg
     if (!user) return
     
     try {
+      // Obter token de autenticação
+      const { data: { session } } = await supabase.auth.getSession()
+      const authToken = session?.access_token
+      
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      }
+      
+      if (authToken) {
+        headers['Authorization'] = `Bearer ${authToken}`
+      }
+      
       const response = await fetch('/api/user_presence', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({
           action: 'mark_offline'
         })

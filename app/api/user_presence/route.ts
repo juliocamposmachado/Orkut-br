@@ -48,10 +48,27 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     
-    // Verificar se o usuário está autenticado
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    // Verificar se o usuário está autenticado via token do header
+    const authHeader = request.headers.get('authorization')
+    let user = null
     
-    if (authError || !user) {
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.replace('Bearer ', '')
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(token)
+      if (!authError && authUser) {
+        user = authUser
+      }
+    }
+    
+    // Se não tem token no header, tentar via sessão
+    if (!user) {
+      const { data: { user: sessionUser }, error: sessionError } = await supabase.auth.getUser()
+      if (!sessionError && sessionUser) {
+        user = sessionUser
+      }
+    }
+    
+    if (!user) {
       return NextResponse.json(
         { error: 'Usuário não autenticado' },
         { status: 401 }

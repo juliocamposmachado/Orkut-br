@@ -13,6 +13,12 @@ export function CallNotification() {
   const [callDuration, setCallDuration] = useState(0)
   const [isResponding, setIsResponding] = useState(false)
 
+  // Logging detalhado para debug
+  console.log('🎬 CallNotification renderizando. incomingCall:', incomingCall)
+  console.log('🎬 CallNotification renderizando. isRinging:', isRinging)
+  console.log('🎬 CallNotification renderizando. callDuration:', callDuration)
+  console.log('🎬 CallNotification renderizando. isResponding:', isResponding)
+
   // Timer para contagem de tempo da chamada
   useEffect(() => {
     let timer: NodeJS.Timeout | null = null
@@ -57,7 +63,21 @@ export function CallNotification() {
     }
   }
 
-  if (!incomingCall || !isRinging) return null
+  // Log para debug antes de retornar null
+  if (!incomingCall && !isRinging) {
+    console.log('📵 CallNotification: Nenhuma chamada ativa')
+  } else if (!incomingCall && isRinging) {
+    console.log('⚠️ CallNotification: isRinging=true mas incomingCall=null')
+  } else if (incomingCall && !isRinging) {
+    console.log('⚠️ CallNotification: incomingCall existe mas isRinging=false')
+  }
+
+  if (!incomingCall || !isRinging) {
+    console.log('❌ CallNotification: Retornando null - não renderizando')
+    return null
+  }
+
+  console.log('✅ CallNotification: RENDERIZANDO interface de chamada!')
 
   return (
     <AnimatePresence>

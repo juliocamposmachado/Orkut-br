@@ -24,9 +24,16 @@ export function useCallNotifications() {
   const [isRinging, setIsRinging] = useState(false)
 
   useEffect(() => {
-    if (!user) return
+    if (!user) {
+      console.log('⚠️ useCallNotifications: Usuário não encontrado')
+      return
+    }
 
     console.log('🔔 Configurando listener para notificações de chamadas...', user.id)
+
+    // Limpar estados anteriores
+    setIncomingCall(null)
+    setIsRinging(false)
 
     // Subscrever para notificações de chamadas
     const channel = supabase
@@ -41,36 +48,44 @@ export function useCallNotifications() {
         },
         (payload) => {
           console.log('🔔 Nova notificação recebida:', payload)
+          console.log('🔔 Payload completo:', JSON.stringify(payload, null, 2))
           
           const notification = payload.new
+          console.log('📋 Notification type:', notification?.type)
           
           // Verificar se é uma notificação de chamada
-          if (notification.type === 'incoming_call') {
+          if (notification?.type === 'incoming_call') {
             const callData = notification.payload
             
-            console.log('📞 Notificação de chamada detectada:', callData)
+            console.log('📞 CHAMADA DETECTADA! Dados:', callData)
+            console.log('🎯 Call ID:', callData?.call_id)
+            console.log('📱 Call Type:', callData?.call_type)
+            console.log('👤 From User:', callData?.from_user?.display_name)
             
-            setIncomingCall({
+            const incomingCallData = {
               callId: callData.call_id,
               callType: callData.call_type,
               fromUser: callData.from_user,
               offer: callData.offer,
-              timestamp: callData.timestamp
-            })
+              timestamp: callData.timestamp || new Date().toISOString()
+            }
             
+            console.log('✅ Setando incomingCall:', incomingCallData)
+            setIncomingCall(incomingCallData)
             setIsRinging(true)
             
             // Mostrar toast de notificação
             toast(`📞 Chamada ${callData.call_type === 'video' ? 'de vídeo' : 'de áudio'} de ${callData.from_user.display_name}`, {
-              duration: 5000,
+              duration: 10000,
               action: {
-                label: 'Atender',
+                label: 'Ver Chamada',
                 onClick: () => {
-                  // A lógica de aceitar será implementada no componente
-                  console.log('Usuário clicou em atender via toast')
+                  console.log('👆 Usuário clicou no toast - chamada já deve estar visível')
                 }
               }
             })
+          } else {
+            console.log('ℹ️ Notificação não é de chamada:', notification?.type)
           }
         }
       )
@@ -78,9 +93,52 @@ export function useCallNotifications() {
         if (error) {
           console.error('❌ Erro ao subscrever notificações de chamada:', error)
         } else {
-          console.log('✅ Subscrito para notificações de chamada:', status)
+          console.log('✅ Subscrito para notificações de chamada. Status:', status)
         }
       })
+
+    // Buscar notificações pendentes ao inicializar (fallback)
+    const checkPendingNotifications = async () => {
+      try {
+        console.log('🔍 Verificando notificações pendentes...')
+        const { data: pendingNotifications, error } = await supabase
+          .from('notifications')
+          .select('*')
+          .eq('profile_id', user.id)
+          .eq('type', 'incoming_call')
+          .eq('read', false)
+          .order('created_at', { ascending: false })
+          .limit(1)
+        
+        if (error) {
+          console.error('❌ Erro ao buscar notificações pendentes:', error)
+          return
+        }
+        
+        if (pendingNotifications && pendingNotifications.length > 0) {
+          const notification = pendingNotifications[0]
+          const callData = notification.payload
+          
+          console.log('📞 ENCONTRADA notificação pendente:', callData)
+          
+          setIncomingCall({
+            callId: callData.call_id,
+            callType: callData.call_type,
+            fromUser: callData.from_user,
+            offer: callData.offer,
+            timestamp: callData.timestamp || notification.created_at
+          })
+          setIsRinging(true)
+        } else {
+          console.log('✅ Nenhuma notificação pendente encontrada')
+        }
+      } catch (error) {
+        console.error('❌ Erro ao verificar notificações pendentes:', error)
+      }
+    }
+    
+    // Verificar notificações pendentes após 1 segundo
+    setTimeout(checkPendingNotifications, 1000)
 
     return () => {
       console.log('🧹 Limpando listener de notificações de chamada')

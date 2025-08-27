@@ -874,194 +874,10 @@ export default function HomePage() {
 
           {/* Right Sidebar */}
           <div className="mobile-space space-y-4 lg:space-y-6 lg:sticky lg:top-6 lg:pl-2 order-3">
-            {/* Invite Friends Card */}
-            <InviteFriendsCard />
-            
-            {/* Radio Widget */}
+            {/* 1. Radio Widget - PRIMEIRO */}
             <RadioTatuapeWidget className="shadow-md" />
 
-            {/* Contacts/Friends Online */}
-            <OrkutCard>
-              <OrkutCardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <MessageSquare className="h-4 w-4" />
-                    <span>Contatos</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="text-xs text-gray-500">3 online</span>
-                  </div>
-                </div>
-              </OrkutCardHeader>
-              <OrkutCardContent>
-                <div className="space-y-1 max-h-60 overflow-y-auto">
-                  {/* Online Friends */}
-                  {[
-                    { 
-                      name: 'Ana Carolina', 
-                      avatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=100',
-                      status: 'online',
-                      lastSeen: 'Agora'
-                    },
-                    { 
-                      name: 'Carlos Eduardo', 
-                      avatar: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=100',
-                      status: 'online',
-                      lastSeen: 'Agora'
-                    },
-                    { 
-                      name: 'Mariana Silva', 
-                      avatar: 'https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=100',
-                      status: 'online',
-                      lastSeen: 'Agora'
-                    },
-                    { 
-                      name: 'João Santos', 
-                      avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=100',
-                      status: 'away',
-                      lastSeen: '5 min atrás'
-                    },
-                    { 
-                      name: 'Patricia Lima', 
-                      avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100',
-                      status: 'offline',
-                      lastSeen: '2h atrás'
-                    },
-                    { 
-                      name: 'Roberto Costa', 
-                      avatar: 'https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=100',
-                      status: 'offline',
-                      lastSeen: '1d atrás'
-                    },
-                    { 
-                      name: 'Fernanda Oliveira', 
-                      avatar: 'https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=100',
-                      status: 'offline',
-                      lastSeen: '3d atrás'
-                    },
-                    { 
-                      name: 'Lucas Pereira', 
-                      avatar: 'https://images.pexels.com/photos/1121796/pexels-photo-1121796.jpeg?auto=compress&cs=tinysrgb&w=100',
-                      status: 'offline',
-                      lastSeen: '1 semana atrás'
-                    }
-                  ].map((friend, idx) => (
-                    <div key={idx} className="flex items-center space-x-3 px-2 py-2 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer group">
-                      <div className="relative">
-                        <Avatar className="h-8 w-8">
-                          <AvatarImage src={friend.avatar} alt={friend.name} />
-                          <AvatarFallback className="text-xs">
-                            {friend.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        {/* Status indicator */}
-                        <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${
-                          friend.status === 'online' ? 'bg-green-500' : 
-                          friend.status === 'away' ? 'bg-yellow-500' : 'bg-gray-400'
-                        }`}></div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{friend.name}</p>
-                        <p className="text-xs text-gray-500 truncate">
-                          {friend.status === 'online' ? 'Online' : friend.lastSeen}
-                        </p>
-                      </div>
-                      {/* Chat actions - show on hover */}
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          className="p-1 h-6 w-6 text-purple-600 hover:bg-purple-100"
-                          title="Enviar mensagem"
-                        >
-                          <MessageCircle className="h-3 w-3" />
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          className="p-1 h-6 w-6 text-green-600 hover:bg-green-100"
-                          title="Chamada de áudio"
-                          onClick={() => startAudioCall({
-                            id: `friend-${idx}`,
-                            name: friend.name,
-                            photo: friend.avatar,
-                            username: friend.name.toLowerCase().replace(' ', '')
-                          })}
-                        >
-                          <Phone className="h-3 w-3" />
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="ghost" 
-                          className="p-1 h-6 w-6 text-blue-600 hover:bg-blue-100"
-                          title="Chamada de vídeo"
-                          onClick={() => startVideoCall({
-                            id: `friend-${idx}`,
-                            name: friend.name,
-                            photo: friend.avatar,
-                            username: friend.name.toLowerCase().replace(' ', '')
-                          })}
-                        >
-                          <Video className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-3 pt-3 border-t border-gray-100">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full border-purple-300 text-purple-700 hover:bg-purple-50"
-                    onClick={() => router.push('/amigos')}
-                  >
-                    Ver todos os contatos
-                  </Button>
-                </div>
-              </OrkutCardContent>
-            </OrkutCard>
-
-            {/* Communities in Spotlight */}
-            <OrkutCard>
-              <OrkutCardHeader>
-                <div className="flex items-center space-x-2">
-                  <TrendingUp className="h-4 w-4" />
-                  <span>Comunidades em Alta</span>
-                </div>
-              </OrkutCardHeader>
-              <OrkutCardContent>
-                <div className="space-y-3">
-                  {communities.slice(0, 5).map((community) => (
-                    <div key={community.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer">
-                      <img 
-                        src={community.photo_url} 
-                        alt={community.name}
-                        className="w-10 h-10 rounded-lg object-cover"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm text-gray-800 truncate">
-                          {community.name}
-                        </h4>
-                        <p className="text-xs text-gray-600">
-                          {community.members_count.toLocaleString('pt-BR')} membros
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full mt-3 border-purple-300 text-purple-700 hover:bg-purple-50"
-                  onClick={() => router.push('/comunidades')}
-                >
-                  Ver Todas
-                </Button>
-              </OrkutCardContent>
-            </OrkutCard>
-
-            {/* Site Users - Gmail Users Only */}
+            {/* 2. Site Users - Gmail Users Only - SEGUNDO */}
             <OrkutCard>
               <OrkutCardHeader>
                 <div className="flex items-center justify-between">
@@ -1206,6 +1022,191 @@ export default function HomePage() {
                 )}
               </OrkutCardContent>
             </OrkutCard>
+
+            {/* 3. Invite Friends Card - TERCEIRO */}
+            <InviteFriendsCard />
+
+            {/* 4. Contacts/Friends Online - QUARTO (Mantido por ter funcionalidades importantes) */}
+            <OrkutCard>
+              <OrkutCardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <MessageSquare className="h-4 w-4" />
+                    <span>Contatos</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className="text-xs text-gray-500">3 online</span>
+                  </div>
+                </div>
+              </OrkutCardHeader>
+              <OrkutCardContent>
+                <div className="space-y-1 max-h-60 overflow-y-auto">
+                  {/* Online Friends */}
+                  {[
+                    { 
+                      name: 'Ana Carolina', 
+                      avatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=100',
+                      status: 'online',
+                      lastSeen: 'Agora'
+                    },
+                    { 
+                      name: 'Carlos Eduardo', 
+                      avatar: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=100',
+                      status: 'online',
+                      lastSeen: 'Agora'
+                    },
+                    { 
+                      name: 'Mariana Silva', 
+                      avatar: 'https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=100',
+                      status: 'online',
+                      lastSeen: 'Agora'
+                    },
+                    { 
+                      name: 'João Santos', 
+                      avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=100',
+                      status: 'away',
+                      lastSeen: '5 min atrás'
+                    },
+                    { 
+                      name: 'Patricia Lima', 
+                      avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100',
+                      status: 'offline',
+                      lastSeen: '2h atrás'
+                    },
+                    { 
+                      name: 'Roberto Costa', 
+                      avatar: 'https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=100',
+                      status: 'offline',
+                      lastSeen: '1d atrás'
+                    },
+                    { 
+                      name: 'Fernanda Oliveira', 
+                      avatar: 'https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg?auto=compress&cs=tinysrgb&w=100',
+                      status: 'offline',
+                      lastSeen: '3d atrás'
+                    },
+                    { 
+                      name: 'Lucas Pereira', 
+                      avatar: 'https://images.pexels.com/photos/1121796/pexels-photo-1121796.jpeg?auto=compress&cs=tinysrgb&w=100',
+                      status: 'offline',
+                      lastSeen: '1 semana atrás'
+                    }
+                  ].map((friend, idx) => (
+                    <div key={idx} className="flex items-center space-x-3 px-2 py-2 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer group">
+                      <div className="relative">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={friend.avatar} alt={friend.name} />
+                          <AvatarFallback className="text-xs">
+                            {friend.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        {/* Status indicator */}
+                        <div className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${
+                          friend.status === 'online' ? 'bg-green-500' : 
+                          friend.status === 'away' ? 'bg-yellow-500' : 'bg-gray-400'
+                        }`}></div>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">{friend.name}</p>
+                        <p className="text-xs text-gray-500 truncate">
+                          {friend.status === 'online' ? 'Online' : friend.lastSeen}
+                        </p>
+                      </div>
+                      {/* Chat actions - show on hover */}
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="p-1 h-6 w-6 text-purple-600 hover:bg-purple-100"
+                          title="Enviar mensagem"
+                        >
+                          <MessageCircle className="h-3 w-3" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="p-1 h-6 w-6 text-green-600 hover:bg-green-100"
+                          title="Chamada de áudio"
+                          onClick={() => startAudioCall({
+                            id: `friend-${idx}`,
+                            name: friend.name,
+                            photo: friend.avatar,
+                            username: friend.name.toLowerCase().replace(' ', '')
+                          })}
+                        >
+                          <Phone className="h-3 w-3" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="p-1 h-6 w-6 text-blue-600 hover:bg-blue-100"
+                          title="Chamada de vídeo"
+                          onClick={() => startVideoCall({
+                            id: `friend-${idx}`,
+                            name: friend.name,
+                            photo: friend.avatar,
+                            username: friend.name.toLowerCase().replace(' ', '')
+                          })}
+                        >
+                          <Video className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full border-purple-300 text-purple-700 hover:bg-purple-50"
+                    onClick={() => router.push('/amigos')}
+                  >
+                    Ver todos os contatos
+                  </Button>
+                </div>
+              </OrkutCardContent>
+            </OrkutCard>
+
+            {/* 5. Communities in Spotlight - QUINTO */}
+            <OrkutCard>
+              <OrkutCardHeader>
+                <div className="flex items-center space-x-2">
+                  <TrendingUp className="h-4 w-4" />
+                  <span>Comunidades em Alta</span>
+                </div>
+              </OrkutCardHeader>
+              <OrkutCardContent>
+                <div className="space-y-3">
+                  {communities.slice(0, 5).map((community) => (
+                    <div key={community.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer">
+                      <img 
+                        src={community.photo_url} 
+                        alt={community.name}
+                        className="w-10 h-10 rounded-lg object-cover"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-sm text-gray-800 truncate">
+                          {community.name}
+                        </h4>
+                        <p className="text-xs text-gray-600">
+                          {community.members_count.toLocaleString('pt-BR')} membros
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full mt-3 border-purple-300 text-purple-700 hover:bg-purple-50"
+                  onClick={() => router.push('/comunidades')}
+                >
+                  Ver Todas
+                </Button>
+              </OrkutCardContent>
+            </OrkutCard>
+
           </div>
         </div>
       </div>

@@ -247,14 +247,39 @@ export async function POST(request: NextRequest) {
 // Endpoint para responder à chamada (aceitar/rejeitar)
 export async function PUT(request: NextRequest) {
   try {
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    console.log('🔄 Iniciando PUT /api/call-notification')
+    
+    // Obter token do cabeçalho Authorization
+    const authHeader = request.headers.get('authorization')
+    console.log('🔑 Authorization header present:', !!authHeader)
+    
+    let user = null
+    let authError = null
+    
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      // Usar token do header se disponível
+      const token = authHeader.replace('Bearer ', '')
+      const result = await supabase.auth.getUser(token)
+      user = result.data.user
+      authError = result.error
+      console.log('🎫 Usando token do header')
+    } else {
+      // Fallback para sessão padrão
+      const result = await supabase.auth.getUser()
+      user = result.data.user
+      authError = result.error
+      console.log('👤 Usando sessão padrão')
+    }
     
     if (authError || !user) {
+      console.error('❌ Erro de autenticação no PUT:', authError)
       return NextResponse.json(
-        { error: 'Usuário não autenticado' },
+        { error: 'Usuário não autenticado', details: authError?.message },
         { status: 401 }
       )
     }
+    
+    console.log('✅ Usuário autenticado no PUT:', user.id)
 
     const body = await request.json()
     const { callId, action, answer } = body // action: 'accept' | 'reject'

@@ -36,118 +36,156 @@ export function useCallNotifications() {
 
     console.log('🔔 Configurando listener para notificações de chamadas...', user.id)
 
-    // Limpar estados anteriores
+    // Limpar estados anteriores sempre que reconectar
     setIncomingCall(null)
     setIsRinging(false)
+    setIsInCall(false)
 
-    // Subscrever para notificações de chamadas
-    const channel = supabase
-      .channel(`call_notifications_${user.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `profile_id=eq.${user.id}`
-        },
-        (payload) => {
-          console.log('🔔 Nova notificação recebida:', payload)
-          console.log('🔔 Payload completo:', JSON.stringify(payload, null, 2))
-          
-          const notification = payload.new
-          console.log('📋 Notification type:', notification?.type)
-          
-          // Verificar se é uma notificação de chamada
-          if (notification?.type === 'incoming_call') {
-            const callData = notification.payload
-            
-            console.log('📞 CHAMADA DETECTADA! Dados:', callData)
-            console.log('🎯 Call ID:', callData?.call_id)
-            console.log('📱 Call Type:', callData?.call_type)
-            console.log('👤 From User:', callData?.from_user?.display_name)
-            
-            const incomingCallData = {
-              callId: callData.call_id,
-              callType: callData.call_type,
-              fromUser: callData.from_user,
-              offer: callData.offer,
-              timestamp: callData.timestamp || new Date().toISOString()
-            }
-            
-            console.log('✅ Setando incomingCall:', incomingCallData)
-            setIncomingCall(incomingCallData)
-            setIsRinging(true)
-            
-            // Mostrar toast de notificação
-            toast(`📞 Chamada ${callData.call_type === 'video' ? 'de vídeo' : 'de áudio'} de ${callData.from_user.display_name}`, {
-              duration: 10000,
-              action: {
-                label: 'Ver Chamada',
-                onClick: () => {
-                  console.log('👆 Usuário clicou no toast - chamada já deve estar visível')
-                }
-              }
-            })
-          } else {
-            console.log('ℹ️ Notificação não é de chamada:', notification?.type)
-          }
-        }
-      )
-      .subscribe((status, error) => {
-        if (error) {
-          console.error('❌ Erro ao subscrever notificações de chamada:', error)
-        } else {
-          console.log('✅ Subscrito para notificações de chamada. Status:', status)
-        }
-      })
+    let channelRef: any = null
+    const startTime = Date.now() // Tempo de início da sessão para filtrar apenas notificações novas
 
-    // Buscar notificações pendentes ao inicializar (fallback)
-    const checkPendingNotifications = async () => {
+    const setupListener = async () => {
+      // PRIMEIRO: Marcar todas as notificações de chamada antigas como lidas
       try {
-        console.log('🔍 Verificando notificações pendentes...')
-        const { data: pendingNotifications, error } = await supabase
+        console.log('🧹 Limpando notificações antigas de chamadas...')
+        const { error } = await supabase
           .from('notifications')
-          .select('*')
+          .update({ read: true })
           .eq('profile_id', user.id)
           .eq('type', 'incoming_call')
           .eq('read', false)
-          .order('created_at', { ascending: false })
-          .limit(1)
         
         if (error) {
-          console.error('❌ Erro ao buscar notificações pendentes:', error)
-          return
-        }
-        
-        if (pendingNotifications && pendingNotifications.length > 0) {
-          const notification = pendingNotifications[0]
-          const callData = notification.payload
-          
-          console.log('📞 ENCONTRADA notificação pendente:', callData)
-          
-          setIncomingCall({
-            callId: callData.call_id,
-            callType: callData.call_type,
-            fromUser: callData.from_user,
-            offer: callData.offer,
-            timestamp: callData.timestamp || notification.created_at
-          })
-          setIsRinging(true)
+          console.warn('⚠️ Erro ao limpar notificações antigas:', error)
         } else {
-          console.log('✅ Nenhuma notificação pendente encontrada')
+          console.log('✅ Notificações antigas de chamadas marcadas como lidas')
         }
       } catch (error) {
-        console.error('❌ Erro ao verificar notificações pendentes:', error)
+        console.warn('⚠️ Erro na limpeza inicial:', error)
       }
+
+      // SEGUNDO: Configurar listener apenas para notificações FUTURAS
+      channelRef = supabase
+        .channel(`call_notifications_${user.id}_${startTime}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notifications',
+            filter: `profile_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('🔔 Nova notificação recebida:', payload)
+            
+            const notification = payload.new
+            console.log('📋 Notification type:', notification?.type)
+            
+            // Verificar se é uma notificação de chamada RECENTE
+            if (notification?.type === 'incoming_call') {
+              const callData = notification.payload
+              const notificationTime = new Date(notification.created_at).getTime()
+              const now = Date.now()
+              const timeDiff = (now - notificationTime) / 1000 // segundos
+              
+              console.log('📞 CHAMADA DETECTADA! Dados:', callData)
+              console.log('⏰ Tempo da notificação:', timeDiff, 'segundos atrás')
+              console.log('⏰ Sessão iniciada em:', new Date(startTime))
+              console.log('⏰ Notificação criada em:', new Date(notificationTime))
+              
+              // CRITÉRIO RESTRITO: Só processar se a notificação foi criada APÓS o início desta sessão
+              // E se é muito recente (até 5 segundos)
+              if (notificationTime >= startTime && timeDiff <= 5) {
+                console.log('✅ Notificação NOVA E RECENTE - processando chamada')
+                
+                const incomingCallData = {
+                  callId: callData.call_id,
+                  callType: callData.call_type,
+                  fromUser: callData.from_user,
+                  offer: callData.offer,
+                  timestamp: callData.timestamp || new Date().toISOString()
+                }
+                
+                setIncomingCall(incomingCallData)
+                setIsRinging(true)
+                
+                // Mostrar toast de notificação
+                toast(`📞 Chamada ${callData.call_type === 'video' ? 'de vídeo' : 'de áudio'} de ${callData.from_user.display_name}`, {
+                  duration: 15000,
+                  action: {
+                    label: 'Atender',
+                    onClick: () => {
+                      console.log('👆 Usuário clicou para atender via toast')
+                    }
+                  }
+                })
+                
+                // Auto-rejeitar após 30 segundos se não atender
+                setTimeout(() => {
+                  setIncomingCall((currentCall) => {
+                    if (currentCall?.callId === callData.call_id) {
+                      console.log('⏰ Chamada expirou - rejeitando automaticamente')
+                      setIsRinging(false)
+                      toast.info(`📱 Chamada perdida de ${callData.from_user.display_name}`, {
+                        duration: 8000,
+                        action: {
+                          label: 'Ver Histórico',
+                          onClick: () => {
+                            console.log('📋 Mostrando histórico de chamadas')
+                            window.dispatchEvent(new CustomEvent('showMissedCallsHistory'))
+                          }
+                        }
+                      })
+                      return null
+                    }
+                    return currentCall
+                  })
+                }, 30000)
+                
+              } else if (notificationTime < startTime) {
+                console.log('⚠️ Notificação ANTERIOR à sessão (' + timeDiff + 's) - ignorando')
+              } else if (timeDiff > 5) {
+                console.log('⚠️ Notificação TARDIA (' + timeDiff + 's) - ignorando')
+                // Para notificações tardias mas recentes, mostrar como perdida
+                if (timeDiff <= 60) {
+                  toast.info(`📱 Chamada perdida de ${callData.from_user.display_name}`, {
+                    duration: 5000,
+                    action: {
+                      label: 'Ver Histórico',
+                      onClick: () => {
+                        console.log('📋 Mostrando histórico de chamadas')
+                        window.dispatchEvent(new CustomEvent('showMissedCallsHistory'))
+                      }
+                    }
+                  })
+                }
+              }
+            } else {
+              console.log('ℹ️ Notificação não é de chamada:', notification?.type)
+            }
+          }
+        )
+        .subscribe((status, error) => {
+          if (error) {
+            console.error('❌ Erro ao subscrever notificações de chamada:', error)
+          } else {
+            console.log('✅ Subscrito para notificações de chamada. Status:', status)
+          }
+        })
     }
-    
-    // Verificar notificações pendentes após 1 segundo
-    setTimeout(checkPendingNotifications, 1000)
+
+    // Executar configuração após pequeno delay
+    const timeoutId = setTimeout(setupListener, 500)
 
     return () => {
       console.log('🧹 Limpando listener de notificações de chamada')
-      supabase.removeChannel(channel)
+      clearTimeout(timeoutId)
+      if (channelRef) {
+        supabase.removeChannel(channelRef)
+      }
+      // Limpar estados ao desmontar
+      setIncomingCall(null)
+      setIsRinging(false)
     }
   }, [user])
 
@@ -199,9 +237,13 @@ export function useCallNotifications() {
       }
       
       // Marcar notificação como lida
+      const { data: { session } } = await supabase.auth.getSession()
       await fetch('/api/call-notification', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(session?.access_token && { 'Authorization': `Bearer ${session.access_token}` })
+        },
         body: JSON.stringify({
           callId: callData.callId,
           action: 'accept'
@@ -221,9 +263,13 @@ export function useCallNotifications() {
     
     try {
       // Enviar resposta de rejeição via API
+      const { data: { session } } = await supabase.auth.getSession()
       const response = await fetch('/api/call-notification', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(session?.access_token && { 'Authorization': `Bearer ${session.access_token}` })
+        },
         body: JSON.stringify({
           callId,
           action: 'reject'

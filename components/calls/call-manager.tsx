@@ -7,6 +7,7 @@ import { CallNotification } from '@/components/call/call-notification'
 import { CallPanel } from '@/components/call/call-panel'
 import { CallStatusIndicator } from '@/components/call/call-status-indicator'
 import { RealCallInterface } from '@/components/call/real-call-interface'
+import { MissedCallsHistory } from '@/components/call/missed-calls-history'
 import { useCallNotifications } from '@/hooks/use-call-notifications'
 
 /**
@@ -75,6 +76,9 @@ export function CallManager() {
       
       {/* Central de Chamadas - painel oficial para gerenciar chamadas */}
       <CallPanel />
+      
+      {/* Histórico de chamadas perdidas */}
+      <MissedCallsHistory />
     </>
   )
 }

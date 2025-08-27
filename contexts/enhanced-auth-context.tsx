@@ -434,12 +434,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     userData: { username: string, displayName: string }
   ) => {
     if (isSupabaseConfigured()) {
-      // Check if username is already taken
+      // Check if username is already taken (usar maybeSingle para evitar erro quando não existe)
       const { data: existingProfile } = await supabase
         .from('profiles')
         .select('username')
         .eq('username', userData.username)
-        .single()
+        .maybeSingle()
 
       if (existingProfile) {
         throw new Error('Nome de usuário já está em uso')

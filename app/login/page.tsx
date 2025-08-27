@@ -146,6 +146,19 @@ export default function LoginPage() {
                   <BarChart3 className="mr-2 h-5 w-5" />
                   Dashboard Diagnóstico
                 </Button>
+                
+                <Button
+                  onClick={() => {
+                    toast.success('👤 Redirecionando para a página do desenvolvedor!')
+                    router.push('/sobre-desenvolvedor')
+                  }}
+                  disabled={isLoading}
+                  variant="outline"
+                  className="w-full border-blue-300 hover:bg-blue-50 text-blue-700 font-medium py-3"
+                >
+                  <span className="mr-2 text-lg">👤</span>
+                  Sobre o Desenvolvedor
+                </Button>
               </div>
             </div>
 

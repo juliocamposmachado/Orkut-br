@@ -27,16 +27,32 @@ const getBaseUrl = () => {
 
 export const metadata: Metadata = {
   metadataBase: new URL(getBaseUrl()),
-  applicationName: 'Orkut - Nova Geração',
+  applicationName: 'Orkut BR - Rede Social Brasileira',
   title: {
-    default: '🚀 ORKUT.BR - Rede Social Completa em 3 Dias! | TRIO MARCIANO',
-    template: '%s | Orkut.br - Revolução Nostálgica'
+    default: 'Orkut BR 2025 - Nova Rede Social Brasileira | Desenvolvida por Julio Campos Machado',
+    template: '%s | Orkut BR - A Rede Social que o Brasil Merece'
   },
-  description: '🔥 FEITO HISTÓRICO: Rede social completa criada em apenas 72 HORAS! Login Google, fotos, amizades, WebRTC - tudo funcionando 100%. Criado pelo TRIO MARCIANO: Julio Cesar + Claude AI + Warp Terminal. Nostalgia dos anos 2000 + tecnologia moderna!',
+  description: 'Orkut BR é a nova rede social brasileira desenvolvida com tecnologia moderna. Conecte-se com amigos, crie comunidades, compartilhe fotos e reviva a nostalgia do Orkut original. Sistema completo com login Google, chamadas de voz/vídeo, WebRTC e assistente de IA integrado. Desenvolvido por Julio Campos Machado.',
   keywords: [
-    'orkut', 'rede social', 'nostalgia', 'amigos', 'comunidades', 'recados', 'fotos',
-    'anos 2000', 'social network', 'brasil', 'orkut retrô', 'orkut clone',
-    'julio campos machado', 'like look solutions', 'desenvolvedor', 'programador'
+    // Palavras-chave principais
+    'orkut', 'orkut br', 'orkut brasil', 'orkut 2025', 'novo orkut', 'orkut brasileiro',
+    'rede social', 'rede social brasileira', 'social network brasil', 'comunidades online',
+    
+    // Funcionalidades
+    'scraps', 'recados', 'depoimentos', 'testemunhais', 'amigos online', 'comunidades',
+    'fotos perfil', 'álbuns fotos', 'chamadas vídeo', 'chamadas áudio', 'webrtc',
+    
+    // Nostalgia e comparações
+    'orkut original', 'orkut clone', 'orkut revival', 'orkut retrô', 'nostalgia anos 2000',
+    'orkut voltou', 'orkut de volta', 'social network nostalgia',
+    
+    // Desenvolvedor e empresa
+    'julio campos machado', 'julio cesar campos machado', 'like look solutions',
+    'desenvolvedor full stack', 'programador brasileiro', 'tech entrepreneur',
+    
+    // Tecnologia
+    'nextjs', 'react', 'supabase', 'vercel', 'tailwindcss', 'typescript',
+    'claude ai', 'gemini ai', 'warp terminal', 'google auth'
   ],
   authors: [{
     name: 'Julio Campos Machado',

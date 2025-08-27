@@ -1,63 +1,158 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" 
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
-        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
   
-  <!-- Homepage -->
+  <!-- Página Principal -->
   <url>
-    <loc>https://orkut-864g4zydz-astridnielsen-labs-projects.vercel.app/</loc>
-    <lastmod>2025-08-20</lastmod>
+    <loc>https://orkut-br.vercel.app/</loc>
+    <lastmod>2024-12-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   
-  <!-- Login Page -->
+  <!-- Login -->
   <url>
-    <loc>https://orkut-864g4zydz-astridnielsen-labs-projects.vercel.app/login</loc>
-    <lastmod>2025-08-20</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  
-  <!-- Profile Page -->
-  <url>
-    <loc>https://orkut-864g4zydz-astridnielsen-labs-projects.vercel.app/perfil</loc>
-    <lastmod>2025-08-20</lastmod>
+    <loc>https://orkut-br.vercel.app/login</loc>
+    <lastmod>2024-12-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   
-  <!-- Friends Page -->
+  <!-- Sobre o Desenvolvedor -->
   <url>
-    <loc>https://orkut-864g4zydz-astridnielsen-labs-projects.vercel.app/amigos</loc>
-    <lastmod>2025-08-20</lastmod>
+    <loc>https://orkut-br.vercel.app/sobre-desenvolvedor</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Cadastro -->
+  <url>
+    <loc>https://orkut-br.vercel.app/cadastro</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Dashboard do Projeto -->
+  <url>
+    <loc>https://orkut-br.vercel.app/dashboard/project/orkut</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- Configurações -->
+  <url>
+    <loc>https://orkut-br.vercel.app/configuracoes</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <!-- Amigos -->
+  <url>
+    <loc>https://orkut-br.vercel.app/amigos</loc>
+    <lastmod>2024-12-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   
-  <!-- Communities Page -->
+  <!-- Comunidades -->
   <url>
-    <loc>https://orkut-864g4zydz-astridnielsen-labs-projects.vercel.app/comunidades</loc>
-    <lastmod>2025-08-20</lastmod>
+    <loc>https://orkut-br.vercel.app/comunidades</loc>
+    <lastmod>2024-12-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.7</priority>
   </url>
   
-  <!-- Messages Page -->
+  <!-- Recados -->
   <url>
-    <loc>https://orkut-864g4zydz-astridnielsen-labs-projects.vercel.app/recados</loc>
-    <lastmod>2025-08-20</lastmod>
+    <loc>https://orkut-br.vercel.app/recados</loc>
+    <lastmod>2024-12-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
-  <!-- Search Page -->
+  <!-- Mensagens -->
   <url>
-    <loc>https://orkut-864g4zydz-astridnielsen-labs-projects.vercel.app/buscar</loc>
-    <lastmod>2025-08-20</lastmod>
+    <loc>https://orkut-br.vercel.app/mensagens</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <!-- Perfil -->
+  <url>
+    <loc>https://orkut-br.vercel.app/perfil</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+  
+  <!-- Buscar -->
+  <url>
+    <loc>https://orkut-br.vercel.app/buscar</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <!-- Playlists -->
+  <url>
+    <loc>https://orkut-br.vercel.app/playlists</loc>
+    <lastmod>2024-12-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
-
+  
+  <!-- Homenagem -->
+  <url>
+    <loc>https://orkut-br.vercel.app/homenagem</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <!-- Status do Sistema -->
+  <url>
+    <loc>https://orkut-br.vercel.app/system-status</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.4</priority>
+  </url>
+  
+  <!-- Solicitações de Amizade -->
+  <url>
+    <loc>https://orkut-br.vercel.app/solicitacoes-amizade</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <!-- Reset Password -->
+  <url>
+    <loc>https://orkut-br.vercel.app/reset-password</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  
+  <!-- Termos de Uso -->
+  <url>
+    <loc>https://orkut-br.vercel.app/terms</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  
+  <!-- Privacidade -->
+  <url>
+    <loc>https://orkut-br.vercel.app/privacy</loc>
+    <lastmod>2024-12-19</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  
 </urlset>

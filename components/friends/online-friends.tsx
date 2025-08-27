@@ -91,60 +91,8 @@ export function OnlineFriends({ onOpenMessage, onStartAudioCall }: OnlineFriends
         }
       }
 
-      // Sempre adicionar amigos padrão para parecer mais com Discord
-      const defaultFriends: OnlineFriend[] = [
-        {
-          id: 'juliocamposmachado',
-          username: 'juliocamposmachado',
-          display_name: 'Julio Campos Machado',
-          photo_url: 'https://lh3.googleusercontent.com/a/ACg8ocKKxiAA-fM5eBsd8S3bGtqcF4N8nKWf1rkOLy7l4Qi=s96-c',
-          isOnline: true
-        },
-        {
-          id: 'radiotatuapefm',
-          username: 'radiotatuapefm', 
-          display_name: 'Rádio Tatuaé FM',
-          photo_url: 'https://yt3.googleusercontent.com/ytc/AIdro_mNKSJ4CzULsb3m0uYJKY08OQTfJL7NJNmf_3hEjpY8T-8=s176-c-k-c0x00ffffff-no-rj',
-          isOnline: true
-        },
-        {
-          id: 'carlos_dev',
-          username: 'carlos_dev',
-          display_name: 'Carlos Silva',
-          photo_url: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=100',
-          isOnline: true
-        },
-        {
-          id: 'ana_designer',
-          username: 'ana_designer',
-          display_name: 'Ana Costa',
-          photo_url: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=100',
-          isOnline: true
-        },
-        {
-          id: 'pedro_games',
-          username: 'pedro_games',
-          display_name: 'Pedro Santos',
-          photo_url: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=100',
-          isOnline: true
-        },
-        {
-          id: 'mariana_tech',
-          username: 'mariana_tech',
-          display_name: 'Mariana Oliveira',
-          photo_url: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=100',
-          isOnline: true
-        }
-      ]
-
-      // Filtrar amigos padrão que não sejam o usuário atual
-      const filteredDefaults = defaultFriends.filter(friend => friend.id !== user.id)
-
-      // Combinar amigos reais com padrão, removendo duplicatas
-      const existingIds = friendsList.map(f => f.id)
-      const uniqueDefaults = filteredDefaults.filter(f => !existingIds.includes(f.id))
-      
-      const finalList = [...friendsList, ...uniqueDefaults].slice(0, 10)
+      // Usar apenas amigos reais do sistema
+      const finalList = friendsList.slice(0, 10)
       setOnlineFriends(finalList)
 
     } catch (error) {
@@ -187,14 +135,10 @@ export function OnlineFriends({ onOpenMessage, onStartAudioCall }: OnlineFriends
         ) : (
           <div className="space-y-1">
             {onlineFriends.map((friend) => {
-              // Simular atividades diferentes para cada amigo
+              // Atividades apenas para usuários reais
               const activities = {
                 'juliocamposmachado': 'Desenvolvendo Orkut Retrô',
                 'radiotatuapefm': 'Transmitindo ao vivo',
-                'carlos_dev': 'Codando em React',
-                'ana_designer': 'Criando no Figma',
-                'pedro_games': 'Jogando Counter-Strike',
-                'mariana_tech': 'Estudando JavaScript',
                 'default': 'Navegando no Orkut'
               }
               const activity = activities[friend.id as keyof typeof activities] || activities.default

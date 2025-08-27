@@ -89,13 +89,7 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
     photo?: string;
     isOnline?: boolean;
   } | null>(null);
-  const [friends, setFriends] = useState<FriendItem[]>(() =>
-    Array.from({ length: 8 }).map((_, idx) => ({
-      id: `placeholder-${idx}`,
-      name: `Amigo ${idx + 1}`,
-      avatar: `https://images.pexels.com/photos/${220000 + idx}/pexels-photo-${220000 + idx}.jpeg?auto=compress&cs=tinysrgb&w=80`
-    }))
-  );
+  const [friends, setFriends] = useState<FriendItem[]>([]);
   
   // Fotos do usuário baseadas no perfil
   const userPhotos = profile ? getUserPhotos(profile.username) : null;
@@ -365,6 +359,13 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
       loadUserPosts();
     }
   }, [profile?.id, currentUser?.id]);
+
+  // Carregar amigos reais quando o perfil for carregado
+  useEffect(() => {
+    if (profile?.id && currentUser?.id) {
+      loadRealFriends();
+    }
+  }, [profile?.id, currentUser?.id]);
   
   // Listener para novos posts (atualizar perfil quando posts são criados)
   useEffect(() => {
@@ -403,6 +404,50 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
       window.removeEventListener('friendship-updated', handleFriendshipUpdate);
     };
   }, [profile?.id, currentUser?.id]);
+
+  // Função para carregar amigos reais do Supabase
+  const loadRealFriends = async () => {
+    if (!profile?.id || !currentUser?.id) return;
+    
+    try {
+      console.log('👥 Carregando Top 10 Amigos reais...');
+      
+      const { data, error } = await supabase
+        .from('friendships')
+        .select(`
+          *,
+          requester:profiles!requester_id(id, username, display_name, photo_url),
+          addressee:profiles!addressee_id(id, username, display_name, photo_url)
+        `)
+        .or(`requester_id.eq.${profile.id},addressee_id.eq.${profile.id}`)
+        .eq('status', 'accepted')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (!error && data) {
+        const friendsList = data.map(friendship => {
+          const friend = friendship.requester_id === profile.id 
+            ? friendship.addressee 
+            : friendship.requester;
+          
+          return {
+            id: friend.id,
+            name: friend.display_name,
+            avatar: friend.photo_url
+          };
+        });
+        
+        console.log('✅', friendsList.length, 'amigos reais carregados');
+        setFriends(friendsList);
+      } else {
+        console.log('⚠️ Erro ao carregar amigos ou nenhum amigo encontrado');
+        setFriends([]);
+      }
+    } catch (error) {
+      console.error('❌ Erro ao carregar Top 10 Amigos:', error);
+      setFriends([]);
+    }
+  };
 
   // Função para carregar posts do usuário
   const loadUserPosts = async () => {

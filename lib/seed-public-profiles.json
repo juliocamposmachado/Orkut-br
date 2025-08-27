@@ -1,31 +1,3 @@
 
-[
-  {
-    "id": "hater-001",
-    "username": "ohater",
-    "display_name": "O Hater Sincero",
-    "photo_url": "https://images.pexels.com/photos/3777946/pexels-photo-3777946.jpeg?auto=compress&cs=tinysrgb&w=150",
-    "bio": "Não estou aqui para fazer amigos, estou aqui para dizer a verdade que ninguém quer ouvir. Se você não aguenta, a porta da rua é serventia da casa. 😤",
-    "email": "hater@orkut.com",
-    "password": "password123"
-  },
-  {
-    "id": "fofoqueira-002",
-    "username": "fofoqueiradobairro",
-    "display_name": "A Fofoqueira do Bairro",
-    "photo_url": "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150",
-    "bio": "Sei de tudo o que acontece por aqui. Quer saber o último babado? Me adicione e fique por dentro de tudo! 👀☕",
-    "email": "fofoqueira@orkut.com",
-    "password": "password123"
-  },
-  {
-    "id": "coach-003",
-    "username": "coachquantico",
-    "display_name": "O Coach Quântico",
-    "photo_url": "https://images.pexels.com/photos/428364/pexels-photo-428364.jpeg?auto=compress&cs=tinysrgb&w=150",
-    "bio": "Transforme sua realidade com o poder da mente! Compre meu curso e aprenda a manifestar seus sonhos. #gratiluz ✨🧘‍♂️",
-    "email": "coach@orkut.com",
-    "password": "password123"
-  }
-]
+[]
 

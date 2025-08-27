@@ -15,7 +15,7 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Eye, EyeOff, Smartphone, Monitor, Download, Laptop, PhoneIcon as Phone } from 'lucide-react';
-import publicProfiles from '@/lib/seed-public-profiles.json';
+// import publicProfiles from '@/lib/seed-public-profiles.json'; // Removido - apenas usuários reais
 import { FcGoogle } from 'react-icons/fc';
 
 export default function LoginPage() {
@@ -373,30 +373,6 @@ export default function LoginPage() {
               </p>
             </div>
 
-            {/* Public Profiles */}
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <p className="text-center text-sm text-gray-600 mb-4">
-                Ou entre com um perfil público (e seja um pouco sarcástico):
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {publicProfiles.map((profile) => (
-                  <Card 
-                    key={profile.id}
-                    className="cursor-pointer hover:shadow-lg hover:border-purple-400 transition-all duration-200"
-                    onClick={() => handlePublicProfileLogin(profile)}
-                  >
-                    <CardContent className="p-4 flex flex-col items-center text-center">
-                      <Avatar className="w-16 h-16 mb-3">
-                        <AvatarImage src={profile.photo_url} alt={profile.display_name} />
-                        <AvatarFallback>{profile.display_name.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <p className="font-semibold text-sm text-gray-800">{profile.display_name}</p>
-                      <p className="text-xs text-gray-600">@{profile.username}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
           </CardContent>
         </Card>
 

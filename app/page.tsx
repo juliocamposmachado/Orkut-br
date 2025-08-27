@@ -874,7 +874,123 @@ export default function HomePage() {
 
           {/* Right Sidebar */}
           <div className="mobile-space space-y-4 lg:space-y-6 lg:sticky lg:top-6 lg:pl-2 order-3">
-            {/* 1. Radio Widget - PRIMEIRO */}
+            {/* 0. Tools Section - FIRST */}
+            <OrkutCard>
+              <OrkutCardHeader>
+                <div className="flex items-center space-x-2">
+                  <Settings className="h-4 w-4 text-purple-600" />
+                  <span className="text-gray-600 text-sm font-medium">Ferramentas Úteis</span>
+                </div>
+              </OrkutCardHeader>
+              <OrkutCardContent>
+                <div className="space-y-3">
+                  {/* Orky Voice Assistant - Fixed in Tools */}
+                  <div className="p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-purple-700">Orky Assistant</h3>
+                        <p className="text-xs text-purple-600">Assistente de voz inteligente</p>
+                      </div>
+                    </div>
+                    <div className="flex space-x-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="flex-1 border-purple-300 text-purple-700 hover:bg-purple-50 text-xs"
+                        onClick={() => {
+                          // Trigger voice assistant
+                          const event = new CustomEvent('orky-assistant-toggle')
+                          window.dispatchEvent(event)
+                        }}
+                      >
+                        🎤 Ativar Voz
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="text-purple-600 hover:bg-purple-50 px-2"
+                        title="Ajuda"
+                      >
+                        <HelpCircle className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* AI Assistant Tool */}
+                  <div className="p-3 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-blue-700">AI Assistant</h3>
+                        <p className="text-xs text-blue-600">Chat inteligente</p>
+                      </div>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 text-xs"
+                      onClick={() => {
+                        // Trigger AI assistant
+                        const event = new CustomEvent('ai-assistant-toggle')
+                        window.dispatchEvent(event)
+                      }}
+                    >
+                      💬 Abrir Chat IA
+                    </Button>
+                  </div>
+
+                  {/* Camera Tool */}
+                  <div className="p-2 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                        <Camera className="h-3 w-3 text-white" />
+                      </div>
+                      <span className="text-xs font-medium text-green-700 flex-1">Câmera</span>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="text-green-600 hover:bg-green-100 px-2 py-1 h-auto text-xs"
+                        onClick={() => {
+                          // Trigger camera
+                          navigator.mediaDevices?.getUserMedia?.({ video: true, audio: false })
+                            .then(() => console.log('Camera activated'))
+                            .catch(() => console.log('Camera permission denied'))
+                        }}
+                      >
+                        📸 Foto
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Clock Tool */}
+                  <div className="p-2 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg border border-orange-200">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
+                        <Clock className="h-3 w-3 text-white" />
+                      </div>
+                      <span className="text-xs font-medium text-orange-700 flex-1">Hora</span>
+                      <span className="text-xs text-orange-600 font-mono">
+                        {new Date().toLocaleTimeString('pt-BR', { 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </OrkutCardContent>
+            </OrkutCard>
+
+            {/* 1. Radio Widget - SEGUNDO */}
             <RadioTatuapeWidget className="shadow-md" />
 
             {/* 2. Site Users - Gmail Users Only - SEGUNDO */}

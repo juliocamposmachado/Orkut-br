@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useAuth } from '@/contexts/enhanced-auth-context'
 import { useWebRTC } from '@/contexts/webrtc-context'
+import { useCallNotifications } from '@/hooks/use-call-notifications'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -15,6 +16,7 @@ import { supabase } from '@/lib/supabase'
 export function CallPanel() {
   const { user } = useAuth()
   const { onlineUsers, startAudioCall, startVideoCall } = useWebRTC()
+  const { startCall: realStartCall, isInCall } = useCallNotifications()
   const [isProcessingCall, setIsProcessingCall] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
   const [isMinimized, setIsMinimized] = useState(false)
@@ -22,18 +24,18 @@ export function CallPanel() {
   if (!user) return null
 
   const handleAudioCall = async (targetUserId: string) => {
-    if (isProcessingCall) return
+    if (isProcessingCall || isInCall) return
     
     setIsProcessingCall(true)
     setSelectedUserId(targetUserId)
     
     try {
-      console.log('🎵 Iniciando chamada de áudio para:', targetUserId)
-      await startAudioCall(targetUserId)
-      toast.success('Chamada de áudio iniciada!')
+      console.log('🎵 Iniciando chamada de áudio WebRTC real para:', targetUserId)
+      await realStartCall(targetUserId, 'audio')
+      toast.success('Chamada de áudio iniciada! Aguardando resposta...')
     } catch (error) {
-      console.error('❌ Erro ao iniciar chamada de áudio:', error)
-      toast.error('Erro ao iniciar chamada de áudio')
+      console.error('❌ Erro ao iniciar chamada de áudio real:', error)
+      toast.error('Erro ao iniciar chamada: ' + (error as Error).message)
     } finally {
       setIsProcessingCall(false)
       setSelectedUserId(null)
@@ -41,18 +43,18 @@ export function CallPanel() {
   }
 
   const handleVideoCall = async (targetUserId: string) => {
-    if (isProcessingCall) return
+    if (isProcessingCall || isInCall) return
     
     setIsProcessingCall(true)
     setSelectedUserId(targetUserId)
     
     try {
-      console.log('📹 Iniciando chamada de vídeo para:', targetUserId)
-      await startVideoCall(targetUserId)
-      toast.success('Chamada de vídeo iniciada!')
+      console.log('📹 Iniciando chamada de vídeo WebRTC real para:', targetUserId)
+      await realStartCall(targetUserId, 'video')
+      toast.success('Chamada de vídeo iniciada! Aguardando resposta...')
     } catch (error) {
-      console.error('❌ Erro ao iniciar chamada de vídeo:', error)
-      toast.error('Erro ao iniciar chamada de vídeo')
+      console.error('❌ Erro ao iniciar chamada de vídeo real:', error)
+      toast.error('Erro ao iniciar chamada: ' + (error as Error).message)
     } finally {
       setIsProcessingCall(false)
       setSelectedUserId(null)

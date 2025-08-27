@@ -883,7 +883,7 @@ export default function HomePage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Globe className="h-4 w-4" />
-                    <span>Usuários do Site</span>
+                    <span>Users</span>
                     <div className="bg-red-500 px-2 py-1 rounded text-white text-xs font-bold">
                       Gmail
                     </div>
@@ -891,10 +891,10 @@ export default function HomePage() {
                   <div className="flex items-center space-x-2 text-xs text-gray-500">
                     <div className="flex items-center space-x-1">
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span>{gmailUsersStats.online} online</span>
+                      <span>{gmailUsersStats.online} on</span>
                     </div>
                     <span>•</span>
-                    <span>{gmailUsersStats.total} membros</span>
+                    <span>{gmailUsersStats.total}</span>
                   </div>
                 </div>
               </OrkutCardHeader>
@@ -907,8 +907,8 @@ export default function HomePage() {
                 ) : gmailUsers.length === 0 ? (
                   <div className="p-8 text-center">
                     <Globe className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500 mb-1">Nenhum usuário Gmail encontrado</p>
-                    <p className="text-xs text-gray-400">Seja o primeiro a se cadastrar com Google!</p>
+                    <p className="text-sm text-gray-500 mb-1">Nenhum user Gmail</p>
+                    <p className="text-xs text-gray-400">Cadastre-se com Google!</p>
                   </div>
                 ) : (
                   <div className="max-h-72 overflow-y-auto">
@@ -918,7 +918,7 @@ export default function HomePage() {
                         <div className="flex items-center space-x-2 mb-2">
                           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                           <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                            Disponível — {gmailUsers.filter(u => u.status === 'online').length}
+                            Online — {gmailUsers.filter(u => u.status === 'online').length}
                           </span>
                         </div>
                         <div className="space-y-1">
@@ -935,7 +935,7 @@ export default function HomePage() {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-gray-900 truncate">{user.display_name}</p>
-                                <p className="text-xs text-gray-500 truncate">{user.activity || 'Navegando no Orkut'}</p>
+                                <p className="text-xs text-gray-500 truncate">{user.activity || 'Online'}</p>
                               </div>
                               <div className="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
                                 <Button 
@@ -1016,7 +1016,7 @@ export default function HomePage() {
                       className="w-full border-purple-300 text-purple-700 hover:bg-purple-50 text-xs"
                       onClick={() => router.push('/membros')}
                     >
-                      Ver todos os usuários Gmail ({gmailUsersStats.total})
+                      Ver todos ({gmailUsersStats.total})
                     </Button>
                   </div>
                 )}

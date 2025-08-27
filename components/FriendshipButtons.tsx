@@ -151,6 +151,17 @@ export const FriendshipButtons: React.FC<FriendshipButtonsProps> = ({
                   const success = await acceptFriendRequest(request.id);
                   if (success) {
                     await refreshFriends(); // Forçar atualização
+                    
+                    // Disparar evento para atualizar outros componentes
+                    window.dispatchEvent(new CustomEvent('friendship-updated', {
+                      detail: {
+                        type: 'accepted',
+                        userId: userId,
+                        requesterId: request.requester_id
+                      }
+                    }));
+                    
+                    console.log('✨ Evento de amizade aceita disparado para:', userId);
                   }
                   return success;
                 }

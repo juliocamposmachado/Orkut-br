@@ -106,10 +106,40 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
   const isOnline = true;
   const status = 'online';
   
-  // Função simples para verificar status de amizade
-  const getFriendshipStatus = (userId: string) => {
-    // Fallback simples - sempre retorna 'none'
-    return 'none';
+  // Função real para verificar status de amizade no Supabase
+  const getFriendshipStatus = async (userId: string) => {
+    if (!currentUser?.id || !userId) {
+      console.log('🚫 IDs necessários não disponíveis para verificar amizade');
+      return 'none';
+    }
+
+    try {
+      console.log('🔍 Verificando status de amizade entre:', currentUser.id, 'e', userId);
+      
+      // Buscar amizade nos dois sentidos
+      const { data, error } = await supabase
+        .from('friendships')
+        .select('*')
+        .or(`and(requester_id.eq.${currentUser.id},addressee_id.eq.${userId}),and(requester_id.eq.${userId},addressee_id.eq.${currentUser.id})`)
+        .maybeSingle();
+      
+      if (error) {
+        console.warn('⚠️ Erro ao verificar amizade, usando fallback:', error.message);
+        return 'none';
+      }
+      
+      if (data) {
+        console.log('✅ Status de amizade encontrado:', data.status);
+        return data.status as 'pending' | 'accepted' | 'rejected';
+      }
+      
+      console.log('📭 Nenhuma amizade encontrada - status: none');
+      return 'none';
+      
+    } catch (error) {
+      console.error('❌ Erro ao verificar status de amizade:', error);
+      return 'none';
+    }
   };
 
   // Função para enviar pedido de amizade
@@ -345,9 +375,33 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
         loadUserPosts();
       }
     };
+    
+    // Listener para atualizações de amizade
+    const handleFriendshipUpdate = async (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { type, userId, requesterId } = customEvent.detail;
+      
+      console.log('🔔 Atualização de amizade recebida:', { type, userId, requesterId });
+      
+      // Se a atualização é relevante para este perfil
+      if (profile?.id && currentUser?.id && 
+          (userId === profile.id || requesterId === profile.id) && 
+          (userId === currentUser.id || requesterId === currentUser.id)) {
+        
+        console.log('🔄 Recarregando status de amizade...');
+        const newStatus = await getFriendshipStatus(profile.id);
+        console.log('✨ Novo status:', newStatus);
+        setFriendshipStatus(newStatus);
+      }
+    };
 
     window.addEventListener('new-post-created', handleNewPost);
-    return () => window.removeEventListener('new-post-created', handleNewPost);
+    window.addEventListener('friendship-updated', handleFriendshipUpdate);
+    
+    return () => {
+      window.removeEventListener('new-post-created', handleNewPost);
+      window.removeEventListener('friendship-updated', handleFriendshipUpdate);
+    };
   }, [profile?.id, currentUser?.id]);
 
   // Função para carregar posts do usuário
@@ -573,11 +627,17 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
   
   // Carregar status de amizade quando o perfil for carregado
   useEffect(() => {
-    if (profile?.id && currentUser?.id && !isOwnProfile) {
-      const status = getFriendshipStatus(profile.id);
-      setFriendshipStatus(status);
-    }
-  }, [profile?.id, currentUser?.id, getFriendshipStatus, isOwnProfile]);
+    const loadFriendshipStatus = async () => {
+      if (profile?.id && currentUser?.id && !isOwnProfile) {
+        console.log('🔄 Carregando status de amizade...');
+        const status = await getFriendshipStatus(profile.id);
+        console.log('🔗 Status carregado:', status);
+        setFriendshipStatus(status);
+      }
+    };
+    
+    loadFriendshipStatus();
+  }, [profile?.id, currentUser?.id, isOwnProfile]);
 
   // Quando amizade for aceita, adicionar ao Top 10 Amigos
   useEffect(() => {

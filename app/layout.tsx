@@ -79,7 +79,7 @@ export const metadata: Metadata = {
     title: '🚀🔥 ORKUT.BR - Rede Social Completa em 3 Dias! TRIO MARCIANO',
     description: 'FEITO HISTÓRICO: Rede social completa criada em 72 HORAS! Login Google, fotos, amizades, WebRTC. Criado pelo TRIO MARCIANO: Julio Cesar + Claude AI + Warp Terminal. 100% funcional!',
     images: [{
-      url: '/divulgar-orkut.png',
+      url: '/Orkutredes.png',
       width: 1200,
       height: 630,
       alt: 'ORKUT.BR - Rede Social Completa em 3 Dias - TRIO MARCIANO'
@@ -89,7 +89,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: '🚀 ORKUT.BR - Rede Social Completa em 3 Dias!',
     description: 'FEITO HISTÓRICO: 72 horas para criar uma rede social completa! TRIO MARCIANO em ação: Julio + Claude + Warp. 100% funcional!',
-    images: ['/divulgar-orkut.png'],
+    images: ['/Orkutredes.png'],
     creator: '@juliocamposmachado'
   },
   viewport: {

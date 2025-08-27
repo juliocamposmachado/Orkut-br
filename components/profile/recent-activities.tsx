@@ -46,6 +46,24 @@ export function RecentActivities({ profileId, userProfile, loading = false }: Re
     }
   }, [profileId])
 
+  // Escutar evento de novo post criado para recarregar atividades
+  useEffect(() => {
+    const handleNewPost = (event: any) => {
+      console.log('🔄 Novo post detectado, recarregando atividades...')
+      if (profileId) {
+        // Aguardar um pouco para dar tempo da atividade ser registrada no backend
+        setTimeout(() => {
+          loadActivities()
+        }, 1000)
+      }
+    }
+
+    window.addEventListener('new-post-created', handleNewPost)
+    return () => {
+      window.removeEventListener('new-post-created', handleNewPost)
+    }
+  }, [profileId])
+
   const loadActivities = async () => {
     try {
       setLoadingActivities(true)

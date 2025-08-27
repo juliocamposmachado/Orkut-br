@@ -293,6 +293,33 @@ export async function POST(request: NextRequest) {
           console.log(`✅ [API] Post salvo com sucesso contornando problema: ${author_name}`)
           console.log(`🎯 [API] Post inserido diretamente no feed global - ID: ${data.post_id}`)
           
+          // Registrar atividade recente
+          try {
+            console.log('📝 [API] Registrando atividade recente para o post...')
+            const activityData = {
+              profile_id: author,
+              activity_type: 'post',
+              activity_data: {
+                post_id: data.post_id,
+                content: content.substring(0, 100) + (content.length > 100 ? '...' : '')
+              }
+            }
+            
+            const activityResult = await serverSupabase
+              .from('recent_activities')
+              .insert(activityData)
+              .select()
+              .single()
+            
+            if (activityResult.error) {
+              console.warn('⚠️ [API] Erro ao registrar atividade:', activityResult.error.message)
+            } else {
+              console.log('✅ [API] Atividade recente registrada com sucesso')
+            }
+          } catch (activityError) {
+            console.warn('⚠️ [API] Falha ao registrar atividade (não crítico):', activityError)
+          }
+          
           return NextResponse.json({
             success: true,
             post: savedPost,
@@ -338,6 +365,37 @@ export async function POST(request: NextRequest) {
       }
       
       console.log(`🔄 [API] Post salvo na memória: ${author_name} - "${content.substring(0, 50)}..."`)
+      
+      // Tentar registrar atividade mesmo no fallback de memória
+      try {
+        console.log('📝 [API] Tentando registrar atividade recente via API...')
+        // Como estamos no server-side, não podemos fazer fetch interno
+        // Mas podemos tentar usar Supabase diretamente se disponível
+        if (hasValidSupabase && supabase) {
+          const activityData = {
+            profile_id: author,
+            activity_type: 'post',
+            activity_data: {
+              post_id: newPost.id,
+              content: content.substring(0, 100) + (content.length > 100 ? '...' : '')
+            }
+          }
+          
+          const activityResult = await supabase
+            .from('recent_activities')
+            .insert(activityData)
+            .select()
+            .single()
+          
+          if (activityResult.error) {
+            console.warn('⚠️ [API] Erro ao registrar atividade (fallback):', activityResult.error.message)
+          } else {
+            console.log('✅ [API] Atividade recente registrada com sucesso (fallback)')
+          }
+        }
+      } catch (activityError) {
+        console.warn('⚠️ [API] Falha ao registrar atividade no fallback (não crítico):', activityError)
+      }
     }
 
     console.log('✅ [API] Finalizando com sucesso. Source:', source)

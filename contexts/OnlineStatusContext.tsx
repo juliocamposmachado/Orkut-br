@@ -24,7 +24,7 @@ interface OnlineStatusContextType {
 
 const OnlineStatusContext = createContext<OnlineStatusContextType | undefined>(undefined);
 
-// Função para atualizar presença usando UPSERT do banco
+// 🎯 GAMBIARRA ÉPICA: Sistema de presença usando Supabase Realtime + Heartbeat + Window Events
 const updateUserPresence = async (
   userId: string, 
   isOnline: boolean, 
@@ -32,18 +32,52 @@ const updateUserPresence = async (
   deviceInfo: any = {}
 ) => {
   try {
-    const { error } = await supabase.rpc('upsert_user_presence', {
-      p_user_id: userId,
-      p_is_online: isOnline,
-      p_status: status,
-      p_device_info: deviceInfo
-    });
+    // Primeiro tentar RPC, se falhar usar API REST
+    let success = false;
     
-    if (error) {
-      console.warn('Erro ao atualizar presença:', error);
+    try {
+      const { error } = await supabase.rpc('upsert_user_presence', {
+        p_user_id: userId,
+        p_is_online: isOnline,
+        p_status: status,
+        p_device_info: deviceInfo
+      });
+      
+      if (!error) success = true;
+    } catch (rpcError) {
+      console.warn('RPC falhou, tentando API REST:', rpcError);
     }
+    
+    // FALLBACK ÉPICO: usar nossa API REST
+    if (!success) {
+      const response = await fetch('/api/user_presence', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        },
+        body: JSON.stringify({
+          action: isOnline ? 'mark_online' : 'mark_offline'
+        })
+      });
+      
+      if (response.ok) success = true;
+    }
+    
+    // GAMBIARRA LEVEL 2: LocalStorage como backup
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(`user_status_${userId}`, JSON.stringify({
+        isOnline,
+        status,
+        lastUpdate: Date.now(),
+        deviceInfo
+      }));
+    }
+    
+    return success;
   } catch (error) {
     console.warn('Erro ao atualizar presença:', error);
+    return false;
   }
 };
 
@@ -54,30 +88,32 @@ export const OnlineStatusProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [isConnected, setIsConnected] = useState(false);
   const [currentStatus, setCurrentStatus] = useState<'online' | 'away' | 'busy' | 'offline'>('online');
 
-  // Conectar ao servidor de signaling
+  // 🚀 GAMBIARRA ÉPICA: Sistema híbrido sem WebSocket!
   useEffect(() => {
-    if (user && !socket) {
-      try {
-        console.log('🔌 Conectando ao servidor WebSocket...')
+    if (!user) return;
+    
+    console.log('🎯 Iniciando sistema ÉPICO de presença online!');
+    
+    // ESTRATÉGIA 1: Supabase Realtime (quando disponível)
+    let realtimeChannel: any = null;
+    
+    try {
+      realtimeChannel = supabase
+        .channel('user_presence_channel')
+        .on('postgres_changes', 
+          { event: '*', schema: 'public', table: 'user_presence' },
+          (payload) => {
+            console.log('📡 Mudança na presença detectada:', payload);
+            loadOnlineUsersFromAPI();
+          }
+        )
+        .subscribe();
         
-        const socketUrl = process.env.NODE_ENV === 'production' 
-          ? 'https://orkut-br-oficial.vercel.app'
-          : 'http://localhost:5001';
-        
-        const newSocket = io(socketUrl, {
-          path: '/api/signaling',
-          timeout: 15000,
-          retries: 5,
-          auth: {
-            userId: user.id,
-            userName: profile?.display_name || user.email || 'Usuário'
-          },
-          transports: ['websocket', 'polling'],
-          forceNew: false,
-          reconnection: true,
-          reconnectionDelay: 1000,
-          reconnectionAttempts: 5
-        });
+      console.log('✅ Supabase Realtime conectado!');
+      setIsConnected(true);
+    } catch (error) {
+      console.warn('⚠️ Supabase Realtime falhou, usando polling:', error);
+    }
 
       newSocket.on('connect', () => {
         console.log('Conectado ao servidor de status online');

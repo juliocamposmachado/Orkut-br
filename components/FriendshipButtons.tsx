@@ -26,10 +26,14 @@ export const FriendshipButtons: React.FC<FriendshipButtonsProps> = ({
 }) => {
   const { 
     sendFriendRequest, 
+    acceptFriendRequest,
+    rejectFriendRequest,
     removeFriend, 
     blockUser, 
     getFriendshipStatus,
-    loading 
+    loading,
+    refreshFriends,
+    pendingRequests 
   } = useFriends();
   
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -140,7 +144,18 @@ export const FriendshipButtons: React.FC<FriendshipButtonsProps> = ({
         return (
           <div className="flex gap-2">
             <button
-              onClick={() => handleAction('accept', () => sendFriendRequest(userId))}
+              onClick={() => handleAction('accept', async () => {
+                // Encontrar o ID da solicitação pendente
+                const request = pendingRequests.find(req => req.requester_id === userId);
+                if (request) {
+                  const success = await acceptFriendRequest(request.id);
+                  if (success) {
+                    await refreshFriends(); // Forçar atualização
+                  }
+                  return success;
+                }
+                return false;
+              })}
               className={buttonVariants.success}
               disabled={actionLoading !== null}
               title="Aceitar solicitação de amizade"
@@ -150,7 +165,17 @@ export const FriendshipButtons: React.FC<FriendshipButtonsProps> = ({
             </button>
             
             <button
-              onClick={() => handleAction('reject', () => removeFriend(userId))}
+              onClick={() => handleAction('reject', async () => {
+                const request = pendingRequests.find(req => req.requester_id === userId);
+                if (request) {
+                  const success = await rejectFriendRequest(request.id);
+                  if (success) {
+                    await refreshFriends(); // Forçar atualização
+                  }
+                  return success;
+                }
+                return false;
+              })}
               className={buttonVariants.secondary}
               disabled={actionLoading !== null}
               title="Rejeitar solicitação"

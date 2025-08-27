@@ -46,10 +46,6 @@ next-env.d.ts
 *.html
 *.txt
 *.ps1
-*.png
-*.jpg
-*.jpeg
-*.gif
 *.crt
 *.m3u
 *.json
@@ -62,9 +58,24 @@ next-env.d.ts
 docs/
 sql/
 
+# Imagens ignoradas (mas permitimos as essenciais)
+*.png
+!public/favicon.svg
+!public/apple-touch-icon.png
+!public/Orkutredes.png
+!public/redes-sociais.jpg
+!public/divulgar-orkut.png
+!public/logo-radio-tatuape-fm.png
+!public/logoradiotatuapefm.png
+!public/og-image.png
+*.jpg
+!public/redes-sociais.jpg
+!public/helenvitai.jpg
+*.jpeg
+*.gif
+
 # Arquivos específicos do projeto que não são necessários no repo
 orkut-signature.png
-redes*sociais.jpg
 painel*fotos.png
 UnGbDaPWA9.jpg
 *.tsbuildinfo

@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
-import { Phone, Video, Users, PhoneCall, Settings } from 'lucide-react'
+import { Phone, Video, Users, PhoneCall, Settings, Minimize2, Maximize2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 
@@ -17,6 +17,7 @@ export function CallPanel() {
   const { onlineUsers, startAudioCall, startVideoCall } = useWebRTC()
   const [isProcessingCall, setIsProcessingCall] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
+  const [isMinimized, setIsMinimized] = useState(false)
 
   if (!user) return null
 
@@ -104,130 +105,166 @@ export function CallPanel() {
   }
 
   return (
-    <Card className="fixed bottom-4 right-4 w-96 shadow-2xl border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 z-50">
+    <Card className={`fixed bottom-4 right-4 shadow-2xl border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 z-50 transition-all duration-300 ${
+      isMinimized ? 'w-64' : 'w-96'
+    }`}>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center text-purple-800">
-          <PhoneCall className="w-5 h-5 mr-2" />
-          Central de Chamadas
+        <CardTitle className="text-base flex items-center justify-between text-purple-800">
+          <div className="flex items-center">
+            <PhoneCall className="w-5 h-5 mr-2" />
+            Central de Chamadas
+          </div>
+          <Button
+            onClick={() => setIsMinimized(!isMinimized)}
+            size="sm"
+            variant="ghost"
+            className="w-8 h-8 p-0 hover:bg-purple-100 rounded-full transition-colors"
+            title={isMinimized ? 'Expandir' : 'Minimizar'}
+          >
+            {isMinimized ? (
+              <Maximize2 className="w-4 h-4 text-purple-600" />
+            ) : (
+              <Minimize2 className="w-4 h-4 text-purple-600" />
+            )}
+          </Button>
         </CardTitle>
-        <p className="text-xs text-gray-600">
-          Faça chamadas de áudio e vídeo com usuários online
-        </p>
+        {!isMinimized && (
+          <p className="text-xs text-gray-600">
+            Faça chamadas de áudio e vídeo com usuários online
+          </p>
+        )}
       </CardHeader>
-      <CardContent className="pt-0">
-        <div className="space-y-4">
-          {/* Botão de teste */}
-          <div className="text-center">
-            <Button
-              onClick={handleTestSelfCall}
-              disabled={isProcessingCall}
-              size="sm"
-              variant="outline"
-              className="w-full border-purple-300 hover:bg-purple-100 text-purple-700"
-            >
-              {isProcessingCall ? (
-                <div className="flex items-center">
-                  <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin mr-2"></div>
-                  Enviando teste...
+      {!isMinimized ? (
+        <CardContent className="pt-0">
+          <div className="space-y-4">
+            {/* Botão de teste */}
+            <div className="text-center">
+              <Button
+                onClick={handleTestSelfCall}
+                disabled={isProcessingCall}
+                size="sm"
+                variant="outline"
+                className="w-full border-purple-300 hover:bg-purple-100 text-purple-700"
+              >
+                {isProcessingCall ? (
+                  <div className="flex items-center">
+                    <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin mr-2"></div>
+                    Enviando teste...
+                  </div>
+                ) : (
+                  <div className="flex items-center">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Testar Notificações
+                  </div>
+                )}
+              </Button>
+            </div>
+
+            <Separator />
+
+            {/* Lista de usuários online */}
+            <div>
+              <div className="flex items-center mb-3">
+                <Users className="w-4 h-4 mr-2 text-purple-600" />
+                <span className="text-sm font-semibold text-purple-800">
+                  Usuários Disponíveis ({onlineUsers.length})
+                </span>
+              </div>
+            
+              {onlineUsers.length === 0 ? (
+                <div className="text-center py-6">
+                  <div className="w-16 h-16 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
+                    <Users className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <p className="text-sm text-gray-500 mb-1">Nenhum usuário online</p>
+                  <p className="text-xs text-gray-400">
+                    Quando outros usuários estiverem online, você poderá fazer chamadas
+                  </p>
                 </div>
               ) : (
-                <div className="flex items-center">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Testar Notificações
-                </div>
-              )}
-            </Button>
-          </div>
-
-          <Separator />
-
-          {/* Lista de usuários online */}
-          <div>
-            <div className="flex items-center mb-3">
-              <Users className="w-4 h-4 mr-2 text-purple-600" />
-              <span className="text-sm font-semibold text-purple-800">
-                Usuários Disponíveis ({onlineUsers.length})
-              </span>
-            </div>
-            
-            {onlineUsers.length === 0 ? (
-              <div className="text-center py-6">
-                <div className="w-16 h-16 mx-auto mb-3 bg-gray-100 rounded-full flex items-center justify-center">
-                  <Users className="w-8 h-8 text-gray-400" />
-                </div>
-                <p className="text-sm text-gray-500 mb-1">Nenhum usuário online</p>
-                <p className="text-xs text-gray-400">
-                  Quando outros usuários estiverem online, você poderá fazer chamadas
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-2 max-h-48 overflow-y-auto">
-                {onlineUsers.map((onlineUser) => (
-                  <div
-                    key={onlineUser.id}
-                    className={`flex items-center justify-between p-3 rounded-lg transition-all ${
-                      selectedUserId === onlineUser.id 
-                        ? 'bg-purple-100 border border-purple-300' 
-                        : 'bg-white hover:bg-gray-50 border border-gray-200'
-                    }`}
-                  >
-                    <div className="flex items-center flex-1">
-                      <Avatar className="w-8 h-8 mr-3 ring-2 ring-green-200">
-                        <AvatarImage src={onlineUser.photo_url} />
-                        <AvatarFallback className="text-sm bg-gradient-to-br from-purple-400 to-pink-400 text-white">
-                          {onlineUser.display_name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {onlineUser.display_name}
-                        </p>
-                        <div className="flex items-center">
-                          <Badge 
-                            variant="secondary" 
-                            className="text-xs bg-green-100 text-green-700 border-green-200"
-                          >
-                            <div className="w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></div>
-                            Online
-                          </Badge>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {onlineUsers.map((onlineUser) => (
+                    <div
+                      key={onlineUser.id}
+                      className={`flex items-center justify-between p-3 rounded-lg transition-all ${
+                        selectedUserId === onlineUser.id 
+                          ? 'bg-purple-100 border border-purple-300' 
+                          : 'bg-white hover:bg-gray-50 border border-gray-200'
+                      }`}
+                    >
+                      <div className="flex items-center flex-1">
+                        <Avatar className="w-8 h-8 mr-3 ring-2 ring-green-200">
+                          <AvatarImage src={onlineUser.photo_url} />
+                          <AvatarFallback className="text-sm bg-gradient-to-br from-purple-400 to-pink-400 text-white">
+                            {onlineUser.display_name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {onlineUser.display_name}
+                          </p>
+                          <div className="flex items-center">
+                            <Badge 
+                              variant="secondary" 
+                              className="text-xs bg-green-100 text-green-700 border-green-200"
+                            >
+                              <div className="w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></div>
+                              Online
+                            </Badge>
+                          </div>
                         </div>
                       </div>
+                      
+                      <div className="flex space-x-2">
+                        <Button
+                          onClick={() => handleAudioCall(onlineUser.id)}
+                          disabled={isProcessingCall}
+                          size="sm"
+                          className="w-8 h-8 p-0 rounded-full bg-purple-500 hover:bg-purple-600 transition-all hover:scale-110"
+                        >
+                          <Phone className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          onClick={() => handleVideoCall(onlineUser.id)}
+                          disabled={isProcessingCall}
+                          size="sm"
+                          className="w-8 h-8 p-0 rounded-full bg-pink-500 hover:bg-pink-600 transition-all hover:scale-110"
+                        >
+                          <Video className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
-                    
-                    <div className="flex space-x-2">
-                      <Button
-                        onClick={() => handleAudioCall(onlineUser.id)}
-                        disabled={isProcessingCall}
-                        size="sm"
-                        className="w-8 h-8 p-0 rounded-full bg-purple-500 hover:bg-purple-600 transition-all hover:scale-110"
-                      >
-                        <Phone className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        onClick={() => handleVideoCall(onlineUser.id)}
-                        disabled={isProcessingCall}
-                        size="sm"
-                        className="w-8 h-8 p-0 rounded-full bg-pink-500 hover:bg-pink-600 transition-all hover:scale-110"
-                      >
-                        <Video className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Status */}
+            {isProcessingCall && (
+              <div className="text-center pt-2">
+                <p className="text-xs text-purple-600 animate-pulse">
+                  ⏳ Processando chamada...
+                </p>
               </div>
             )}
           </div>
-
-          {/* Status */}
-          {isProcessingCall && (
-            <div className="text-center pt-2">
-              <p className="text-xs text-purple-600 animate-pulse">
-                ⏳ Processando chamada...
-              </p>
+        </CardContent>
+      ) : (
+        /* Modo minimizado */
+        <CardContent className="pt-0 pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-sm font-medium text-purple-700">
+                {onlineUsers.length} online
+              </span>
             </div>
-          )}
-        </div>
-      </CardContent>
+            {isProcessingCall && (
+              <div className="w-4 h-4 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+            )}
+          </div>
+        </CardContent>
+      )}
     </Card>
   )
 }

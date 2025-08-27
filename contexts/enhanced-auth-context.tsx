@@ -359,6 +359,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     console.log('🔍 [DEBUG] signInWithGoogle chamada')
     console.log('🔍 [DEBUG] isSupabaseConfigured:', isSupabaseConfigured())
     
+    // Mostrar toast indicando que está verificando
+    toast.info('🔍 Verificando se você já tem conta...')
+    
     // Determinar a URL de redirect correta
     const getRedirectUrl = () => {
       // Verificar se estamos no browser e usar window.location

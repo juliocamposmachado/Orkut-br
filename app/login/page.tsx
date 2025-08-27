@@ -20,17 +20,23 @@ import {
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+  const [buttonText, setButtonText] = useState('Continuar com Google')
   const { signInWithGoogle } = useAuth()
   const router = useRouter()
 
   const handleGoogleLogin = async () => {
     setIsLoading(true)
+    setButtonText('Verificando usuário...')
+    
     try {
       await signInWithGoogle()
-      toast.success('Redirecionando para o Google...')
+      setButtonText('Redirecionando para o Google...')
+      toast.success('🔍 Redirecionando para autenticação Google...')
     } catch (error: any) {
-      toast.error(error.message || 'Erro ao fazer login com Google')
+      console.error('Erro no handleGoogleLogin:', error)
+      toast.error(error.message || 'Erro ao conectar com Google. Tente novamente.')
       setIsLoading(false)
+      setButtonText('Continuar com Google')
     }
   }
 
@@ -70,8 +76,8 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             
-            {/* Botões Google */}
-            <div className="space-y-3">
+            {/* Botão Google Unificado */}
+            <div className="space-y-4">
               <Button
                 onClick={handleGoogleLogin}
                 disabled={isLoading}
@@ -79,18 +85,7 @@ export default function LoginPage() {
                 className="w-full bg-white hover:bg-gray-50 text-gray-700 border-2 border-gray-300 font-semibold py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 <FcGoogle className="mr-3 text-2xl" />
-                {isLoading ? 'Conectando...' : 'Entrar com Google'}
-              </Button>
-              
-              <Button
-                onClick={handleGoogleLogin}
-                disabled={isLoading}
-                size="lg"
-                variant="outline"
-                className="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 border-2 border-blue-300 font-semibold py-4 text-lg shadow-lg hover:shadow-xl transition-all duration-200"
-              >
-                <FcGoogle className="mr-3 text-2xl" />
-                {isLoading ? 'Conectando...' : 'Cadastrar-se com Google'}
+                {isLoading ? 'Conectando...' : 'Continuar com Google'}
               </Button>
             </div>
             
@@ -98,9 +93,9 @@ export default function LoginPage() {
               Rápido, seguro e sem senhas para lembrar! 🚀
             </p>
             
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-              <p className="text-xs text-blue-700">
-                ✨ <strong>Novos usuários:</strong> Use "Cadastrar-se" para criar sua conta automaticamente!
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+              <p className="text-xs text-green-700">
+                🆕 <strong>Usuários novos e existentes:</strong> O mesmo botão funciona para login e cadastro automaticamente!
               </p>
             </div>
             

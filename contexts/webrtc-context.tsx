@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useRef, useState, ReactNod
 import { useAuth } from '@/contexts/enhanced-auth-context'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
+import { callLogger } from '@/lib/call-logger'
 
 interface WebRTCUser {
   id: string
@@ -543,14 +544,24 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
   }
   
   const startAudioCall = async (userId: string) => {
+    const callId = `call_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    callLogger.info('ui', 'Iniciando chamada de áudio', { targetUserId: userId }, user?.id, callId)
+    
     try {
       // Find user info
       const targetUser = onlineUsers.find(u => u.id === userId)
       if (!targetUser) {
+        callLogger.error('ui', 'Usuário não encontrado para chamada', { 
+          targetUserId: userId, 
+          onlineUsers: onlineUsers.map(u => ({ id: u.id, name: u.display_name })) 
+        }, user?.id, callId)
         toast.error('Usuário não encontrado ou offline')
         return
       }
       
+      callLogger.success('ui', 'Usuário alvo encontrado', { targetUser: targetUser.display_name }, user?.id, callId)
+      
+      // Set initial call state
       setCallState(prev => ({
         ...prev,
         isInCall: true,
@@ -558,24 +569,56 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
         callingUser: targetUser
       }))
       
-      // Get local media
+      // Get local media first
+      callLogger.media('Solicitando mídia de áudio', { callType: 'audio' }, user?.id, callId)
       const stream = await getUserMedia('audio')
       setCallState(prev => ({ ...prev, localStream: stream }))
+      callLogger.success('media', 'Stream de áudio obtido', { 
+        audioTracks: stream.getAudioTracks().length,
+        videoTracks: stream.getVideoTracks().length
+      }, user?.id, callId)
       
       // Create peer connection and add tracks
+      callLogger.webrtc('Criando conexão WebRTC', {}, user?.id, callId)
       const peerConnection = await createPeerConnection()
+      
+      // Monitor WebRTC events
+      callLogger.monitorPeerConnection(peerConnection, callId)
+      
       stream.getTracks().forEach(track => {
+        callLogger.webrtc('Adicionando track ao peer connection', { trackKind: track.kind }, user?.id, callId)
         peerConnection.addTrack(track, stream)
       })
       
       // Create and send offer
+      callLogger.webrtc('Criando oferta WebRTC', {}, user?.id, callId)
       const offer = await peerConnection.createOffer()
       await peerConnection.setLocalDescription(offer)
+      callLogger.success('webrtc', 'Oferta criada e definida localmente', { 
+        offerType: offer.type,
+        signalingState: peerConnection.signalingState 
+      }, user?.id, callId)
       
-      // Send call notification via API instead of direct signaling
+      // Get auth token
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        callLogger.error('auth', 'Token de autenticação não encontrado', {}, user?.id, callId)
+        throw new Error('Token de autenticação não encontrado')
+      }
+      callLogger.auth('Token de autenticação obtido', { tokenLength: session.access_token.length }, user?.id)
+      
+      // Send call notification via API
+      callLogger.api('Enviando notificação de chamada via API', { 
+        targetUserId: userId, 
+        callType: 'audio' 
+      }, user?.id, callId)
+      
       const response = await fetch('/api/call-notification', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
         body: JSON.stringify({
           targetUserId: userId,
           callType: 'audio',
@@ -584,22 +627,38 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
       })
 
       if (!response.ok) {
-        throw new Error('Falha ao enviar notificação de chamada')
+        const errorData = await response.json().catch(() => ({}))
+        callLogger.error('api', 'Erro na API de notificação', { 
+          status: response.status, 
+          statusText: response.statusText, 
+          errorData 
+        }, user?.id, callId)
+        throw new Error(`Falha ao enviar notificação de chamada: ${response.status}`)
       }
 
       const result = await response.json()
-      console.log('✅ Notificação de chamada enviada:', result)
+      callLogger.success('api', 'Notificação de chamada enviada com sucesso', result, user?.id, callId)
       
-      toast.success(`Chamando ${targetUser.display_name}...`)
+      toast.success(`Chamando ${targetUser.display_name} via áudio...`)
+      
+      // Set calling state
+      setCallState(prev => ({ ...prev, calling: true }))
+      callLogger.success('ui', 'Chamada de áudio iniciada com sucesso', { 
+        targetUser: targetUser.display_name 
+      }, user?.id, callId)
+      
     } catch (error) {
-      console.error('Error starting audio call:', error)
-      toast.error('Erro ao iniciar chamada de áudio')
+      callLogger.error('ui', 'Erro ao iniciar chamada de áudio', { 
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      }, user?.id, callId)
+      toast.error(`Erro ao iniciar chamada de áudio: ${error instanceof Error ? error.message : 'Erro desconhecido'}`)
       endCall()
     }
   }
   
   const startVideoCall = async (userId: string) => {
-    console.log('🎥 Iniciando chamada de vídeo para:', userId)
+    console.log('📹 Iniciando chamada de vídeo para:', userId)
     try {
       // Find user info
       const targetUser = onlineUsers.find(u => u.id === userId)
@@ -608,8 +667,9 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
         toast.error('Usuário não encontrado ou offline')
         return
       }
-      console.log('✅ Usuário encontrado:', targetUser)
+      console.log('✅ Usuário encontrado:', targetUser.display_name)
       
+      // Set initial call state
       setCallState(prev => ({
         ...prev,
         isInCall: true,
@@ -617,24 +677,39 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
         callingUser: targetUser
       }))
       
-      // Get local media
+      // Get local media first
+      console.log('🎥 Obtendo mídia de vídeo...')
       const stream = await getUserMedia('video')
       setCallState(prev => ({ ...prev, localStream: stream }))
       
       // Create peer connection and add tracks
+      console.log('🔗 Criando conexão WebRTC...')
       const peerConnection = await createPeerConnection()
       stream.getTracks().forEach(track => {
+        console.log('➕ Adicionando track:', track.kind)
         peerConnection.addTrack(track, stream)
       })
       
       // Create and send offer
+      console.log('📋 Criando oferta WebRTC...')
       const offer = await peerConnection.createOffer()
       await peerConnection.setLocalDescription(offer)
+      console.log('✅ Oferta criada e definida localmente')
       
-      // Send call notification via API instead of direct signaling
+      // Get auth token
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        throw new Error('Token de autenticação não encontrado')
+      }
+      
+      // Send call notification via API
+      console.log('📨 Enviando notificação de chamada...')
       const response = await fetch('/api/call-notification', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
         body: JSON.stringify({
           targetUserId: userId,
           callType: 'video',
@@ -643,16 +718,22 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
       })
 
       if (!response.ok) {
-        throw new Error('Falha ao enviar notificação de chamada')
+        const errorData = await response.json().catch(() => ({}))
+        console.error('❌ Erro na API de notificação:', response.status, errorData)
+        throw new Error(`Falha ao enviar notificação de chamada: ${response.status}`)
       }
 
       const result = await response.json()
       console.log('✅ Notificação de chamada enviada:', result)
       
       toast.success(`Chamando ${targetUser.display_name} via vídeo...`)
+      
+      // Set calling state
+      setCallState(prev => ({ ...prev, calling: true }))
+      
     } catch (error) {
-      console.error('Error starting video call:', error)
-      toast.error('Erro ao iniciar chamada de vídeo')
+      console.error('❌ Erro ao iniciar chamada de vídeo:', error)
+      toast.error(`Erro ao iniciar chamada de vídeo: ${error instanceof Error ? error.message : 'Erro desconhecido'}`)
       endCall()
     }
   }

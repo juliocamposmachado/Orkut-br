@@ -4,12 +4,13 @@ import { useWebRTC } from '@/contexts/webrtc-context'
 import { AudioCallModal } from './audio-call-modal'
 import { VideoCallModal } from './video-call-modal'
 import { CallNotification } from '@/components/call/call-notification'
-import { CallTestButton } from '@/components/call/call-test-button'
+import { CallPanel } from '@/components/call/call-panel'
+import { CallStatusIndicator } from '@/components/call/call-status-indicator'
 
 /**
  * Componente principal que gerencia todos os tipos de chamada
  * Renderiza o modal apropriado baseado no tipo de chamada ativa
- * Inclui notificações de chamadas recebidas
+ * Inclui notificações, painel de controle e indicadores visuais
  */
 export function CallManager() {
   const { callState } = useWebRTC()
@@ -19,6 +20,9 @@ export function CallManager() {
       {/* Sistema de notificações de chamadas recebidas */}
       <CallNotification />
       
+      {/* Indicador de status das chamadas */}
+      <CallStatusIndicator />
+      
       {/* Modais de chamada ativa */}
       {callState.isInCall && (
         <>
@@ -27,8 +31,8 @@ export function CallManager() {
         </>
       )}
       
-      {/* Botão de teste (apenas em desenvolvimento) */}
-      <CallTestButton />
+      {/* Central de Chamadas - painel oficial para gerenciar chamadas */}
+      <CallPanel />
     </>
   )
 }

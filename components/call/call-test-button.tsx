@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Phone, Video, Users, TestTube } from 'lucide-react'
 import { toast } from 'sonner'
+import { supabase } from '@/lib/supabase'
 
 export function CallTestButton() {
   const { user } = useAuth()
@@ -44,10 +45,19 @@ export function CallTestButton() {
   const handleTestSelfNotification = async () => {
     setIsTestingCall(true)
     try {
+      // Obter token de autenticação do Supabase
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        throw new Error('Token de autenticação não encontrado')
+      }
+
       // Criar uma notificação de teste diretamente no banco
       const response = await fetch('/api/call-notification', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
         body: JSON.stringify({
           targetUserId: user.id, // Enviar para si mesmo
           callType: 'video',

@@ -4,9 +4,19 @@ import { cookies } from 'next/headers'
 
 export async function POST(request: NextRequest) {
   try {
-    // Verificar se o usuário está autenticado
-    const cookieStore = cookies()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    // Obter token do cabeçalho Authorization
+    const authHeader = request.headers.get('authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: 'Token de autenticação não fornecido' },
+        { status: 401 }
+      )
+    }
+
+    const token = authHeader.replace('Bearer ', '')
+    
+    // Verificar se o usuário está autenticado usando o token
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     
     if (authError || !user) {
       return NextResponse.json(

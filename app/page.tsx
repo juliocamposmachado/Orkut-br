@@ -56,6 +56,7 @@ import { SponsoredCarousel } from '@/components/ads/sponsored-carousel'
 import { MarqueeBanner } from '@/components/ui/marquee-banner'
 import { CallModal } from '@/components/call/call-modal'
 import { useCall } from '@/hooks/use-call'
+import { InviteFriendsCard } from '@/components/invitations/invite-friends-card'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -91,11 +92,18 @@ export default function HomePage() {
   const [loadingPosts, setLoadingPosts] = useState(true)
 
   useEffect(() => {
-    if (!loading && !user) {
+    // Aguardar o loading completo antes de redirecionar
+    if (loading) {
+      return // Não fazer nada enquanto carregando
+    }
+    
+    // Só redirecionar para login se realmente não tiver usuário após loading
+    if (!user) {
       router.push('/login')
       return
     }
 
+    // Se tem usuário, carregar conteúdo
     if (user) {
       loadFeed()
       loadCommunities()
@@ -844,6 +852,9 @@ export default function HomePage() {
 
           {/* Right Sidebar */}
           <div className="mobile-space space-y-4 lg:space-y-6 lg:sticky lg:top-6 lg:pl-2 order-3">
+            {/* Invite Friends Card */}
+            <InviteFriendsCard />
+            
             {/* Radio Widget */}
             <RadioTatuapeWidget className="shadow-md" />
 

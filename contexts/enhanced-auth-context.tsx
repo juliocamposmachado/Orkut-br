@@ -108,14 +108,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
         console.log('Auth state changed:', event)
         
-        if (session?.user) {
+        if (event === 'INITIAL_SESSION') {
+          // Para sessão inicial, aguardar processamento completo antes de marcar como não-loading
+          if (session?.user) {
+            await handleSupabaseUser(session.user)
+            setLoading(false)
+          } else {
+            setUser(null)
+            setProfile(null)
+            setLoading(false)
+          }
+        } else if (session?.user) {
+          // Para outros eventos, processar normalmente
           await handleSupabaseUser(session.user)
         } else {
           setUser(null)
           setProfile(null)
         }
-        
-        setLoading(false)
       })
 
       return () => subscription.unsubscribe()
@@ -456,10 +465,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return
       }
 
-      // If user is immediately available, create profile
-      if (data.user) {
-        await createUserProfile(data.user, userData)
-      }
+      // O perfil será criado automaticamente pelo trigger 'on_auth_user_created'
+      console.log('✅ [SIGNUP] Usuário criado, perfil será criado automaticamente pelo trigger')
     } else {
       // Fallback mode
       const mockUserId = crypto.randomUUID()

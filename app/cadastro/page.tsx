@@ -153,55 +153,7 @@ const CadastroPage: React.FC = () => {
       const uniqueUsername = await generateUniqueUsername(formData.name);
       console.log('Username gerado:', uniqueUsername);
 
-      // Registra no Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            display_name: formData.name,
-            username: uniqueUsername
-          }
-        }
-      });
-
-      if (authError) {
-        throw authError;
-      }
-
-      if (!authData.user) {
-        throw new Error('Erro ao criar usuário');
-      }
-
-      // Cria perfil na tabela profiles
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: authData.user.id,
-          username: uniqueUsername,
-          display_name: formData.name,
-          email: formData.email,
-          photo_url: null,
-          phone: null,
-          bio: '',
-          location: '',
-          relationship: 'Solteiro(a)',
-          whatsapp_enabled: false,
-          privacy_settings: {
-            phone_visibility: 'friends',
-            profile_visibility: 'public'
-          },
-          fans_count: 0,
-          scrapy_count: 0,
-          profile_views: 0
-        });
-
-      if (profileError) {
-        console.error('Erro ao criar perfil:', profileError);
-        // Não interrompemos o fluxo aqui, pois o auth já foi criado
-      }
-
-      // Usa o contexto de auth para fazer login
+      // Usa o contexto de auth para criar usuário (ele vai usar o trigger automático)
       await signUp(formData.email, formData.password, {
         username: uniqueUsername,
         displayName: formData.name

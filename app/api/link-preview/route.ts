@@ -1,5 +1,48 @@
 import { NextResponse } from 'next/server'
-import { load } from 'cheerio'
+
+// Helper function to extract content from meta tags using regex
+function extractMetaContent(html: string, property: string): string | null {
+  const patterns = [
+    new RegExp(`<meta\s+property=["']${property}["']\s+content=["']([^"']+)["'][^>]*>`, 'i'),
+    new RegExp(`<meta\s+content=["']([^"']+)["']\s+property=["']${property}["'][^>]*>`, 'i'),
+    new RegExp(`<meta\s+name=["']${property}["']\s+content=["']([^"']+)["'][^>]*>`, 'i'),
+    new RegExp(`<meta\s+content=["']([^"']+)["']\s+name=["']${property}["'][^>]*>`, 'i')
+  ]
+  
+  for (const pattern of patterns) {
+    const match = html.match(pattern)
+    if (match && match[1]) {
+      return match[1].trim()
+    }
+  }
+  
+  return null
+}
+
+// Helper function to extract title from HTML
+function extractTitle(html: string): string {
+  const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i)
+  return titleMatch ? titleMatch[1].trim() : 'Link'
+}
+
+// Helper function to extract favicon URL
+function extractFavicon(html: string): string | null {
+  const patterns = [
+    /<link[^>]+rel=["']icon["'][^>]+href=["']([^"']+)["'][^>]*>/i,
+    /<link[^>]+href=["']([^"']+)["'][^>]+rel=["']icon["'][^>]*>/i,
+    /<link[^>]+rel=["']shortcut icon["'][^>]+href=["']([^"']+)["'][^>]*>/i,
+    /<link[^>]+href=["']([^"']+)["'][^>]+rel=["']shortcut icon["'][^>]*>/i
+  ]
+  
+  for (const pattern of patterns) {
+    const match = html.match(pattern)
+    if (match && match[1]) {
+      return match[1].trim()
+    }
+  }
+  
+  return null
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -40,39 +83,27 @@ export async function GET(request: Request) {
     }
 
     const html = await response.text()
-    const $ = load(html)
 
-    // Extract metadata with fallbacks
-    const getMetaContent = (selector: string): string | null => {
-      return $(selector).attr('content') || null
-    }
+    // Extract metadata using regex patterns
+    const ogTitle = extractMetaContent(html, 'og:title')
+    const twitterTitle = extractMetaContent(html, 'twitter:title')
+    const htmlTitle = extractTitle(html)
+    const title = ogTitle || twitterTitle || htmlTitle || 'Link'
 
-    // Try different meta tag variations
-    const title = getMetaContent('meta[property="og:title"]') ||
-                  getMetaContent('meta[name="twitter:title"]') ||
-                  $('title').text() ||
-                  'Link'
+    const ogDescription = extractMetaContent(html, 'og:description')
+    const twitterDescription = extractMetaContent(html, 'twitter:description')
+    const metaDescription = extractMetaContent(html, 'description')
+    const description = ogDescription || twitterDescription || metaDescription || ''
 
-    const description = getMetaContent('meta[property="og:description"]') ||
-                       getMetaContent('meta[name="twitter:description"]') ||
-                       getMetaContent('meta[name="description"]') ||
-                       ''
+    const ogImage = extractMetaContent(html, 'og:image')
+    const twitterImage = extractMetaContent(html, 'twitter:image')
+    const twitterImageSrc = extractMetaContent(html, 'twitter:image:src')
+    const image = ogImage || twitterImage || twitterImageSrc
 
-    const image = getMetaContent('meta[property="og:image"]') ||
-                  getMetaContent('meta[name="twitter:image"]') ||
-                  getMetaContent('meta[name="twitter:image:src"]') ||
-                  null
+    const ogSiteName = extractMetaContent(html, 'og:site_name')
+    const siteName = ogSiteName || urlObj.hostname.replace('www.', '') || 'Website'
 
-    // Get site name
-    const siteName = getMetaContent('meta[property="og:site_name"]') ||
-                     urlObj.hostname.replace('www.', '') ||
-                     'Website'
-
-    // Get favicon
-    const favicon = $('link[rel="icon"]').attr('href') ||
-                   $('link[rel="shortcut icon"]').attr('href') ||
-                   $('link[rel="apple-touch-icon"]').attr('href') ||
-                   `${urlObj.protocol}//${urlObj.hostname}/favicon.ico`
+    const favicon = extractFavicon(html)
 
     // Resolve relative URLs
     const resolveUrl = (relativeUrl: string | null): string | null => {
@@ -86,11 +117,11 @@ export async function GET(request: Request) {
 
     const metadata = {
       url,
-      title: title.trim().substring(0, 100), // Limit title length
-      description: description.trim().substring(0, 200), // Limit description length
+      title: title.substring(0, 100), // Limit title length
+      description: description.substring(0, 200), // Limit description length
       image: resolveUrl(image),
-      siteName: siteName.trim().substring(0, 50), // Limit site name length
-      favicon: resolveUrl(favicon),
+      siteName: siteName.substring(0, 50), // Limit site name length
+      favicon: resolveUrl(favicon) || `${urlObj.protocol}//${urlObj.hostname}/favicon.ico`,
       domain: urlObj.hostname
     }
 

@@ -17,142 +17,50 @@ import {
   ArrowLeft,
   Check,
   CheckCheck,
-  Mic
+  Mic,
+  PhoneCall,
+  Users,
+  Settings,
+  Plus,
+  Archive
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-
-interface Contact {
-  id: string
-  name: string
-  username: string
-  avatar: string
-  lastMessage?: string
-  lastMessageTime?: string
-  unreadCount?: number
-  isOnline: boolean
-  lastSeen?: string
-}
-
-interface Message {
-  id: string
-  text: string
-  timestamp: Date
-  senderId: string
-  isOwn: boolean
-  status: 'sent' | 'delivered' | 'read'
-}
+import { useRealMessages, type RealContact, type RealMessage } from '@/hooks/use-real-messages'
+import { useCall } from '@/hooks/use-call'
+import { CallModal } from '@/components/call/call-modal'
+import { CallCenterWidget } from '@/components/call/call-center-widget'
+import { toast } from 'sonner'
 
 export default function MensagensPage() {
   const { user, profile } = useAuth()
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
+  const { callState, startVideoCall, startAudioCall, endCall } = useCall()
+  const {
+    contacts,
+    messages,
+    loading,
+    loadingMessages,
+    selectedContactId,
+    setSelectedContactId,
+    sendMessage,
+    refreshContacts
+  } = useRealMessages()
+  
   const [searchTerm, setSearchTerm] = useState('')
   const [messageText, setMessageText] = useState('')
-  const [messages, setMessages] = useState<Message[]>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [isMobileView, setIsMobileView] = useState(false)
+  const [isTyping, setIsTyping] = useState(false)
+  
+  const selectedContact = contacts.find(c => c.id === selectedContactId) || null
 
-  // Demo contacts
-  const [contacts] = useState<Contact[]>([
-    {
-      id: '1',
-      name: 'Ana Carolina',
-      username: 'ana_carolina',
-      avatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=100',
-      lastMessage: 'Oi! Como você está?',
-      lastMessageTime: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-      unreadCount: 2,
-      isOnline: true
-    },
-    {
-      id: '2',
-      name: 'Carlos Eduardo',
-      username: 'carlos_edu',
-      avatar: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=100',
-      lastMessage: 'Vamos marcar aquele encontro!',
-      lastMessageTime: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      unreadCount: 0,
-      isOnline: false,
-      lastSeen: 'visto por último hoje às 14:30'
-    },
-    {
-      id: '3',
-      name: 'Mariana Silva',
-      username: 'mariana_silva',
-      avatar: 'https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=100',
-      lastMessage: '😂😂😂',
-      lastMessageTime: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      unreadCount: 1,
-      isOnline: true
-    },
-    {
-      id: '4',
-      name: 'João Santos',
-      username: 'joao_santos',
-      avatar: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=100',
-      lastMessage: 'Valeu pela ajuda ontem!',
-      lastMessageTime: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-      unreadCount: 0,
-      isOnline: false,
-      lastSeen: 'visto por último anteontem às 22:15'
-    },
-    {
-      id: '5',
-      name: 'Patricia Lima',
-      username: 'patricia_lima',
-      avatar: 'https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100',
-      lastMessage: 'Que bom te ver por aqui!',
-      lastMessageTime: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-      unreadCount: 0,
-      isOnline: true
-    }
-  ])
-
-  // Demo messages for selected contact
-  const demoMessages: Record<string, Message[]> = {
-    '1': [
-      {
-        id: '1',
-        text: 'Oi! Tudo bem?',
-        timestamp: new Date(Date.now() - 60 * 60 * 1000),
-        senderId: '1',
-        isOwn: false,
-        status: 'read'
-      },
-      {
-        id: '2',
-        text: 'Oi Ana! Tudo ótimo por aqui, e com você?',
-        timestamp: new Date(Date.now() - 58 * 60 * 1000),
-        senderId: 'me',
-        isOwn: true,
-        status: 'read'
-      },
-      {
-        id: '3',
-        text: 'Também tudo bem! Que bom ver você no Orkut de novo! 😊',
-        timestamp: new Date(Date.now() - 55 * 60 * 1000),
-        senderId: '1',
-        isOwn: false,
-        status: 'read'
-      },
-      {
-        id: '4',
-        text: 'Verdade! Essa nostalgia está incrível! Como está a vida?',
-        timestamp: new Date(Date.now() - 50 * 60 * 1000),
-        senderId: 'me',
-        isOwn: true,
-        status: 'read'
-      },
-      {
-        id: '5',
-        text: 'Oi! Como você está?',
-        timestamp: new Date(Date.now() - 30 * 60 * 1000),
-        senderId: '1',
-        isOwn: false,
-        status: 'delivered'
-      }
-    ]
+  // Stats dos contatos
+  const contactStats = {
+    total: contacts.length,
+    online: contacts.filter(c => c.isOnline).length,
+    unread: contacts.reduce((sum, c) => sum + (c.unreadCount || 0), 0)
   }
+
 
   useEffect(() => {
     const handleResize = () => {
@@ -163,11 +71,6 @@ export default function MensagensPage() {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  useEffect(() => {
-    if (selectedContact) {
-      setMessages(demoMessages[selectedContact.id] || [])
-    }
-  }, [selectedContact])
 
   useEffect(() => {
     scrollToBottom()
@@ -182,40 +85,47 @@ export default function MensagensPage() {
     contact.username.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  const handleSendMessage = () => {
-    if (!messageText.trim() || !selectedContact) return
+  const handleSendMessage = async () => {
+    if (!messageText.trim() || !selectedContactId) return
 
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      text: messageText.trim(),
-      timestamp: new Date(),
-      senderId: 'me',
-      isOwn: true,
-      status: 'sent'
+    // Mostrar indicador de digitação
+    setIsTyping(true)
+    
+    try {
+      await sendMessage(selectedContactId, messageText.trim())
+      setMessageText('')
+      toast.success('Mensagem enviada!')
+    } catch (error) {
+      toast.error('Erro ao enviar mensagem')
+    } finally {
+      setIsTyping(false)
     }
-
-    setMessages(prev => [...prev, newMessage])
-    setMessageText('')
-
-    // Simular resposta automática
-    setTimeout(() => {
-      const autoReply: Message = {
-        id: (Date.now() + 1).toString(),
-        text: 'Obrigado pela mensagem! Esta é uma resposta automática de demonstração.',
-        timestamp: new Date(),
-        senderId: selectedContact.id,
-        isOwn: false,
-        status: 'delivered'
-      }
-      setMessages(prev => [...prev, autoReply])
-    }, 1000)
   }
 
-  const handleContactSelect = (contact: Contact) => {
-    setSelectedContact(contact)
+  const handleContactSelect = (contact: RealContact) => {
+    setSelectedContactId(contact.id)
     if (isMobileView) {
       // No mobile, esconder a lista de contatos quando selecionar um
     }
+  }
+
+  const handleStartCall = (type: 'audio' | 'video') => {
+    if (!selectedContact) return
+    
+    const callUser = {
+      id: selectedContact.id,
+      name: selectedContact.name,
+      photo: selectedContact.avatar,
+      username: selectedContact.username
+    }
+    
+    if (type === 'video') {
+      startVideoCall(callUser)
+    } else {
+      startAudioCall(callUser)
+    }
+    
+    toast.success(`Iniciando ${type === 'video' ? 'chamada de vídeo' : 'chamada de áudio'}...`)
   }
 
   const formatMessageTime = (date: Date) => {
@@ -244,20 +154,34 @@ export default function MensagensPage() {
           {/* Header */}
           <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={profile?.photo_url || undefined} alt={profile?.display_name || undefined} />
-                  <AvatarFallback>
-                    {profile?.display_name?.charAt(0).toUpperCase() || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <h2 className="font-medium text-gray-900">Conversas</h2>
+                <div className="flex items-center space-x-3">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={profile?.photo_url || undefined} alt={profile?.display_name || undefined} />
+                    <AvatarFallback>
+                      {profile?.display_name?.charAt(0).toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h2 className="font-medium text-gray-900">Conversas</h2>
+                    <p className="text-xs text-gray-500">
+                      {contactStats.online}/{contactStats.total} online
+                      {contactStats.unread > 0 && ` • ${contactStats.unread} não lidas`}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <Button variant="ghost" size="sm">
-                <MoreVertical className="h-5 w-5" />
-              </Button>
+                <div className="flex items-center space-x-1">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={refreshContacts}
+                    title="Atualizar conversas"
+                  >
+                    <Users className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm">
+                    <MoreVertical className="h-5 w-5" />
+                  </Button>
+                </div>
             </div>
           </div>
 
@@ -276,49 +200,77 @@ export default function MensagensPage() {
 
           {/* Contacts List */}
           <div className="flex-1 overflow-y-auto">
-            {filteredContacts.map((contact) => (
-              <div
-                key={contact.id}
-                className={`flex items-center p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 ${
-                  selectedContact?.id === contact.id ? 'bg-gray-100' : ''
-                }`}
-                onClick={() => handleContactSelect(contact)}
-              >
-                <div className="relative">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={contact.avatar} alt={contact.name} />
-                    <AvatarFallback>
-                      {contact.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  {contact.isOnline && (
-                    <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                  )}
-                </div>
-                
-                <div className="flex-1 ml-3 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-medium text-gray-900 truncate">{contact.name}</h3>
-                    <span className="text-xs text-gray-500">
-                      {contact.lastMessageTime && formatDistanceToNow(
-                        new Date(contact.lastMessageTime),
-                        { addSuffix: false, locale: ptBR }
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between mt-1">
-                    <p className="text-sm text-gray-600 truncate">
-                      {contact.lastMessage}
-                    </p>
-                    {contact.unreadCount && contact.unreadCount > 0 && (
-                      <div className="bg-green-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
-                        {contact.unreadCount}
-                      </div>
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-2"></div>
+                <p className="text-sm text-gray-500">Carregando conversas...</p>
+              </div>
+            ) : filteredContacts.length === 0 ? (
+              <div className="text-center py-8 px-4">
+                <PhoneCall className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                <h3 className="font-medium text-gray-900 mb-1">Nenhuma conversa</h3>
+                <p className="text-sm text-gray-500 mb-4">Adicione amigos para começar a conversar!</p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => window.location.href = '/buscar'}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Buscar pessoas
+                </Button>
+              </div>
+            ) : (
+              filteredContacts.map((contact) => (
+                <div
+                  key={contact.id}
+                  className={`flex items-center p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 transition-colors ${
+                    selectedContact?.id === contact.id ? 'bg-blue-50 border-blue-200' : ''
+                  }`}
+                  onClick={() => handleContactSelect(contact)}
+                >
+                  <div className="relative">
+                    <Avatar className={`h-12 w-12 ${contact.isOnline ? 'ring-2 ring-green-400 ring-offset-1' : ''}`}>
+                      <AvatarImage src={contact.avatar} alt={contact.name} />
+                      <AvatarFallback>
+                        {contact.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    {contact.isOnline && (
+                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white animate-pulse"></div>
                     )}
                   </div>
+                  
+                  <div className="flex-1 ml-3 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <h3 className="font-medium text-gray-900 truncate">{contact.name}</h3>
+                        {contact.isOnline && (
+                          <span className="text-xs text-green-600 font-medium">•</span>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-500">
+                        {contact.lastMessageTime && formatDistanceToNow(
+                          new Date(contact.lastMessageTime),
+                          { addSuffix: false, locale: ptBR }
+                        )}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between mt-1">
+                      <p className="text-sm text-gray-600 truncate flex-1 pr-2">
+                        {contact.lastMessage}
+                      </p>
+                      <div className="flex items-center space-x-1">
+                        {contact.unreadCount && contact.unreadCount > 0 && (
+                          <div className="bg-green-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center font-medium">
+                            {contact.unreadCount}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
@@ -340,7 +292,7 @@ export default function MensagensPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setSelectedContact(null)}
+                      onClick={() => setSelectedContactId(null)}
                       className="mr-2"
                     >
                       <ArrowLeft className="h-5 w-5" />
@@ -366,10 +318,22 @@ export default function MensagensPage() {
                 </div>
                 
                 <div className="flex items-center space-x-2">
-                  <Button variant="ghost" size="sm">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleStartCall('video')}
+                    title="Chamada de vídeo"
+                    disabled={!selectedContact?.isOnline}
+                  >
                     <Video className="h-5 w-5" />
                   </Button>
-                  <Button variant="ghost" size="sm">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleStartCall('audio')}
+                    title="Chamada de áudio"
+                    disabled={!selectedContact?.isOnline}
+                  >
                     <Phone className="h-5 w-5" />
                   </Button>
                   <Button variant="ghost" size="sm">
@@ -385,43 +349,69 @@ export default function MensagensPage() {
                   backgroundImage: `url("data:image/svg+xml,%3csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3e%3cg fill='none' fill-rule='evenodd'%3e%3cg fill='%23f3f4f6' fill-opacity='0.1'%3e%3ccircle cx='30' cy='30' r='2'/%3e%3c/g%3e%3c/g%3e%3c/svg%3e")`,
                 }}
               >
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${
-                      message.isOwn ? 'justify-end' : 'justify-start'
-                    }`}
-                  >
+                {loadingMessages ? (
+                  <div className="flex justify-center items-center h-32">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+                  </div>
+                ) : messages.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-32 text-center">
+                    <PhoneCall className="h-12 w-12 text-gray-300 mb-2" />
+                    <p className="text-gray-500">Nenhuma mensagem ainda</p>
+                    <p className="text-sm text-gray-400">Envie a primeira mensagem!</p>
+                  </div>
+                ) : (
+                  messages.map((message) => (
                     <div
-                      className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                        message.isOwn
-                          ? 'bg-green-500 text-white'
-                          : 'bg-white text-gray-800'
+                      key={message.id}
+                      className={`flex ${
+                        message.isOwn ? 'justify-end' : 'justify-start'
                       }`}
-                      style={{
-                        borderRadius: message.isOwn
-                          ? '18px 18px 4px 18px'
-                          : '18px 18px 18px 4px'
-                      }}
                     >
-                      <p className="text-sm">{message.text}</p>
-                      <div className={`flex items-center justify-end mt-1 space-x-1 ${
-                        message.isOwn ? 'text-green-100' : 'text-gray-500'
-                      }`}>
-                        <span className="text-xs">
-                          {formatMessageTime(message.timestamp)}
-                        </span>
-                        {message.isOwn && (
-                          <div className="flex">
-                            {message.status === 'sent' && <Check className="h-3 w-3" />}
-                            {message.status === 'delivered' && <CheckCheck className="h-3 w-3" />}
-                            {message.status === 'read' && <CheckCheck className="h-3 w-3 text-blue-300" />}
-                          </div>
-                        )}
+                      <div
+                        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg shadow-sm ${
+                          message.isOwn
+                            ? 'bg-green-500 text-white'
+                            : 'bg-white text-gray-800 border border-gray-200'
+                        }`}
+                        style={{
+                          borderRadius: message.isOwn
+                            ? '18px 18px 4px 18px'
+                            : '18px 18px 18px 4px'
+                        }}
+                      >
+                        <p className="text-sm">{message.text}</p>
+                        <div className={`flex items-center justify-end mt-1 space-x-1 ${
+                          message.isOwn ? 'text-green-100' : 'text-gray-500'
+                        }`}>
+                          <span className="text-xs">
+                            {formatMessageTime(message.timestamp)}
+                          </span>
+                          {message.isOwn && (
+                            <div className="flex">
+                              {message.status === 'sent' && <Check className="h-3 w-3" />}
+                              {message.status === 'delivered' && <CheckCheck className="h-3 w-3" />}
+                              {message.status === 'read' && <CheckCheck className="h-3 w-3 text-blue-300" />}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+                
+                {/* Indicador de digitação */}
+                {isTyping && (
+                  <div className="flex justify-start">
+                    <div className="bg-white border border-gray-200 px-4 py-2 rounded-lg max-w-xs">
+                      <div className="flex space-x-1">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                       </div>
                     </div>
                   </div>
-                ))}
+                )}
+                
                 <div ref={messagesEndRef} />
               </div>
 
@@ -493,6 +483,19 @@ export default function MensagensPage() {
           )}
         </div>
       </div>
+      
+      {/* Central de Chamadas Widget */}
+      <CallCenterWidget isVisible={true} />
+      
+      {/* Modal de Chamada */}
+      {callState.isOpen && callState.targetUser && callState.callType && (
+        <CallModal
+          isOpen={callState.isOpen}
+          onClose={endCall}
+          callType={callState.callType}
+          targetUser={callState.targetUser}
+        />
+      )}
     </div>
   )
 }

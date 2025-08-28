@@ -39,45 +39,7 @@ export function useRealMessages() {
 
   // Carregar amigos reais do usuário
   const loadContacts = useCallback(async () => {
-    if (!user) {
-      // Se não há usuário logado, mostrar contatos demo
-      const demoContacts: RealContact[] = [
-        {
-          id: 'demo1',
-          name: 'Ana Carolina',
-          username: 'ana_carolina',
-          avatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=100',
-          lastMessage: 'Oi! Como você está?',
-          lastMessageTime: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-          unreadCount: 2,
-          isOnline: true
-        },
-        {
-          id: 'demo2',
-          name: 'Carlos Eduardo',
-          username: 'carlos_edu',
-          avatar: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=100',
-          lastMessage: 'Vamos marcar aquele encontro!',
-          lastMessageTime: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          unreadCount: 0,
-          isOnline: false,
-          lastSeen: 'visto por último hoje às 14:30'
-        },
-        {
-          id: 'demo3',
-          name: 'Mariana Silva',
-          username: 'mariana_silva',
-          avatar: 'https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=100',
-          lastMessage: '😂😂😂',
-          lastMessageTime: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-          unreadCount: 1,
-          isOnline: true
-        }
-      ]
-      setContacts(demoContacts)
-      setLoading(false)
-      return
-    }
+    if (!user) return
 
     try {
       setLoading(true)
@@ -105,7 +67,7 @@ export function useRealMessages() {
 
         if (!friend) continue
 
-        // Buscar última mensagem com este amigo
+        // Buscar última mensagem com este amigo - CORRIGINDO OS NOMES DOS CAMPOS
         const { data: lastMessages } = await supabase
           .from('messages')
           .select('*')
@@ -115,13 +77,20 @@ export function useRealMessages() {
 
         const lastMessage = lastMessages?.[0]
         
-        // Contar mensagens não lidas
+        // Contar mensagens não lidas - AJUSTANDO PARA SCHEMA
         const { count: unreadCount } = await supabase
           .from('messages')
           .select('*', { count: 'exact', head: true })
           .eq('from_profile_id', friend.id)
           .eq('to_profile_id', user.id)
           .is('read_at', null)
+
+        // Verificar status online do usuário
+        const { data: presenceData } = await supabase
+          .from('user_presence')
+          .select('is_online, last_seen')
+          .eq('user_id', friend.id)
+          .single()
 
         realContacts.push({
           id: friend.id,
@@ -131,15 +100,15 @@ export function useRealMessages() {
           lastMessage: lastMessage?.content || 'Começar conversa',
           lastMessageTime: lastMessage?.created_at,
           unreadCount: unreadCount || 0,
-          isOnline: Math.random() > 0.3, // 70% chance de estar online
-          lastSeen: Math.random() > 0.3 ? undefined : `visto por último ${Math.floor(Math.random() * 60)} min atrás`
+          isOnline: presenceData?.is_online || false,
+          lastSeen: !presenceData?.is_online && presenceData?.last_seen 
+            ? `visto por último ${new Date(presenceData.last_seen).toLocaleString('pt-BR')}` 
+            : undefined
         })
       }
 
       // Se não houver amigos reais, adicionar alguns contatos demo
-      console.log('🔍 [DEBUG] Total de contatos reais processados:', realContacts.length)
       if (realContacts.length === 0) {
-        console.log('🔍 [DEBUG] Nenhum contato real, adicionando demos')
         const demoContacts: RealContact[] = [
           {
             id: 'demo1',
@@ -177,28 +146,20 @@ export function useRealMessages() {
       }
 
       setContacts(realContacts)
-      console.log('✅ [DEBUG] Contatos definidos no state:', realContacts.length)
     } catch (error) {
-      console.error('❌ [DEBUG] Erro ao carregar contatos:', error)
+      console.error('Erro ao carregar contatos:', error)
       toast.error('Erro ao carregar conversas')
     } finally {
       setLoading(false)
-      console.log('🔍 [DEBUG] loadContacts finalizado')
     }
   }, [user])
 
   // Carregar mensagens de uma conversa específica
   const loadMessages = useCallback(async (contactId: string) => {
-    console.log('🔍 [DEBUG] loadMessages chamada:', { contactId, user: !!user })
-    
-    if (!user || !contactId) {
-      console.log('⚠️ [DEBUG] loadMessages: sem user ou contactId')
-      return
-    }
+    if (!user || !contactId) return
 
     try {
       setLoadingMessages(true)
-      console.log('🔍 [DEBUG] Iniciando carregamento de mensagens...')
       
       // Se for contato demo, usar mensagens demo
       if (contactId.startsWith('demo')) {
@@ -238,22 +199,14 @@ export function useRealMessages() {
         return
       }
 
-      // Carregar mensagens reais do Supabase
-      const query = `and(from_profile_id.eq.${user.id},to_profile_id.eq.${contactId}),and(from_profile_id.eq.${contactId},to_profile_id.eq.${user.id})`
-      console.log('🔍 [DEBUG] Query de mensagens:', query)
-      
+      // Carregar mensagens reais do Supabase - CORRIGINDO NOMES DOS CAMPOS
       const { data: messagesData, error } = await supabase
         .from('messages')
         .select('*')
-        .or(query)
+        .or(`and(from_profile_id.eq.${user.id},to_profile_id.eq.${contactId}),and(from_profile_id.eq.${contactId},to_profile_id.eq.${user.id})`)
         .order('created_at', { ascending: true })
 
-      if (error) {
-        console.error('❌ [DEBUG] Erro ao buscar mensagens:', error)
-        throw error
-      }
-      
-      console.log('✅ [DEBUG] Mensagens encontradas:', messagesData?.length || 0)
+      if (error) throw error
 
       const realMessages: RealMessage[] = messagesData?.map(msg => ({
         id: msg.id.toString(),
@@ -263,14 +216,13 @@ export function useRealMessages() {
         receiverId: msg.to_profile_id,
         isOwn: msg.from_profile_id === user.id,
         status: msg.read_at ? 'read' : 'delivered',
-        type: 'text', // Campo type não existe na tabela, assumindo texto
+        type: 'text', // Assumindo texto por enquanto
         metadata: null
       })) || []
 
       setMessages(realMessages)
-      console.log('✅ [DEBUG] Mensagens definidas no state:', realMessages.length)
 
-      // Marcar mensagens como lidas
+      // Marcar mensagens como lidas - CORRIGINDO CAMPO
       if (realMessages.length > 0) {
         await supabase
           .from('messages')
@@ -288,7 +240,7 @@ export function useRealMessages() {
     }
   }, [user])
 
-  // Enviar mensagem
+  // Enviar mensagem - CORRIGINDO NOMES DOS CAMPOS
   const sendMessage = useCallback(async (contactId: string, text: string) => {
     if (!user || !contactId || !text.trim()) return
 
@@ -326,13 +278,15 @@ export function useRealMessages() {
         return
       }
 
-      // Salvar mensagem real no Supabase
+      // Salvar mensagem real no Supabase - CORRIGINDO NOMES DOS CAMPOS
       const { error } = await supabase
         .from('messages')
         .insert({
+          id: parseInt(messageId),
           from_profile_id: user.id,
           to_profile_id: contactId,
-          content: text.trim()
+          content: text.trim(),
+          created_at: new Date().toISOString()
         })
 
       if (error) throw error
@@ -352,8 +306,9 @@ export function useRealMessages() {
 
   // Efeitos
   useEffect(() => {
-    // Sempre carregar contatos, mesmo sem usuário logado (para mostrar demo)
-    loadContacts()
+    if (user) {
+      loadContacts()
+    }
   }, [user, loadContacts])
 
   useEffect(() => {

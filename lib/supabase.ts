@@ -296,31 +296,24 @@ export type Database = {
       }
       messages: {
         Row: {
-          id: string
-          conversation_id: string
-          sender_id: string
-          recipient_id: string
+          id: number
+          from_profile_id: string
+          to_profile_id: string
           content: string
-          message_type: 'text' | 'image' | 'file'
-          is_read: boolean
           created_at: string
-          updated_at: string
+          read_at: string | null
         }
         Insert: {
-          id?: string
-          conversation_id?: string
-          sender_id: string
-          recipient_id: string
+          id?: number
+          from_profile_id: string
+          to_profile_id: string
           content: string
-          message_type?: 'text' | 'image' | 'file'
-          is_read?: boolean
           created_at?: string
-          updated_at?: string
+          read_at?: string | null
         }
         Update: {
           content?: string
-          is_read?: boolean
-          updated_at?: string
+          read_at?: string | null
         }
       }
       conversations: {

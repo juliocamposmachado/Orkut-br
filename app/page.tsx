@@ -48,7 +48,8 @@ import {
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import Link from 'next/link'
-import RadioPlayerWidget from '@/components/RadioPlayerWidget'
+import RadioTatuapeWidget from '@/components/RadioWidget'
+import StreamingPlayerWidget from '@/components/StreamingPlayerWidget'
 import { CommentsModal } from '@/components/posts/comments-modal'
 import { ShareModal } from '@/components/posts/share-modal'
 import { UserMoodDisplay } from '@/components/status/user-mood-display'
@@ -368,6 +369,9 @@ export default function HomePage() {
           
           {/* Left Sidebar */}
           <div className="mobile-space space-y-4 lg:sticky lg:top-6 order-2 lg:order-1">
+            {/* Streaming Player Widget - PRIMEIRO */}
+            <StreamingPlayerWidget className="shadow-md" />
+            
             {/* Sponsored Ads Carousel */}
             <OrkutCard>
               <OrkutCardHeader>
@@ -875,8 +879,8 @@ export default function HomePage() {
           {/* Right Sidebar */}
           <div className="mobile-space space-y-4 lg:space-y-6 lg:sticky lg:top-6 lg:pl-2 order-3">
 
-            {/* 1. Radio Player Widget - SEGUNDO */}
-            <RadioPlayerWidget className="shadow-md" />
+            {/* 1. Radio Widget - SEGUNDO */}
+            <RadioTatuapeWidget className="shadow-md" />
 
             {/* 2. Site Users - Gmail Users Only - SEGUNDO */}
             <OrkutCard>

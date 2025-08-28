@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { supabase } from '@/lib/supabase'
-import { Camera, Image, Smile, Send, Globe, Users, ChevronDown, CheckCircle } from 'lucide-react'
+import { Camera, Image, Smile, Send, Globe, Users, ChevronDown, CheckCircle, MapPin, Calendar } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +15,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { toast } from 'sonner'
+import { useLinkPreview } from '@/hooks/use-link-preview'
+import { LinkPreviewCard, LinkPreviewSkeleton } from '@/components/ui/link-preview-card'
 
 interface CreatePostProps {
   onPostCreated?: () => void
@@ -25,6 +27,9 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const [content, setContent] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [visibility, setVisibility] = useState<'public' | 'friends'>('public')
+  
+  // Link preview hook
+  const { linkPreview, isLoading: isLinkLoading, clearPreview } = useLinkPreview(content)
 
   // Check if we have valid Supabase configuration
   const hasSupabaseConfig = process.env.NEXT_PUBLIC_SUPABASE_URL && 
@@ -202,34 +207,69 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
             maxLength={500}
           />
           
+          {/* Link Preview Section */}
+          {isLinkLoading && (
+            <div className="mt-4">
+              <LinkPreviewSkeleton />
+            </div>
+          )}
+          
+          {linkPreview && (
+            <div className="mt-4">
+              <LinkPreviewCard 
+                preview={linkPreview} 
+                onRemove={clearPreview}
+                isLoading={isLinkLoading}
+              />
+            </div>
+          )}
+          
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1">
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="text-purple-600 hover:bg-purple-50"
+                className="text-gray-600 hover:bg-gray-50 p-2"
+                title="Adicionar foto"
               >
-                <Camera className="h-4 w-4 mr-1" />
-                Foto
+                <Camera className="h-5 w-5" />
               </Button>
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="text-purple-600 hover:bg-purple-50"
+                className="text-blue-600 hover:bg-blue-50 p-2"
+                title="Marcar pessoas"
               >
-                <Image className="h-4 w-4 mr-1" />
-                Imagem
+                <Users className="h-5 w-5" />
               </Button>
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="text-purple-600 hover:bg-purple-50"
+                className="text-yellow-600 hover:bg-yellow-50 p-2"
+                title="Adicionar emoji"
               >
-                <Smile className="h-4 w-4 mr-1" />
-                Emoji
+                <Smile className="h-5 w-5" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-red-600 hover:bg-red-50 p-2"
+                title="Adicionar localização"
+              >
+                <MapPin className="h-5 w-5" />
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-green-600 hover:bg-green-50 p-2"
+                title="Adicionar evento"
+              >
+                <Calendar className="h-5 w-5" />
               </Button>
             </div>
             

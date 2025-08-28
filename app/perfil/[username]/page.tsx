@@ -72,6 +72,7 @@ interface FriendItem {
 const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
   const { user: currentUser, profile: currentUserProfile } = useAuth();
   const { callState, startVideoCall, startAudioCall, endCall } = useCall();
+  const router = useRouter();
   
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -329,7 +330,7 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
     }
   };
 
-  // Função para abrir modal de mensagem
+  // Função para redirecionar para página de mensagens
   const handleOpenMessage = (targetUser: {
     id: string;
     name: string;
@@ -337,8 +338,8 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
     photo?: string;
     isOnline?: boolean;
   }) => {
-    setMessageTarget(targetUser);
-    setMessageModalOpen(true);
+    // Redirecionar para página de mensagens
+    router.push('/mensagens');
   };
 
   // Função para fechar modal de mensagem

@@ -8,7 +8,6 @@ import { WebRTCProvider } from '@/contexts/webrtc-context';
 import { RadioProvider } from '@/contexts/RadioContext';
 import { Toaster } from '@/components/ui/sonner';
 import { StructuredData } from '@/components/seo/structured-data';
-import { CallManager } from '@/components/calls/call-manager';
 // Import polyfills to fix runtime errors
 import '@/lib/polyfills';
 // WebRTC diagnostics moved to developer dashboard
@@ -167,7 +166,7 @@ export default function RootLayout({
               <WebRTCProvider>
                 <VoiceProvider>
                   {children}
-                  <CallManager />
+                  {/* CallManager removido - funcionalidades integradas nas páginas específicas */}
                   {/* WebRTC diagnostics moved to developer dashboard */}
                   {/* <EventListenerMonitor /> */}
                   <Toaster />

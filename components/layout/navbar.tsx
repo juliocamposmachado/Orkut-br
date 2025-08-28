@@ -130,7 +130,7 @@ export function Navbar() {
 
           {/* Center - Navigation Items */}
           <div className="flex-1 flex justify-center">
-            <div className="hidden md:flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-6 py-2">
+            <div className="hidden md:flex items-center space-x-2 px-6 py-2">
               {navItems.map((item) => {
                 const Icon = item.icon
                 const isActive = pathname === item.href

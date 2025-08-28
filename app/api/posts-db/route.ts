@@ -3,6 +3,16 @@ import { supabase } from '@/lib/supabase'
 import { createClient } from '@supabase/supabase-js'
 
 // Interface para os posts
+interface LinkPreview {
+  url: string
+  title: string
+  description: string
+  image: string | null
+  siteName: string
+  favicon: string | null
+  domain: string
+}
+
 interface Post {
   id: number | string
   content: string
@@ -15,6 +25,7 @@ interface Post {
   created_at: string
   is_dj_post?: boolean
   shares_count?: number
+  link_preview?: LinkPreview | null
 }
 
 // Dados em memória como fallback (para desenvolvimento)
@@ -163,7 +174,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     console.log('🔍 [API] Dados recebidos no POST:', body)
     
-    const { content, author, author_name, author_photo, visibility = 'public', is_dj_post = false, shares_count = 0 } = body
+    const { content, author, author_name, author_photo, visibility = 'public', is_dj_post = false, shares_count = 0, link_preview } = body
 
     // Validações básicas
     if (!content || !author) {
@@ -195,7 +206,8 @@ export async function POST(request: NextRequest) {
       comments_count: 0,
       shares_count: 0,
       created_at: new Date().toISOString(),
-      is_dj_post: is_dj_post || false
+      is_dj_post: is_dj_post || false,
+      link_preview: link_preview || null
     }
     
     console.log('📝 [API] Novo post criado:', newPost)

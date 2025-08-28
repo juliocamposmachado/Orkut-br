@@ -103,7 +103,8 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           author_name: profile?.display_name || 'Usuário',
           author_photo: profile?.photo_url || null,
           visibility: visibility,
-          is_dj_post: false
+          is_dj_post: false,
+          link_preview: linkPreview
         })
       })
       

@@ -113,7 +113,12 @@ export function CallPanel() {
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center justify-between text-purple-800">
           <div className="flex items-center">
-            <PhoneCall className="w-5 h-5 mr-2" />
+            <div className="relative mr-2">
+              <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center shadow-lg">
+                <PhoneCall className="w-4 h-4 text-white" />
+              </div>
+              <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full animate-pulse border-2 border-white"></div>
+            </div>
             Central de Chamadas
           </div>
           <Button

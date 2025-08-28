@@ -76,7 +76,7 @@ export function CommunityRulesCard({
   ]
 
   return (
-    <OrkutCard className={className}>
+    <OrkutCard className={`${className} ${!isExpanded ? 'min-h-[200px] flex flex-col justify-between' : ''}`}>
       <OrkutCardHeader>
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center space-x-2">

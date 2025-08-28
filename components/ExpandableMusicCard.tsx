@@ -168,7 +168,7 @@ const ExpandableMusicCard: React.FC = () => {
 
   if (loading) {
     return (
-      <Card className="w-full bg-gradient-to-br from-purple-100 to-pink-100 border-purple-200 h-[200px] flex items-center justify-center">
+      <Card className="w-full bg-gradient-to-br from-purple-100 to-pink-100 border-purple-200 min-h-[200px] flex items-center justify-center">
         <div className="flex items-center space-x-2">
           <Loader2 className="h-6 w-6 animate-spin text-purple-600" />
           <span className="text-purple-600 font-medium">Carregando...</span>
@@ -179,7 +179,7 @@ const ExpandableMusicCard: React.FC = () => {
 
   if (error || !currentSong) {
     return (
-      <Card className="w-full bg-gradient-to-br from-gray-100 to-gray-200 border-gray-300 h-[200px] flex items-center justify-center">
+      <Card className="w-full bg-gradient-to-br from-gray-100 to-gray-200 border-gray-300 min-h-[200px] flex items-center justify-center">
         <div className="text-center">
           <Music className="h-12 w-12 mx-auto mb-4 text-gray-400" />
           <p className="text-gray-600 mb-4">
@@ -196,7 +196,7 @@ const ExpandableMusicCard: React.FC = () => {
 
   return (
     <Card className={`w-full bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200 shadow-lg transition-all duration-300 ${
-      isExpanded ? 'h-auto' : 'h-[200px]'
+      isExpanded ? 'min-h-auto' : 'min-h-[200px]'
     }`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">

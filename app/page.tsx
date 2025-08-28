@@ -946,7 +946,7 @@ export default function HomePage() {
                                   variant="ghost" 
                                   className="p-1 h-6 w-6 text-gray-600 hover:bg-gray-200"
                                   title="Enviar mensagem"
-                                  onClick={() => router.push(`/mensagens/${user.username}`)}
+                                  onClick={() => router.push('/mensagens')}
                                 >
                                   <MessageCircle className="h-3 w-3" />
                                 </Button>

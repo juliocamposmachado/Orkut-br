@@ -266,7 +266,7 @@ export default function MembrosPage() {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => router.push(`/mensagens/${user.username}`)}
+                          onClick={() => router.push('/mensagens')}
                           className="border-purple-300 text-purple-700 hover:bg-purple-50"
                         >
                           <MessageCircle className="h-4 w-4 mr-2" />

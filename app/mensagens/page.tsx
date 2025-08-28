@@ -22,7 +22,8 @@ import {
   Users,
   Settings,
   Plus,
-  Archive
+  Archive,
+  RefreshCw
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -50,6 +51,9 @@ export default function MensagensPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [isMobileView, setIsMobileView] = useState(false)
   const [isTyping, setIsTyping] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const emojiPickerRef = useRef<HTMLDivElement>(null)
   
   const selectedContact = contacts.find(c => c.id === selectedContactId) || null
 
@@ -74,6 +78,34 @@ export default function MensagensPage() {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  // Auto-refresh messages every 1 minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (selectedContactId && !isRefreshing) {
+        handleSyncMessages()
+      }
+    }, 60000) // 60 segundos = 1 minuto
+
+    return () => clearInterval(interval)
+  }, [selectedContactId, isRefreshing])
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target as Node)) {
+        setShowEmojiPicker(false)
+      }
+    }
+
+    if (showEmojiPicker) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showEmojiPicker])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -106,6 +138,29 @@ export default function MensagensPage() {
     if (isMobileView) {
       // No mobile, esconder a lista de contatos quando selecionar um
     }
+  }
+
+  const handleSyncMessages = async () => {
+    if (isRefreshing) return
+    
+    setIsRefreshing(true)
+    try {
+      await refreshContacts()
+      toast.success('Mensagens sincronizadas!')
+    } catch (error) {
+      toast.error('Erro ao sincronizar mensagens')
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
+
+  const handleEmojiSelect = (emoji: string) => {
+    setMessageText(prev => prev + emoji)
+    setShowEmojiPicker(false)
+  }
+
+  const toggleEmojiPicker = () => {
+    setShowEmojiPicker(!showEmojiPicker)
   }
 
   const handleStartCall = (type: 'audio' | 'video') => {
@@ -172,10 +227,12 @@ export default function MensagensPage() {
                   <Button 
                     variant="ghost" 
                     size="sm"
-                    onClick={refreshContacts}
-                    title="Atualizar conversas"
+                    onClick={handleSyncMessages}
+                    disabled={isRefreshing}
+                    title="Sincronizar mensagens"
+                    className="transition-all duration-200"
                   >
-                    <Users className="h-4 w-4" />
+                    <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                   </Button>
                   <Button variant="ghost" size="sm">
                     <MoreVertical className="h-5 w-5" />
@@ -433,13 +490,59 @@ export default function MensagensPage() {
                       }}
                       className="pr-10"
                     />
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="absolute right-1 top-1/2 transform -translate-y-1/2"
-                    >
-                      <Smile className="h-4 w-4 text-gray-500" />
-                    </Button>
+                    <div className="relative" ref={emojiPickerRef}>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="absolute right-1 top-1/2 transform -translate-y-1/2"
+                        onClick={toggleEmojiPicker}
+                        title="Adicionar emoji"
+                      >
+                        <Smile className="h-4 w-4 text-gray-500 hover:text-purple-600 transition-colors" />
+                      </Button>
+                      
+                      {/* Emoji Picker */}
+                      {showEmojiPicker && (
+                        <div className="absolute bottom-full right-0 mb-2 bg-white border border-gray-200 rounded-lg shadow-xl p-4 z-50 w-80 max-h-64 overflow-y-auto">
+                          <div className="grid grid-cols-8 gap-2">
+                            {/* Emojis populares */}
+                            {[
+                              '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣',
+                              '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰',
+                              '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜',
+                              '🤪', '🤨', '🧐', '🤓', '😎', '🤩', '🥳', '😏',
+                              '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣',
+                              '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠',
+                              '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨',
+                              '😰', '😥', '😓', '🤗', '🤔', '🤭', '🤫', '🤥',
+                              '😶', '😐', '😑', '😬', '🙄', '😯', '😦', '😧',
+                              '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '🤐',
+                              '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑',
+                              '🤠', '😈', '👿', '👹', '👺', '🤡', '💩', '👻',
+                              '💀', '☠️', '👽', '👾', '🤖', '🎃', '😺', '😸',
+                              '😹', '😻', '😼', '😽', '🙀', '😿', '😾', '❤️',
+                              '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎',
+                              '💔', '❣️', '💕', '💞', '💓', '💗', '💖', '💘',
+                              '💝', '💟', '♥️', '💯', '💢', '💥', '💫', '💦',
+                              '💨', '🕳️', '💣', '💬', '👁️‍🗨️', '🗨️', '🗯️', '💭',
+                              '💤', '👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌',
+                              '🤏', '✌️', '🤞', '🤟', '🤘', '🤙', '👈', '👉',
+                              '👆', '🖕', '👇', '☝️', '👍', '👎', '👊', '✊',
+                              '🤛', '🤜', '👏', '🙌', '👐', '🤲', '🤝', '🙏'
+                            ].map((emoji, index) => (
+                              <button
+                                key={index}
+                                onClick={() => handleEmojiSelect(emoji)}
+                                className="p-2 hover:bg-gray-100 rounded-md transition-colors text-lg flex items-center justify-center"
+                                title={emoji}
+                              >
+                                {emoji}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   
                   {messageText.trim() ? (
@@ -462,21 +565,26 @@ export default function MensagensPage() {
             // Welcome Screen
             <div className="flex-1 flex items-center justify-center bg-gray-50">
               <div className="text-center">
-                <div className="w-64 h-64 mx-auto mb-8 opacity-20">
-                  <svg viewBox="0 0 303 172" className="w-full h-full">
-                    <g fill="#9ca3af">
-                      <path d="M78.9 154.9c-.8-1.1-1.5-2.2-2.2-3.4-3.5-6.1-5.4-13.1-5.4-20.4 0-7.3 1.9-14.3 5.4-20.4.7-1.2 1.4-2.3 2.2-3.4L67 95.4c-1.5 2.4-2.8 4.9-3.9 7.5-2.2 5.1-3.4 10.6-3.4 16.3 0 5.7 1.2 11.2 3.4 16.3 1.1 2.6 2.4 5.1 3.9 7.5l11.9-11.9z"/>
-                      <path d="M302.9 85.3L218.6 1c-.8-.8-1.8-1.4-2.9-1.8L193.4 10l4.4 4.4 99 99-4.4 4.4 21.3 21.3c.4-1.1 1-2.1 1.8-2.9l84.3-84.3c2.3-2.3 2.3-6.1 0-8.4l-2-2c-2.3-2.3-6.1-2.3-8.4 0z"/>
-                    </g>
-                  </svg>
+                <div className="w-64 h-64 mx-auto mb-8 flex items-center justify-center">
+                  <div className="bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 rounded-full p-8 shadow-2xl transform hover:scale-105 transition-all duration-300">
+                    <div className="bg-white rounded-full p-6 shadow-lg">
+                      <span className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent orkut-launch-logo">
+                        Orkut
+                      </span>
+                    </div>
+                  </div>
                 </div>
                 <h2 className="text-3xl font-light text-gray-500 mb-4">
                   Orkut Web
                 </h2>
-                <p className="text-gray-400 max-w-md mx-auto leading-relaxed">
+                <p className="text-gray-400 max-w-md mx-auto leading-relaxed mb-6">
                   Envie e receba mensagens sem manter seu telefone conectado.
                   Use Orkut em até 4 dispositivos vinculados e 1 telefone ao mesmo tempo.
                 </p>
+                <div className="flex items-center justify-center space-x-2 text-sm text-gray-400">
+                  <RefreshCw className="h-4 w-4" />
+                  <span>Sincronização automática ativa</span>
+                </div>
               </div>
             </div>
           )}

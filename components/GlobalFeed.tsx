@@ -15,10 +15,20 @@ import {
   RefreshCw, 
   ChevronDown,
   Music,
-  Sparkles
+  Sparkles,
+  Flag,
+  MoreHorizontal
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { ReportPostModal } from '@/components/moderation/report-post-modal'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { toast } from 'sonner'
 
 interface GlobalFeedPost {
   id: number | string
@@ -51,6 +61,10 @@ export function GlobalFeed({ className = '' }: GlobalFeedProps) {
   const [hasMore, setHasMore] = useState(true)
   const [offset, setOffset] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  
+  // Estados para moderação
+  const [reportModalOpen, setReportModalOpen] = useState(false)
+  const [selectedPostForReport, setSelectedPostForReport] = useState<GlobalFeedPost | null>(null)
 
   const loadFeed = useCallback(async (isRefresh = false, currentOffset = 0) => {
     try {
@@ -141,6 +155,26 @@ export function GlobalFeed({ className = '' }: GlobalFeedProps) {
   }
 
   const handleRefresh = () => {
+    loadFeed(true, 0)
+  }
+
+  const handleReportPost = (post: GlobalFeedPost) => {
+    if (!user) {
+      toast.error('Você precisa estar logado para denunciar posts')
+      return
+    }
+
+    if (post.author === user.id) {
+      toast.error('Você não pode denunciar sua própria postagem')
+      return
+    }
+
+    setSelectedPostForReport(post)
+    setReportModalOpen(true)
+  }
+
+  const handleReportSuccess = () => {
+    // Atualizar o feed após denúncia bem-sucedida
     loadFeed(true, 0)
   }
 
@@ -286,6 +320,26 @@ export function GlobalFeed({ className = '' }: GlobalFeedProps) {
                     })}
                   </p>
                 </div>
+
+                {/* Menu de ações do post */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {post.author !== user?.id && (
+                      <DropdownMenuItem 
+                        onClick={() => handleReportPost(post)}
+                        className="text-red-600 focus:text-red-600"
+                      >
+                        <Flag className="h-4 w-4 mr-2" />
+                        Denunciar postagem
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
               {/* Conteúdo */}
@@ -379,6 +433,20 @@ export function GlobalFeed({ className = '' }: GlobalFeedProps) {
             </div>
           </OrkutCardContent>
         </OrkutCard>
+      )}
+
+      {/* Modal de Denúncia */}
+      {selectedPostForReport && (
+        <ReportPostModal
+          isOpen={reportModalOpen}
+          onClose={() => {
+            setReportModalOpen(false)
+            setSelectedPostForReport(null)
+          }}
+          postId={Number(selectedPostForReport.id)}
+          postAuthor={selectedPostForReport.author_name}
+          onReportSuccess={handleReportSuccess}
+        />
       )}
     </div>
   )

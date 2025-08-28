@@ -6,9 +6,10 @@ import { OrkutCard, OrkutCardContent, OrkutCardHeader } from "@/components/ui/or
 import { Button } from "@/components/ui/button"
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { MessageCircle, Heart, Star, Share2, Globe, Users } from "lucide-react"
+import { MessageCircle, Heart, Star, Share2, Globe, Users, Flag } from "lucide-react"
 import { useAuth } from '@/contexts/enhanced-auth-context'
 import { toast } from 'sonner'
+import ReportModal from '@/components/ReportModal'
 
 export interface Post {
   id: number | string
@@ -37,6 +38,7 @@ export function PostCard({ post }: PostCardProps) {
   const [isLiking, setIsLiking] = useState(false)
   const [currentPost, setCurrentPost] = useState(post)
   const [hasUserLiked, setHasUserLiked] = useState(false)
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false)
   const timeAgo = formatDistanceToNow(new Date(currentPost.created_at), {
     addSuffix: true,
     locale: ptBR
@@ -231,6 +233,20 @@ export function PostCard({ post }: PostCardProps) {
               <Share2 className="h-4 w-4" />
               <span>{currentPost.shares_count || 0}</span>
             </Button>
+            
+            {/* Botão Denunciar - apenas para posts públicos e usuários logados */}
+            {user && currentPost.visibility === 'public' && currentPost.author !== user.id && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="flex items-center space-x-1 hover:text-red-600 transition-colors"
+                onClick={() => setIsReportModalOpen(true)}
+                title="Denunciar postagem"
+              >
+                <Flag className="h-4 w-4" />
+                <span className="text-xs">Denunciar</span>
+              </Button>
+            )}
           </div>
           
           {/* Badge de engajamento para posts virais */}
@@ -241,6 +257,13 @@ export function PostCard({ post }: PostCardProps) {
             </div>
           )}
         </div>
+        
+        {/* Modal de Denúncia */}
+        <ReportModal
+          postId={String(currentPost.id)}
+          isOpen={isReportModalOpen}
+          onClose={() => setIsReportModalOpen(false)}
+        />
       </OrkutCardContent>
     </OrkutCard>
   )

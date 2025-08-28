@@ -19,6 +19,7 @@ type Profile = {
   created_at: string
   email_confirmed: boolean
   email_confirmed_at: string | null
+  role?: string | null
 }
 
 interface User {
@@ -41,6 +42,7 @@ interface AuthContextType {
   sendPasswordReset: (email: string) => Promise<void>
   resendEmailVerification: () => Promise<void>
   checkEmailVerified: () => Promise<boolean>
+  isAdmin: () => boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -707,6 +709,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return true // In fallback mode, always consider verified
   }
 
+  const isAdmin = () => {
+    return profile?.role === 'admin' || profile?.role === 'moderator'
+  }
+
   const value: AuthContextType = {
     user,
     profile,
@@ -719,7 +725,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     updateProfile,
     sendPasswordReset,
     resendEmailVerification,
-    checkEmailVerified
+    checkEmailVerified,
+    isAdmin
   }
 
   return (

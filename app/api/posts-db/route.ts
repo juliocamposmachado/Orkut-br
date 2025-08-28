@@ -85,13 +85,17 @@ export async function GET(request: NextRequest) {
               comments_count,
               shares_count,
               is_dj_post,
+              is_hidden,
               created_at
             `)
             .eq('author', user_id)
+            .eq('is_hidden', false)
         } else {
           // Para feed global: buscar da tabela global_feed (mais otimizada)
           console.log('🌍 Carregando feed global da tabela global_feed')
           tableName = 'global_feed'
+          
+          // Buscar posts que NÃO foram ocultados por moderação
           query = supabase
             .from('global_feed')
             .select(`
@@ -106,9 +110,11 @@ export async function GET(request: NextRequest) {
               comments_count,
               shares_count,
               is_dj_post,
+              is_hidden,
               created_at
             `)
             .eq('visibility', 'public')
+            .eq('is_hidden', false)
         }
         
         const { data, error } = await query

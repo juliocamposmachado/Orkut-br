@@ -57,6 +57,7 @@ import { MarqueeBanner } from '@/components/ui/marquee-banner'
 import { CallModal } from '@/components/call/call-modal'
 import { useCall } from '@/hooks/use-call'
 import { InviteFriendsCard } from '@/components/invitations/invite-friends-card'
+import { CommunityRulesCard } from '@/components/CommunityRulesCard'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -792,13 +793,16 @@ export default function HomePage() {
               }} />
             </div>
             
-            {/* 3. Novo Card Musical Expansível */}
+            {/* 3. Regras da Comunidade Orkut Fraternal */}
+            <CommunityRulesCard className="shadow-sm" />
+            
+            {/* 4. Novo Card Musical Expansível */}
             <ExpandableMusicCard />
             
-            {/* 4. Feed Global Otimizado */}
+            {/* 5. Feed Global Otimizado */}
             <GlobalFeed />
             
-            {/* 5. Stories dos amigos - depois do feed */}
+            {/* 6. Stories dos amigos - depois do feed */}
             <OrkutCard>
               <OrkutCardContent>
                 <div className="flex items-center space-x-3 overflow-x-auto pb-2 scrollbar-hide max-w-lg lg:max-w-xl xl:max-w-2xl">

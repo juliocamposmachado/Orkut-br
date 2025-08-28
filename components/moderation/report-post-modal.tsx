@@ -144,7 +144,7 @@ export function ReportPostModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-[90vw] max-h-[90vh] w-full sm:max-w-md overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Flag className="h-5 w-5 text-red-500" />

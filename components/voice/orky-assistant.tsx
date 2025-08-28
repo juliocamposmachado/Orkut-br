@@ -116,6 +116,79 @@ export function OrkyAssistant({ onAction }: OrkyAssistantProps) {
     }
   }
 
+  const readFeedPosts = async () => {
+    try {
+      await speak('Carregando seus posts...')
+      
+      // Buscar posts do feed global
+      const response = await fetch('/api/global-feed?limit=5')
+      const data = await response.json()
+      
+      if (data.success && data.posts && data.posts.length > 0) {
+        await speak(`Encontrei ${data.posts.length} posts recentes. Vou ler para você:`)
+        
+        for (const post of data.posts) {
+          // Processar texto para leitura em voz alta
+          const processedText = processTextForSpeech(
+            post.content,
+            post.author_name || 'Usuário',
+            post.created_at
+          )
+          
+          await speak(processedText)
+          
+          // Pequena pausa entre posts
+          await new Promise(resolve => setTimeout(resolve, 1500))
+        }
+        
+        await speak('Isso é tudo do feed por agora!')
+      } else {
+        await speak('Não há posts no feed no momento.')
+      }
+    } catch (error) {
+      console.error('Erro ao ler feed:', error)
+      await speak('Não consegui acessar o feed agora. Tente novamente mais tarde.')
+    }
+  }
+
+  const processTextForSpeech = (content: string, authorName: string, createdAt: string): string => {
+    // Processar tempo
+    const timeAgo = getTimeAgo(createdAt)
+    
+    // Processar conteúdo
+    let processedContent = content
+    
+    // Remover caracteres especiais mas manter emojis
+    processedContent = processedContent.replace(/[^\w\s\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, ' ')
+    
+    // Processar links - remover https:// e www.
+    processedContent = processedContent.replace(/https?:\/\/(?:www\.)?([^\s]+)/g, (match, domain) => {
+      return domain.replace(/\//g, ' ')
+    })
+    
+    // Remover múltiplos espaços
+    processedContent = processedContent.replace(/\s+/g, ' ').trim()
+    
+    // Construir texto final
+    return `Post de ${authorName}, ${timeAgo}. ${processedContent}`
+  }
+
+  const getTimeAgo = (createdAt: string): string => {
+    const now = new Date()
+    const postDate = new Date(createdAt)
+    const diffInMs = now.getTime() - postDate.getTime()
+    const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60))
+    const diffInDays = Math.floor(diffInHours / 24)
+    
+    if (diffInHours < 1) {
+      return 'há poucos minutos'
+    } else if (diffInHours < 24) {
+      return `há ${diffInHours} ${diffInHours === 1 ? 'hora' : 'horas'}`
+    } else {
+      return `há ${diffInDays} ${diffInDays === 1 ? 'dia' : 'dias'}`
+    }
+  }
+
   const executeAction = async (action: GeminiAction) => {
     try {
       switch (action.name) {
@@ -125,7 +198,7 @@ export function OrkyAssistant({ onAction }: OrkyAssistantProps) {
           }
           break
         case 'read_feed':
-          router.push('/')
+          await readFeedPosts()
           break
         case 'call_user':
           // This would integrate with the WebRTC service
@@ -149,13 +222,55 @@ export function OrkyAssistant({ onAction }: OrkyAssistantProps) {
   }
 
   const quickActions = [
-    { label: 'Ler Feed', command: 'Leia meu feed de posts', icon: MessageCircle, category: 'navegação' },
-    { label: 'Ver Perfil', command: 'Ir para meu perfil', icon: Users, category: 'navegação' },
-    { label: 'Buscar Pessoas', command: 'Quero buscar pessoas', icon: Users, category: 'social' },
-    { label: 'Ver Comunidades', command: 'Mostrar comunidades', icon: Users, category: 'navegação' },
-    { label: 'Ver Mensagens', command: 'Ver minhas mensagens', icon: MessageCircle, category: 'mensagens' },
-    { label: 'Fazer Ligação', command: 'Quero fazer uma ligação', icon: Phone, category: 'comunicação' },
-    { label: 'Ajuda', command: 'Como usar o Orkut?', icon: MessageCircle, category: 'ajuda' },
+    { 
+      label: 'Ler Feed', 
+      command: 'Leia meu feed de posts', 
+      icon: MessageCircle, 
+      category: 'navegação',
+      action: () => readFeedPosts()
+    },
+    { 
+      label: 'Ver Perfil', 
+      command: 'Ir para meu perfil', 
+      icon: Users, 
+      category: 'navegação',
+      action: () => router.push(`/perfil/${profile?.username || ''}`)
+    },
+    { 
+      label: 'Buscar Pessoas', 
+      command: 'Quero buscar pessoas', 
+      icon: Users, 
+      category: 'social',
+      action: () => router.push('/buscar')
+    },
+    { 
+      label: 'Ver Comunidades', 
+      command: 'Mostrar comunidades', 
+      icon: Users, 
+      category: 'navegação',
+      action: () => router.push('/comunidades')
+    },
+    { 
+      label: 'Ver Mensagens', 
+      command: 'Ver minhas mensagens', 
+      icon: MessageCircle, 
+      category: 'mensagens',
+      action: () => router.push('/mensagens')
+    },
+    { 
+      label: 'Fazer Ligação', 
+      command: 'Quero fazer uma ligação', 
+      icon: Phone, 
+      category: 'comunicação',
+      action: () => router.push('/amigos')
+    },
+    { 
+      label: 'Ajuda', 
+      command: 'Como usar o Orkut?', 
+      icon: MessageCircle, 
+      category: 'ajuda',
+      action: () => speak('Você pode me pedir para ler seu feed, ir para seu perfil, buscar pessoas, ver comunidades, acessar mensagens ou fazer ligações. Basta falar comigo!')
+    },
   ]
 
   return (
@@ -227,7 +342,16 @@ export function OrkyAssistant({ onAction }: OrkyAssistantProps) {
                       key={idx}
                       variant="ghost"
                       size="sm"
-                      onClick={() => processCommand(action.command)}
+                      onClick={() => {
+                        // Para "Ler Feed" usar a ação direta, outros usam comando
+                        if (action.action && action.label === 'Ler Feed') {
+                          action.action()
+                        } else if (action.action && action.label !== 'Ler Feed') {
+                          action.action()
+                        } else {
+                          processCommand(action.command)
+                        }
+                      }}
                       className="justify-start text-xs text-purple-700 hover:bg-purple-100"
                       disabled={isProcessing}
                     >

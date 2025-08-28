@@ -80,19 +80,37 @@ export function Navbar() {
   return (
     <nav className="bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <div className="bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-              <span className="text-2xl font-bold orkut-launch-logo">
-                Orkut
-              </span>
-            </div>
-          </Link>
+        <div className="flex items-center h-16">
+          {/* Left Side - Logo + GitHub */}
+          <div className="flex items-center space-x-4">
+            {/* Logo */}
+            <Link href="/" className="flex items-center space-x-2">
+              <div className="bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+                <span className="text-2xl font-bold orkut-launch-logo">
+                  Orkut
+                </span>
+              </div>
+            </Link>
 
-          {/* Navigation Items - Facebook Style */}
-          <div className="hidden md:flex items-center justify-center flex-1 max-w-md mx-8">
-            <div className="flex items-center space-x-2">
+            {/* GitHub Button - Left Side */}
+            <div className="hidden md:flex">
+              <Link 
+                href="https://github.com/juliocamposmachado/Orkut-br"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-3 py-2 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg border border-white/30 flex items-center space-x-2"
+                title="Ver código-fonte no GitHub"
+              >
+                <Github className="h-4 w-4 group-hover:rotate-12 transition-transform duration-200" />
+                <span className="text-sm font-medium">Código-fonte</span>
+                <ExternalLink className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity duration-200" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Center - Navigation Items */}
+          <div className="flex-1 flex justify-center">
+            <div className="hidden md:flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-6 py-2">
               {navItems.map((item) => {
                 const Icon = item.icon
                 const isActive = pathname === item.href
@@ -111,21 +129,6 @@ export function Navbar() {
                 )
               })}
             </div>
-          </div>
-
-          {/* GitHub Button - Centro */}
-          <div className="hidden md:flex">
-            <Link 
-              href="https://github.com/juliocamposmachado/Orkut-br"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-4 py-2 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg border border-white/30 flex items-center space-x-2"
-              title="Ver código-fonte no GitHub"
-            >
-              <Github className="h-4 w-4 group-hover:rotate-12 transition-transform duration-200" />
-              <span className="text-sm font-medium">Código-fonte</span>
-              <ExternalLink className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity duration-200" />
-            </Link>
           </div>
 
           {/* Right Side - Facebook Style */}

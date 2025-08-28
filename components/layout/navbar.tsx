@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
+import Image from 'next/image'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -91,6 +92,25 @@ export function Navbar() {
                 </span>
               </div>
             </Link>
+
+            {/* iFood Button - Left Side */}
+            <div className="hidden md:flex">
+              <Link 
+                href="https://www.ifood.com.br/delivery/sao-paulo-sp/adega-radio-tatuape-fm-24-horas-vila-regente-feijo/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg border border-white/30 flex items-center space-x-2 px-3 py-2"
+                title="Peça comida no iFood - Rádio Tatuapé FM"
+              >
+                <Image 
+                  src="/ifood-logo.svg" 
+                  alt="iFood" 
+                  width={80} 
+                  height={26} 
+                  className="transition-transform duration-200 group-hover:scale-110"
+                />
+              </Link>
+            </div>
 
             {/* GitHub Button - Left Side */}
             <div className="hidden md:flex">
@@ -247,6 +267,28 @@ export function Navbar() {
               </Link>
             )
           })}
+          
+          {/* iFood Button Mobile */}
+          <Link 
+            href="https://www.ifood.com.br/delivery/sao-paulo-sp/adega-radio-tatuape-fm-24-horas-vila-regente-feijo/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="cursor-pointer"
+          >
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-white hover:bg-white/20 transition-all duration-200 flex-col h-auto py-2 cursor-pointer"
+            >
+              <Image 
+                src="/ifood-logo.svg" 
+                alt="iFood" 
+                width={20} 
+                height={13} 
+              />
+              <span className="text-xs mt-1">ifood</span>
+            </Button>
+          </Link>
           
           {/* GitHub Button Mobile */}
           <Link 

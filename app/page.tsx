@@ -642,8 +642,21 @@ export default function HomePage() {
                 console.log('🎉 Post criado, GlobalFeed será atualizado automaticamente via evento')
               }} />
             </div>
+
+            {/* 2. Desktop: Criar Post */}
+            <div className="hidden lg:block">
+              <CreatePost onPostCreated={() => {
+                console.log('🎉 Post criado, GlobalFeed será atualizado automaticamente via evento')
+              }} />
+            </div>
             
-            {/* 2. Stories dos amigos - sempre visível */}
+            {/* 3. DJ Orky Smart Music Card */}
+            <SmartMusicCard />
+            
+            {/* 4. Feed Global Otimizado */}
+            <GlobalFeed />
+            
+            {/* 5. Stories dos amigos - depois do feed */}
             <OrkutCard>
               <OrkutCardContent>
                 <div className="flex items-center space-x-3 overflow-x-auto pb-2 scrollbar-hide max-w-lg lg:max-w-xl xl:max-w-2xl">
@@ -744,19 +757,6 @@ export default function HomePage() {
                 </div>
               </OrkutCardContent>
             </OrkutCard>
-
-            {/* 3. Desktop: Criar Post */}
-            <div className="hidden lg:block">
-              <CreatePost onPostCreated={() => {
-                console.log('🎉 Post criado, GlobalFeed será atualizado automaticamente via evento')
-              }} />
-            </div>
-            
-            {/* 4. DJ Orky Smart Music Card */}
-            <SmartMusicCard />
-            
-            {/* 5. Feed Global Otimizado */}
-            <GlobalFeed />
             
             {/* 6. Ações Rápidas - Mobile Only */}
             <div className="lg:hidden">

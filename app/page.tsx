@@ -432,7 +432,7 @@ export default function HomePage() {
                 </div>
               </OrkutCardHeader>
               <OrkutCardContent>
-                <div className="space-y-1 max-h-60 overflow-y-auto">
+                <div className="space-y-1 min-h-[150px] max-h-60 overflow-y-auto">
                   {/* Online Friends */}
                   {[
                     { 
@@ -1190,7 +1190,7 @@ export default function HomePage() {
                 </div>
               </OrkutCardHeader>
               <OrkutCardContent>
-                <div className="space-y-1 max-h-60 overflow-y-auto">
+                <div className="space-y-1 min-h-[150px] max-h-60 overflow-y-auto">
                   {/* Online Friends */}
                   {[
                     { 

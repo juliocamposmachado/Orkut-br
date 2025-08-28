@@ -370,20 +370,7 @@ export default function HomePage() {
           <div className="mobile-space space-y-4 lg:sticky lg:top-6 order-2 lg:order-1">
             {/* Streaming Player Widget removido por não funcionar */}
             
-            {/* Sponsored Ads Carousel */}
-            <OrkutCard>
-              <OrkutCardHeader>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600">Patrocinado</span>
-                  <span className="text-xs text-gray-400">Anúncio</span>
-                </div>
-              </OrkutCardHeader>
-              <OrkutCardContent className="p-0">
-                <SponsoredCarousel />
-              </OrkutCardContent>
-            </OrkutCard>
-
-            {/* Navigation Menu */}
+            {/* Navigation Menu - Movido para cima para mais acessibilidade */}
             <OrkutCard>
               <OrkutCardContent>
                 <div className="space-y-1 p-2">
@@ -413,6 +400,19 @@ export default function HomePage() {
                     <span className="text-gray-700">Mensagens</span>
                   </Link>
                 </div>
+              </OrkutCardContent>
+            </OrkutCard>
+
+            {/* Sponsored Ads Carousel - Movido para baixo */}
+            <OrkutCard>
+              <OrkutCardHeader>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-600">Patrocinado</span>
+                  <span className="text-xs text-gray-400">Anúncio</span>
+                </div>
+              </OrkutCardHeader>
+              <OrkutCardContent className="p-0">
+                <SponsoredCarousel />
               </OrkutCardContent>
             </OrkutCard>
 

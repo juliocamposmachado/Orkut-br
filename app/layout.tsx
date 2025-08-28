@@ -5,6 +5,7 @@ import { AuthProvider } from '@/contexts/enhanced-auth-context';
 import { VoiceProvider } from '@/contexts/voice-context';
 import { OnlineStatusProvider } from '@/contexts/OnlineStatusContext';
 import { WebRTCProvider } from '@/contexts/webrtc-context';
+import { RadioProvider } from '@/contexts/RadioContext';
 import { Toaster } from '@/components/ui/sonner';
 import { StructuredData } from '@/components/seo/structured-data';
 import { CallManager } from '@/components/calls/call-manager';
@@ -161,17 +162,19 @@ export default function RootLayout({
       <body className={inter.className}>
         <StructuredData />
         <AuthProvider>
-          <OnlineStatusProvider>
-            <WebRTCProvider>
-              <VoiceProvider>
-                {children}
-                <CallManager />
-                {/* WebRTC diagnostics moved to developer dashboard */}
-                {/* <EventListenerMonitor /> */}
-                <Toaster />
-              </VoiceProvider>
-            </WebRTCProvider>
-          </OnlineStatusProvider>
+          <RadioProvider>
+            <OnlineStatusProvider>
+              <WebRTCProvider>
+                <VoiceProvider>
+                  {children}
+                  <CallManager />
+                  {/* WebRTC diagnostics moved to developer dashboard */}
+                  {/* <EventListenerMonitor /> */}
+                  <Toaster />
+                </VoiceProvider>
+              </WebRTCProvider>
+            </OnlineStatusProvider>
+          </RadioProvider>
         </AuthProvider>
       </body>
     </html>

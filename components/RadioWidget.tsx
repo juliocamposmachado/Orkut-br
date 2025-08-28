@@ -1,109 +1,75 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { ExternalLink, Music, Users, RefreshCw, Radio } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ExternalLink, Music, Users, RefreshCw, Radio, Volume2, VolumeX } from 'lucide-react';
+import { useRadio } from '@/contexts/RadioContext';
 
 interface RadioWidgetProps {
   className?: string;
 }
 
-interface RecentSong {
-  title: string;
-  time: string;
-  isCurrent?: boolean;
-}
-
-interface RadioData {
-  currentSong: string;
-  serverStatus: string;
-  streamStatus: string;
-  listeners: number;
-  recentSongs?: RecentSong[];
-  lastUpdated: string;
-  error?: string;
-}
-
 const RadioTatuapeWidget: React.FC<RadioWidgetProps> = ({ 
   className = "" 
 }) => {
-  const [radioData, setRadioData] = useState<RadioData>({
-    currentSong: 'Carregando...',
-    serverStatus: 'Online',
-    streamStatus: 'Ao Vivo',
-    listeners: 0,
-    lastUpdated: new Date().toISOString()
-  });
-  const [isLoading, setIsLoading] = useState(true);
+  // Use the shared radio context instead of local state
+  const { radioData, isLoading, setIsLoading } = useRadio();
+  const [isMuted, setIsMuted] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   // Site oficial da rádio
   const radioWebsite = "https://radiotatuapefm.radiostream321.com/";
 
-  // Função para buscar dados da rádio
-  const fetchData = useCallback(async () => {
-    try {
-      console.log('🎵 Widget: Buscando dados da rádio...');
-      const response = await fetch('/api/radio-status', {
-        method: 'GET',
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache'
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log('🎵 Widget: Dados recebidos:', data);
-      
-      if (data.currentSong && data.currentSong !== 'Rádio Tatuapé FM') {
-        console.log('✅ Música válida encontrada:', data.currentSong);
-      } else {
-        console.log('⚠️ Nenhuma música específica, usando fallback');
-      }
-      
-      setRadioData(data);
-    } catch (error) {
-      console.error('❌ Erro ao buscar dados da rádio:', error);
-      setRadioData(prev => ({
-        ...prev,
-        currentSong: 'Rádio Tatuapé FM - Transmissão ao Vivo',
-        error: `Erro: ${error instanceof Error ? error.message : 'Desconhecido'}`
-      }));
-    } finally {
-      setIsLoading(false);
-    }
-  }, []); // Remove dependency to prevent infinite loop
-
   // Função para atualização manual
-  const handleManualRefresh = async () => {
+  const handleManualRefresh = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // The context will handle the data fetching
     setIsLoading(true);
-    await fetchData(); // Atualização manual
   };
-
-  // Buscar dados ao carregar o componente
-  useEffect(() => {
-    fetchData(); // Busca inicial
-    
-    // Atualiza sincronizado com DJ Orky - intervalo otimizado
-    const interval = setInterval(fetchData, 90000); // 90s (1.5min)
-    
-    return () => clearInterval(interval);
-  }, []); // Remove fetchData dependency to prevent infinite loop
 
   // Função para abrir o site da rádio
   const openRadioWebsite = () => {
+    setIsPlaying(!isPlaying);
     window.open(radioWebsite, '_blank', 'noopener,noreferrer');
   };
 
+  // Função para alternar mute
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsMuted(!isMuted);
+  };
+
+  // Função para clique no card inteiro
+  const handleCardClick = () => {
+    openRadioWebsite();
+  };
+
   return (
-    <div className={`bg-white rounded-lg shadow-lg border overflow-hidden ${className}`} data-radio-player>
+    <div 
+      className={`bg-white rounded-lg shadow-lg border overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] ${className}`} 
+      data-radio-player
+      onClick={handleCardClick}
+    >
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white">
+      <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white relative">
         <div className="flex items-center space-x-3">
-          <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
-            <Radio className="w-6 h-6 text-white" />
+          <div className="relative">
+            {/* GIF animado quando tocando */}
+            {isPlaying && !isMuted ? (
+              <img 
+                src="https://i.gifer.com/origin/a0/a0fdfb0039405b9a8c222dd252be9565.gif" 
+                alt="Radio tocando" 
+                className="w-12 h-12 rounded-full object-cover shadow-lg"
+              />
+            ) : (
+              <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
+                <Radio className="w-6 h-6 text-white" />
+                {isMuted && (
+                  <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                    <VolumeX className="w-4 h-4 text-white" />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <div className="flex-1">
             <h3 className="font-bold text-lg">Rádio Tatuapé FM</h3>
@@ -119,6 +85,19 @@ const RadioTatuapeWidget: React.FC<RadioWidgetProps> = ({
               )}
             </div>
           </div>
+          
+          {/* Botão de Mute */}
+          <button
+            onClick={toggleMute}
+            className="p-2 hover:bg-white/20 rounded-full transition-colors duration-200"
+            title={isMuted ? 'Ativar som' : 'Silenciar'}
+          >
+            {isMuted ? (
+              <VolumeX className="w-5 h-5 text-white" />
+            ) : (
+              <Volume2 className="w-5 h-5 text-white" />
+            )}
+          </button>
         </div>
       </div>
 

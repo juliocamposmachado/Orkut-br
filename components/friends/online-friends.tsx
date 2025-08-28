@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Users, MessageCircle, Eye, Phone } from 'lucide-react'
 import Link from 'next/link'
+import { useRadio } from '@/contexts/RadioContext'
 
 interface OnlineFriend {
   id: string
@@ -24,6 +25,7 @@ interface OnlineFriendsProps {
 
 export function OnlineFriends({ onOpenMessage, onStartAudioCall }: OnlineFriendsProps) {
   const { user, profile } = useAuth()
+  const { radioData } = useRadio()
   const [onlineFriends, setOnlineFriends] = useState<OnlineFriend[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -183,9 +185,19 @@ export function OnlineFriends({ onOpenMessage, onStartAudioCall }: OnlineFriends
                     {/* Status de atividade */}
                     <div className="flex items-center space-x-1 mt-0.5">
                       <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <p className="text-xs text-gray-600 truncate font-medium">
-                        {activity}
-                      </p>
+                      {friend.id === 'radiotatuapefm' && radioData.currentSong && radioData.currentSong !== 'Carregando...' ? (
+                        <div className="overflow-hidden flex-1">
+                          <div className="animate-marquee whitespace-nowrap">
+                            <p className="text-xs text-purple-600 font-medium inline-block">
+                              🎵 ouvindo rádio tatuapé fm - {radioData.currentSong}
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-600 truncate font-medium">
+                          {activity}
+                        </p>
+                      )}
                     </div>
                     
                     {/* Tempo online */}
@@ -271,3 +283,5 @@ export function OnlineFriends({ onOpenMessage, onStartAudioCall }: OnlineFriends
     </OrkutCard>
   )
 }
+
+export default OnlineFriends

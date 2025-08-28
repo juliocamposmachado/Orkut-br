@@ -105,9 +105,9 @@ export function Navbar() {
                 <Image 
                   src="/ifood-logo.svg" 
                   alt="iFood" 
-                  width={80} 
-                  height={26} 
-                  className="transition-transform duration-200 group-hover:scale-110"
+                  width={32} 
+                  height={32} 
+                  className="transition-transform duration-200 group-hover:scale-110 rounded-full"
                 />
               </Link>
             </div>
@@ -283,8 +283,9 @@ export function Navbar() {
               <Image 
                 src="/ifood-logo.svg" 
                 alt="iFood" 
-                width={20} 
-                height={13} 
+                width={16} 
+                height={16} 
+                className="rounded-full"
               />
               <span className="text-xs mt-1">ifood</span>
             </Button>

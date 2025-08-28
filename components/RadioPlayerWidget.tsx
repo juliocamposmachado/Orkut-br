@@ -151,8 +151,22 @@ const RadioPlayerWidget: React.FC<RadioPlayerWidgetProps> = ({ className = "" })
                 className="w-12 h-12 rounded-full object-cover shadow-lg"
               />
             ) : (
-              <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
-                <Radio className="w-6 h-6 text-white" />
+              <div className="relative w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-lg">
+                <img 
+                  src="/logoradiotatuapefm.png" 
+                  alt="Rádio Tatuapé FM" 
+                  className="w-11 h-11 rounded-full object-cover"
+                  onError={(e) => {
+                    // Fallback para ícone genérico caso o logo não carregue
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    const fallback = target.nextElementSibling as HTMLElement;
+                    if (fallback) fallback.style.display = 'flex';
+                  }}
+                />
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center" style={{ display: 'none' }}>
+                  <Radio className="w-6 h-6 text-white" />
+                </div>
                 {state.isMuted && (
                   <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
                     <VolumeX className="w-4 h-4 text-white" />

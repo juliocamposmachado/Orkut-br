@@ -173,8 +173,22 @@ const EnhancedRadioWidget: React.FC<EnhancedRadioWidgetProps> = ({
         {/* Header com DJ Orky */}
         <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white">
           <div className="flex items-center space-x-3">
-            <div className="relative w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
-              <Radio className="w-6 h-6 text-white" />
+            <div className="relative w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-lg">
+              <img 
+                src="/logoradiotatuapefm.png" 
+                alt="Rádio Tatuapé FM" 
+                className="w-11 h-11 rounded-full object-cover"
+                onError={(e) => {
+                  // Fallback para ícone genérico caso o logo não carregue
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const fallback = target.nextElementSibling as HTMLElement;
+                  if (fallback) fallback.style.display = 'flex';
+                }}
+              />
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center" style={{ display: 'none' }}>
+                <Radio className="w-6 h-6 text-white" />
+              </div>
             </div>
             <div className="flex-1">
               <h3 className="font-bold text-lg flex items-center">

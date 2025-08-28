@@ -9,7 +9,7 @@ import { OrkyAssistant } from '@/components/voice/orky-assistant'
 import { Feed } from '@/components/Feed'
 import { GlobalFeed } from '@/components/GlobalFeed'
 import { CreatePost } from '@/components/CreatePost'
-import SmartMusicCard from '@/components/SmartMusicCard'
+import ExpandableMusicCard from '@/components/ExpandableMusicCard'
 import { Footer } from '@/components/layout/footer'
 import { OrkutCard, OrkutCardContent, OrkutCardHeader } from '@/components/ui/orkut-card'
 import AIAssistant from '@/components/AIAssistant'
@@ -650,8 +650,8 @@ export default function HomePage() {
               }} />
             </div>
             
-            {/* 3. DJ Orky Smart Music Card */}
-            <SmartMusicCard />
+            {/* 3. Novo Card Musical Expansível */}
+            <ExpandableMusicCard />
             
             {/* 4. Feed Global Otimizado */}
             <GlobalFeed />

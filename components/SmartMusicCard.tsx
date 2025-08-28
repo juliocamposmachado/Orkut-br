@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Music, Radio, Sparkles, Clock, RefreshCw, ExternalLink, Heart } from 'lucide-react'
+import { Loader2, Music, Radio, Sparkles, Clock, RefreshCw, ExternalLink, Heart, ChevronDown, ChevronUp, History, Play } from 'lucide-react'
 
 interface CurrentSong {
   artist: string

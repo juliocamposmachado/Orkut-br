@@ -620,7 +620,7 @@ export default function HomePage() {
                 </OrkutCardHeader>
                 <OrkutCardContent>
                   <div className="grid grid-cols-2 gap-3">
-                    {Array.from({ length: 8 }).map((_, idx) => (
+                    {Array.from({ length: 4 }).map((_, idx) => (
                       <div key={idx} className="text-center">
                         <img 
                           src={`https://images.pexels.com/photos/${220000 + idx}/pexels-photo-${220000 + idx}.jpeg?auto=compress&cs=tinysrgb&w=100`}
@@ -850,7 +850,7 @@ export default function HomePage() {
                 </OrkutCardHeader>
                 <OrkutCardContent>
                   <div className="friends-grid-mobile">
-                    {Array.from({ length: 8 }).map((_, idx) => (
+                    {Array.from({ length: 4 }).map((_, idx) => (
                       <div key={idx} className="text-center">
                         <img 
                           src={`https://images.pexels.com/photos/${220000 + idx}/pexels-photo-${220000 + idx}.jpeg?auto=compress&cs=tinysrgb&w=100`}

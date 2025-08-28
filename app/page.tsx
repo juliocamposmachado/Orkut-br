@@ -49,7 +49,6 @@ import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import Link from 'next/link'
 import RadioTatuapeWidget from '@/components/RadioWidget'
-import StreamingPlayerWidget from '@/components/StreamingPlayerWidget'
 import { CommentsModal } from '@/components/posts/comments-modal'
 import { ShareModal } from '@/components/posts/share-modal'
 import { UserMoodDisplay } from '@/components/status/user-mood-display'
@@ -369,8 +368,7 @@ export default function HomePage() {
           
           {/* Left Sidebar */}
           <div className="mobile-space space-y-4 lg:sticky lg:top-6 order-2 lg:order-1">
-            {/* Streaming Player Widget - PRIMEIRO */}
-            <StreamingPlayerWidget className="shadow-md" />
+            {/* Streaming Player Widget removido por não funcionar */}
             
             {/* Sponsored Ads Carousel */}
             <OrkutCard>

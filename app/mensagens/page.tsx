@@ -29,7 +29,6 @@ import { ptBR } from 'date-fns/locale'
 import { useRealMessages, type RealContact, type RealMessage } from '@/hooks/use-real-messages'
 import { useCall } from '@/hooks/use-call'
 import { CallModal } from '@/components/call/call-modal'
-import { CallCenterWidget } from '@/components/call/call-center-widget'
 import { toast } from 'sonner'
 
 export default function MensagensPage() {
@@ -484,8 +483,7 @@ export default function MensagensPage() {
         </div>
       </div>
       
-      {/* Central de Chamadas Widget */}
-      <CallCenterWidget isVisible={true} />
+      {/* Central de Chamadas Widget removido - funcionalidades migradas para a interface principal */}
       
       {/* Modal de Chamada */}
       {callState.isOpen && callState.targetUser && callState.callType && (

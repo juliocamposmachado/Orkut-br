@@ -30,7 +30,8 @@ import {
   Heart,
   UserPlus,
   Github,
-  ExternalLink
+  ExternalLink,
+  Camera
 } from 'lucide-react'
 import { useAuth } from '@/contexts/enhanced-auth-context'
 import { useVoice } from '@/contexts/voice-context'
@@ -46,6 +47,7 @@ export function Navbar() {
     { icon: Home, label: 'início', href: '/' },
     { icon: Users, label: 'amigos', href: '/amigos' },
     { icon: Globe, label: 'comunidades', href: '/comunidades' },
+    { icon: Camera, label: 'fotos', href: '/fotos' },
     { icon: Search, label: 'buscar', href: '/buscar' },
   ]
 
@@ -244,7 +246,7 @@ export function Navbar() {
       {/* Mobile Navigation */}
       <div className="md:hidden border-t border-white/20">
         <div className="flex justify-around py-2">
-          {navItems.slice(0, 4).map((item) => {
+          {navItems.slice(0, 5).map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href
             return (

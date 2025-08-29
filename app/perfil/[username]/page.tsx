@@ -808,6 +808,18 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                           </Button>
                         )}
                         
+                        {/* Botão de Fotos */}
+                        <Link href="/fotos">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="w-full border-purple-300 text-purple-700 hover:bg-purple-50"
+                          >
+                            <Camera className="h-4 w-4 mr-2" />
+                            Fotos
+                          </Button>
+                        </Link>
+                        
                         {/* Botão de Seguir */}
                         <Button 
                           size="sm" 

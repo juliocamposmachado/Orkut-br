@@ -40,6 +40,7 @@ import { useVoice } from '@/contexts/voice-context'
 import { useSubscription } from '@/hooks/use-subscription'
 import { NotificationsDropdown } from '@/components/notifications/notifications-dropdown'
 import BugReporter from '@/components/bug-reporter'
+import { AnimatediFoodButton } from '@/components/ui/animated-ifood-button'
 
 export function Navbar() {
   const router = useRouter()
@@ -101,21 +102,19 @@ export function Navbar() {
               </div>
             </Link>
 
-            {/* iFood Button - Left Side */}
+            {/* iFood Button Animado - Left Side */}
             <div className="hidden lg:flex">
               <Link 
                 href="https://www.ifood.com.br/delivery/sao-paulo-sp/adega-radio-tatuape-fm-24-horas-vila-regente-feijo/29aa6191-cf23-4569-a8c3-d7bd66d877b5"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg border border-white/30 flex items-center space-x-2 px-3 py-2"
-                title="Peça comida no iFood - Adega Rádio Tatuapé FM 24 Horas"
+                title="Adega Rádio Tatuapé FM - Bebidas Nacionais e Importadas"
               >
-                <Image 
-                  src="/ifood-logo.svg" 
-                  alt="iFood" 
+                <AnimatediFoodButton 
                   width={32} 
                   height={32} 
-                  className="transition-transform duration-200 group-hover:scale-110 rounded-full"
+                  className="transition-transform duration-200 group-hover:scale-110"
                 />
               </Link>
             </div>
@@ -317,7 +316,7 @@ export function Navbar() {
             )
           })}
           
-          {/* iFood Button Mobile */}
+          {/* iFood Button Animado Mobile */}
           <Link 
             href="https://www.ifood.com.br/delivery/sao-paulo-sp/adega-radio-tatuape-fm-24-horas-vila-regente-feijo/29aa6191-cf23-4569-a8c3-d7bd66d877b5"
             target="_blank"
@@ -329,14 +328,12 @@ export function Navbar() {
               size="sm"
               className="text-white hover:bg-white/20 transition-all duration-200 flex-col h-auto py-2 cursor-pointer"
             >
-              <Image 
-                src="/ifood-logo.svg" 
-                alt="iFood" 
+              <AnimatediFoodButton 
                 width={16} 
                 height={16} 
                 className="rounded-full"
               />
-              <span className="text-xs mt-1">ifood</span>
+              <span className="text-xs mt-1">adega</span>
             </Button>
           </Link>
           

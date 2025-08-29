@@ -365,7 +365,7 @@ export default function HomePage() {
         {/* Email Verification Banner */}
         <EmailVerificationBanner />
         
-        <div className="grid mobile-grid grid-cols-1 lg:grid-cols-[280px_1fr_320px] xl:grid-cols-[300px_1fr_350px] gap-4 lg:gap-6 items-start">
+        <div className="grid mobile-grid grid-cols-1 lg:grid-cols-[300px_1fr_300px] xl:grid-cols-[320px_1fr_320px] gap-4 lg:gap-6 items-start">
           
           {/* Left Sidebar */}
           <div className="mobile-space space-y-4 lg:sticky lg:top-6 order-2 lg:order-1">
@@ -640,7 +640,7 @@ export default function HomePage() {
           </div>
 
           {/* Main Content - Postagens no meio */}
-          <div className="mobile-space space-y-4 lg:space-y-6 lg:pr-2 order-1 lg:order-2 lg:-mt-4">
+          <div className="mobile-space space-y-4 lg:space-y-6 order-1 lg:order-2 lg:-mt-4 flex flex-col items-center">
             {/* 1. No topo mobile: Criar Post */}
             <div className="lg:hidden">
               <CreatePost onPostCreated={() => {
@@ -649,23 +649,30 @@ export default function HomePage() {
             </div>
 
             {/* 2. Desktop: Criar Post */}
-            <div className="hidden lg:block">
+            <div className="hidden lg:block w-full max-w-2xl">
               <CreatePost onPostCreated={() => {
                 console.log('🎉 Post criado, GlobalFeed será atualizado automaticamente via evento')
               }} />
             </div>
             
             {/* 3. Regras da Comunidade Orkut Fraternal */}
-            <CommunityRulesCard className="shadow-sm" />
+            <div className="w-full max-w-2xl">
+              <CommunityRulesCard className="shadow-sm" />
+            </div>
             
             {/* 4. Novo Card Musical Expansível */}
-            <ExpandableMusicCard />
+            <div className="w-full max-w-2xl">
+              <ExpandableMusicCard />
+            </div>
             
             {/* 5. Feed Global Otimizado */}
-            <GlobalFeed />
+            <div className="w-full max-w-2xl">
+              <GlobalFeed />
+            </div>
             
             {/* 6. Stories dos amigos - depois do feed */}
-            <OrkutCard>
+            <div className="w-full max-w-2xl">
+              <OrkutCard>
               <OrkutCardContent>
                 <div className="flex items-center space-x-3 overflow-x-auto pb-2 scrollbar-hide max-w-lg lg:max-w-xl xl:max-w-2xl">
                   {/* Criar Story/Foto */}
@@ -765,6 +772,7 @@ export default function HomePage() {
                 </div>
               </OrkutCardContent>
             </OrkutCard>
+            </div>
             
             {/* 6. Ações Rápidas - Mobile Only */}
             <div className="lg:hidden">

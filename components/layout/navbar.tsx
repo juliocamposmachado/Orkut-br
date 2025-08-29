@@ -46,6 +46,7 @@ export function Navbar() {
   const navItems = [
     { icon: Home, label: 'início', href: '/' },
     { icon: Users, label: 'amigos', href: '/amigos' },
+    { icon: MessageCircle, label: 'mensagens', href: '/recados' },
     { icon: Globe, label: 'comunidades', href: '/comunidades' },
     { icon: Camera, label: 'fotos', href: '/fotos' },
     { icon: Search, label: 'buscar', href: '/buscar' },
@@ -155,16 +156,6 @@ export function Navbar() {
 
           {/* Right Side - Facebook Style */}
           <div className="flex items-center space-x-2">
-            {/* Messages Icon */}
-            <Link 
-              href="/recados"
-              onClick={(e) => handleNavClick('/recados', 'mensagens', e)}
-              className="group text-white hover:bg-white/30 w-10 h-10 p-0 rounded-full flex items-center justify-center transition-all duration-200 relative z-10 cursor-pointer transform hover:scale-105 hover:shadow-md"
-              title="Mensagens"
-            >
-              <MessageCircle className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
-            </Link>
-
             {/* Notifications */}
             <NotificationsDropdown />
 
@@ -246,7 +237,7 @@ export function Navbar() {
       {/* Mobile Navigation */}
       <div className="md:hidden border-t border-white/20">
         <div className="flex justify-around py-2">
-          {navItems.slice(0, 5).map((item) => {
+          {navItems.slice(0, 6).map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href
             return (

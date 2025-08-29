@@ -38,7 +38,8 @@ import {
   User,
   Mail,
   Clock,
-  Activity
+  Activity,
+  Trash2
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -108,7 +109,10 @@ export default function ModeracaoPage() {
   // Estados para modais e ações
   const [selectedReport, setSelectedReport] = useState<Report | null>(null)
   const [banModalOpen, setBanModalOpen] = useState(false)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [selectedUserToDelete, setSelectedUserToDelete] = useState<BannedUser | null>(null)
   const [banReason, setBanReason] = useState('')
+  const [deleteReason, setDeleteReason] = useState('')
   const [emailToBan, setEmailToBan] = useState('')
   const [domainBan, setDomainBan] = useState(false)
 
@@ -282,6 +286,39 @@ export default function ModeracaoPage() {
       }
     } catch (error) {
       console.error('Erro ao banir email:', error)
+      toast.error('Erro interno. Tente novamente.')
+    }
+  }
+
+  const handleDeleteUser = async () => {
+    if (!selectedUserToDelete || !deleteReason.trim()) {
+      toast.error('Por favor, forneça um motivo para a exclusão')
+      return
+    }
+
+    try {
+      const response = await fetch('/api/moderation/delete-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: selectedUserToDelete.user_id,
+          reason: deleteReason
+        })
+      })
+
+      const data = await response.json()
+      
+      if (response.ok) {
+        toast.success(data.message || 'Usuário deletado com sucesso')
+        setDeleteModalOpen(false)
+        setSelectedUserToDelete(null)
+        setDeleteReason('')
+        loadModerationData()
+      } else {
+        toast.error(data.error || 'Erro ao deletar usuário')
+      }
+    } catch (error) {
+      console.error('Erro ao deletar usuário:', error)
       toast.error('Erro interno. Tente novamente.')
     }
   }
@@ -538,17 +575,31 @@ export default function ModeracaoPage() {
                     {bannedUsers.map((banned) => (
                       <div key={banned.id} className="p-3 border rounded-lg">
                         <div className="flex items-center justify-between">
-                          <div>
+                          <div className="flex-1">
                             <p className="text-sm font-medium">{banned.email}</p>
                             <p className="text-xs text-gray-500">{banned.ban_reason}</p>
+                            <p className="text-xs text-gray-400 mt-1">
+                              Banido em {formatDistanceToNow(new Date(banned.created_at), { addSuffix: true, locale: ptBR })}
+                            </p>
                           </div>
-                          <Badge variant="destructive" className="text-xs">
-                            {banned.ban_type}
-                          </Badge>
+                          <div className="flex items-center space-x-2">
+                            <Badge variant="destructive" className="text-xs">
+                              {banned.ban_type}
+                            </Badge>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-red-300 text-red-700 hover:bg-red-50"
+                              onClick={() => {
+                                setSelectedUserToDelete(banned)
+                                setDeleteModalOpen(true)
+                              }}
+                            >
+                              <Trash2 className="h-3 w-3 mr-1" />
+                              Deletar
+                            </Button>
+                          </div>
                         </div>
-                        <p className="text-xs text-gray-400 mt-2">
-                          Banido em {formatDistanceToNow(new Date(banned.created_at), { addSuffix: true, locale: ptBR })}
-                        </p>
                       </div>
                     ))}
                   </div>
@@ -668,6 +719,74 @@ export default function ModeracaoPage() {
                     Confirmar Banimento
                   </Button>
                   <Button variant="outline" onClick={() => setBanModalOpen(false)}>
+                    Cancelar
+                  </Button>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Modal de deletar usuário */}
+        <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="text-red-600">Deletar Usuário Permanentemente</DialogTitle>
+              <DialogDescription>
+                ⚠️ Esta ação é IRREVERSÍVEL e irá deletar completamente o usuário e todos os seus dados do sistema.
+              </DialogDescription>
+            </DialogHeader>
+            {selectedUserToDelete && (
+              <div className="space-y-4">
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm font-medium text-red-800">
+                    <strong>Usuário:</strong> {selectedUserToDelete.email}
+                  </p>
+                  <p className="text-xs text-red-600 mt-1">
+                    Motivo do banimento: {selectedUserToDelete.ban_reason}
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Motivo para deletar permanentemente:
+                  </label>
+                  <Textarea
+                    placeholder="Ex: Usuário de teste que precisa ser removido do sistema..."
+                    value={deleteReason}
+                    onChange={(e) => setDeleteReason(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                  <p className="text-xs text-yellow-800">
+                    <strong>O que será deletado:</strong>
+                  </p>
+                  <ul className="text-xs text-yellow-700 mt-1 space-y-1">
+                    <li>• Todos os posts do usuário</li>
+                    <li>• Todas as amizades</li>
+                    <li>• Todas as notificações</li>
+                    <li>• Relatórios feitos pelo usuário</li>
+                    <li>• Perfil completo</li>
+                    <li>• Conta de autenticação</li>
+                  </ul>
+                </div>
+                <div className="flex space-x-2">
+                  <Button 
+                    onClick={handleDeleteUser}
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                    disabled={!deleteReason.trim()}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Confirmar Exclusão Permanente
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setDeleteModalOpen(false)
+                      setSelectedUserToDelete(null)
+                      setDeleteReason('')
+                    }}
+                  >
                     Cancelar
                   </Button>
                 </div>

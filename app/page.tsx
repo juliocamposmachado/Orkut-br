@@ -642,23 +642,28 @@ export default function HomePage() {
 
           {/* Main Content - Postagens no meio */}
           <div className="space-y-4 lg:space-y-6 order-1 lg:order-2 flex flex-col items-center">
-            {/* 1. No topo mobile: Criar Post */}
+            {/* 1. No topo mobile: Regras da Comunidade */}
+            <div className="lg:hidden w-full max-w-2xl">
+              <CommunityRulesCard className="shadow-sm" />
+            </div>
+
+            {/* 2. Desktop: Regras da Comunidade primeiro */}
+            <div className="hidden lg:block w-full max-w-2xl">
+              <CommunityRulesCard className="shadow-sm" />
+            </div>
+            
+            {/* 3. Criar Post - movido para baixo */}
             <div className="lg:hidden">
               <CreatePost onPostCreated={() => {
                 console.log('🎉 Post criado, GlobalFeed será atualizado automaticamente via evento')
               }} />
             </div>
 
-            {/* 2. Desktop: Criar Post */}
+            {/* 4. Desktop: Criar Post */}
             <div className="hidden lg:block w-full max-w-2xl">
               <CreatePost onPostCreated={() => {
                 console.log('🎉 Post criado, GlobalFeed será atualizado automaticamente via evento')
               }} />
-            </div>
-            
-            {/* 3. Regras da Comunidade Orkut Fraternal */}
-            <div className="w-full max-w-2xl">
-              <CommunityRulesCard className="shadow-sm" />
             </div>
             
             {/* 4. Assuntos em Alta - Google Trends */}

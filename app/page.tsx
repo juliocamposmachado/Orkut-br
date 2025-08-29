@@ -661,17 +661,22 @@ export default function HomePage() {
               <CommunityRulesCard className="shadow-sm" />
             </div>
             
-            {/* 4. Novo Card Musical Expansível */}
+            {/* 4. Assuntos em Alta - Google Trends */}
+            <div className="w-full max-w-2xl">
+              <GoogleTrends />
+            </div>
+            
+            {/* 5. Novo Card Musical Expansível */}
             <div className="w-full max-w-2xl">
               <ExpandableMusicCard />
             </div>
             
-            {/* 5. Feed Global Otimizado */}
+            {/* 6. Feed Global Otimizado */}
             <div className="w-full max-w-2xl">
               <GlobalFeed />
             </div>
             
-            {/* 6. Stories dos amigos - depois do feed */}
+            {/* 7. Stories dos amigos - depois do feed */}
             <div className="w-full max-w-2xl">
               <OrkutCard>
               <OrkutCardContent>
@@ -775,7 +780,7 @@ export default function HomePage() {
             </OrkutCard>
             </div>
             
-            {/* 6. Ações Rápidas - Mobile Only */}
+            {/* 8. Ações Rápidas - Mobile Only */}
             <div className="lg:hidden">
               <OrkutCard>
                 <OrkutCardHeader>
@@ -806,7 +811,7 @@ export default function HomePage() {
               </OrkutCard>
             </div>
             
-            {/* 7. Download Apps - Mobile Only */}
+            {/* 9. Download Apps - Mobile Only */}
             <div className="lg:hidden">
               <OrkutCard>
                 <OrkutCardHeader>
@@ -854,7 +859,7 @@ export default function HomePage() {
               </OrkutCard>
             </div>
             
-            {/* 8. Top 10 Amigos - Mobile Only (no final) */}
+            {/* 10. Top 10 Amigos - Mobile Only (no final) */}
             <div className="lg:hidden">
               <OrkutCard>
                 <OrkutCardHeader>
@@ -1046,8 +1051,44 @@ export default function HomePage() {
               onStartAudioCall={(user) => startAudioCall(user)}
             />
 
-            {/* 5. Google Trends - Assuntos em Alta */}
-            <GoogleTrends />
+            {/* 5. Comunidades em Alta - de volta à sidebar */}
+            <OrkutCard>
+              <OrkutCardHeader>
+                <div className="flex items-center space-x-2">
+                  <TrendingUp className="h-4 w-4" />
+                  <span>Comunidades em Alta</span>
+                </div>
+              </OrkutCardHeader>
+              <OrkutCardContent>
+                <div className="space-y-3">
+                  {communities.slice(0, 5).map((community) => (
+                    <div key={community.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer">
+                      <img 
+                        src={community.photo_url} 
+                        alt={community.name}
+                        className="w-10 h-10 rounded-lg object-cover"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-sm text-gray-800 truncate">
+                          {community.name}
+                        </h4>
+                        <p className="text-xs text-gray-600">
+                          {community.members_count.toLocaleString('pt-BR')} membros
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full mt-3 border-purple-300 text-purple-700 hover:bg-purple-50"
+                  onClick={() => router.push('/comunidades')}
+                >
+                  Ver Todas
+                </Button>
+              </OrkutCardContent>
+            </OrkutCard>
 
           </div>
         </div>

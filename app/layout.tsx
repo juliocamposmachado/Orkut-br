@@ -9,6 +9,7 @@ import { RadioProvider } from '@/contexts/RadioContext';
 import { FriendsProvider } from '@/contexts/FriendsContext';
 import { Toaster } from '@/components/ui/sonner';
 import { StructuredData } from '@/components/seo/structured-data';
+import { IdleOverlay } from '@/components/idle-overlay';
 // Import polyfills to fix runtime errors
 import '@/lib/polyfills';
 // WebRTC diagnostics moved to developer dashboard
@@ -178,6 +179,8 @@ export default function RootLayout({
             </OnlineStatusProvider>
           </RadioProvider>
         </AuthProvider>
+        {/* Overlay de pausa por inatividade */}
+        <IdleOverlay timeout={60000} />
       </body>
     </html>
   );

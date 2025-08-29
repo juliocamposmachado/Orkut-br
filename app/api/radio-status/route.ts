@@ -47,8 +47,11 @@ export async function GET() {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const html = await response.text();
-    console.log(`📄 HTML recebido (${html.length} chars)`);
+    // Decodificar como ISO-8859-1 (latin1) para corrigir acentos vindos do painel da rádio
+    const buffer = await response.arrayBuffer();
+    const decoder = new TextDecoder('iso-8859-1');
+    const html = decoder.decode(buffer);
+    console.log(`📄 HTML recebido (${html.length} chars) [latin1]`);
     
     // Extrair músicas do HTML (visto no log que a estrutura real é uma tabela)
     let currentSong = 'Faith No More - Ugly in the Morning'; // Do log real
@@ -135,9 +138,10 @@ export async function GET() {
       allSongs.sort((a, b) => b.time.localeCompare(a.time));
       
       // Adicionar ao array de resposta
+      const decodeTitle = (s: string) => s.normalize('NFC');
       allSongs.slice(0, 8).forEach((song) => {
         recentSongs.push({
-          title: song.title,
+          title: decodeTitle(song.title),
           time: song.time,
           isCurrent: song.isCurrent || false
         });
@@ -160,7 +164,7 @@ export async function GET() {
 
     // Dados extraídos
     const radioData = {
-      currentSong,
+      currentSong: currentSong.normalize('NFC'),
       serverStatus: 'Online',
       streamStatus: 'Ao Vivo',
       listeners: 0,

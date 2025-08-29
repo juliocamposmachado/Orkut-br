@@ -16,6 +16,33 @@ const RadioTatuapeWidget: React.FC<RadioWidgetProps> = ({
   const [isMuted, setIsMuted] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  
+  // Função para limpar e normalizar títulos de músicas
+  const cleanSongTitle = (title: string): string => {
+    if (!title) return title;
+    
+    return title
+      .normalize('NFC') // Normalizar caracteres Unicode
+      .replace(/\u00e7/g, 'ç') // ç correto
+      .replace(/\u00e3/g, 'ã') // ã correto
+      .replace(/\u00e1/g, 'á') // á correto
+      .replace(/\u00e9/g, 'é') // é correto
+      .replace(/\u00ed/g, 'í') // í correto
+      .replace(/\u00f3/g, 'ó') // ó correto
+      .replace(/\u00fa/g, 'ú') // ú correto
+      .replace(/\u00e0/g, 'à') // à correto
+      .replace(/\u00ea/g, 'ê') // ê correto
+      .replace(/\u00f4/g, 'ô') // ô correto
+      .replace(/\u00e2/g, 'â') // â correto
+      .replace(/\u00fc/g, 'ü') // ü correto
+      .replace(/\u00f1/g, 'ñ') // ñ correto
+      .replace(/&amp;/g, '&')    // & correto
+      .replace(/&lt;/g, '<')     // < correto
+      .replace(/&gt;/g, '>')     // > correto
+      .replace(/&quot;/g, '"')   // " correto
+      .replace(/&#39;/g, "'")    // ' correto
+      .trim();
+  };
 
   // Site oficial da rádio
   const radioWebsite = "https://radiotatuapefm.radiostream321.com/";
@@ -144,7 +171,7 @@ const RadioTatuapeWidget: React.FC<RadioWidgetProps> = ({
                   <span className="animate-pulse">Carregando...</span>
                 </span>
               ) : (
-                radioData.currentSong
+                cleanSongTitle(radioData.currentSong)
               )}
             </p>
             {!isLoading && radioData.lastUpdated && (
@@ -203,8 +230,8 @@ const RadioTatuapeWidget: React.FC<RadioWidgetProps> = ({
                       song.isCurrent 
                         ? 'font-semibold text-purple-800' 
                         : 'font-medium text-gray-700'
-                    }`} title={song.title}>
-                      {song.title}
+                    }`} title={cleanSongTitle(song.title)}>
+                      {cleanSongTitle(song.title)}
                       {song.isCurrent && (
                         <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                           AO VIVO

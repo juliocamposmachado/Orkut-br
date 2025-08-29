@@ -371,6 +371,9 @@ export default function HomePage() {
           <div className="mobile-space space-y-4 lg:sticky lg:top-6 order-2 lg:order-1">
             {/* Streaming Player Widget removido por não funcionar */}
             
+            {/* Radio Widget - Movido da sidebar direita para cá */}
+            <RadioTatuapeWidget className="shadow-md" />
+            
             {/* Navigation Menu - Movido para cima para mais acessibilidade */}
             <OrkutCard>
               <OrkutCardContent>
@@ -1023,10 +1026,7 @@ export default function HomePage() {
           {/* Right Sidebar - Nova organização */}
           <div className="mobile-space space-y-4 lg:space-y-6 lg:sticky lg:top-6 lg:pl-2 order-3 lg:-mt-4">
 
-            {/* 1. Radio Widget - Colapsado e simplificado */}
-            <RadioTatuapeWidget className="shadow-md" />
-
-            {/* 2. Site Users - Gmail Users movido para cima */}
+            {/* 1. Site Users - Gmail Users movido para cima */}
             <OrkutCard>
               <OrkutCardHeader>
                 <div className="flex items-center justify-between">

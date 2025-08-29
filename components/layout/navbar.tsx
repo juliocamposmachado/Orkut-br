@@ -100,11 +100,11 @@ export function Navbar() {
             {/* iFood Button - Left Side */}
             <div className="hidden lg:flex">
               <Link 
-                href="https://www.ifood.com.br/delivery/sao-paulo-sp/adega-radio-tatuape-fm-24-horas-vila-regente-feijo/"
+                href="https://www.ifood.com.br/delivery/sao-paulo-sp/adega-radio-tatuape-fm-24-horas-vila-regente-feijo/29aa6191-cf23-4569-a8c3-d7bd66d877b5"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="group bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg border border-white/30 flex items-center space-x-2 px-3 py-2"
-                title="Peça comida no iFood - Rádio Tatuapé FM"
+                title="Peça comida no iFood - Adega Rádio Tatuapé FM 24 Horas"
               >
                 <Image 
                   src="/ifood-logo.svg" 
@@ -122,12 +122,18 @@ export function Navbar() {
                 href="https://github.com/juliocamposmachado/Orkut-br"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-3 py-2 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg border border-white/30 flex items-center space-x-2"
-                title="Ver código-fonte no GitHub"
+                className="group bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg border border-white/30 flex items-center space-x-2 px-3 py-2"
+                title="Ver código-fonte no GitHub - Open Source"
               >
-                <Github className="h-4 w-4 group-hover:rotate-12 transition-transform duration-200" />
-                <span className="text-sm font-medium">Código-fonte</span>
-                <ExternalLink className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity duration-200" />
+                <Image 
+                  src="/opensource-logo.svg" 
+                  alt="Open Source" 
+                  width={20} 
+                  height={20} 
+                  className="transition-transform duration-200 group-hover:scale-110"
+                />
+                <span className="text-sm font-medium text-white">Open Source</span>
+                <ExternalLink className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity duration-200 text-white" />
               </Link>
             </div>
           </div>
@@ -276,7 +282,7 @@ export function Navbar() {
           
           {/* iFood Button Mobile */}
           <Link 
-            href="https://www.ifood.com.br/delivery/sao-paulo-sp/adega-radio-tatuape-fm-24-horas-vila-regente-feijo/"
+            href="https://www.ifood.com.br/delivery/sao-paulo-sp/adega-radio-tatuape-fm-24-horas-vila-regente-feijo/29aa6191-cf23-4569-a8c3-d7bd66d877b5"
             target="_blank"
             rel="noopener noreferrer"
             className="cursor-pointer"
@@ -309,8 +315,14 @@ export function Navbar() {
               size="sm"
               className="text-white hover:bg-white/20 transition-all duration-200 flex-col h-auto py-2 cursor-pointer"
             >
-              <Github className="h-4 w-4" />
-              <span className="text-xs mt-1">github</span>
+              <Image 
+                src="/opensource-logo.svg" 
+                alt="Open Source" 
+                width={16} 
+                height={16} 
+                className=""
+              />
+              <span className="text-xs mt-1">source</span>
             </Button>
           </Link>
         </div>

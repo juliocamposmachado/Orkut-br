@@ -44,6 +44,7 @@ import { OnlineFriends } from '@/components/friends/online-friends'
 import { RecentActivities } from '@/components/profile/recent-activities'
 import Gallery from '@/components/Gallery'
 import UpdateGalleries from '@/components/UpdateGalleries'
+import { WhatsAppConfig } from '@/components/profile/whatsapp-config'
 
 interface UserProfile {
   id: string;
@@ -57,6 +58,8 @@ interface UserProfile {
   birthday?: string;
   relationship?: string;
   whatsapp_enabled: boolean;
+  whatsapp_voice_link?: string;
+  whatsapp_video_link?: string;
   privacy_settings: any;
   fans_count: number;
   created_at: string;
@@ -811,6 +814,8 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
           birthday: '1995-01-01',
           relationship: 'Solteiro(a)',
           whatsapp_enabled: true,
+          whatsapp_voice_link: 'https://wa.me/5511970603441?text=Olá!%20Gostaria%20de%20falar%20com%20vocês%20da%20Rádio%20Tatuapé%20FM',
+          whatsapp_video_link: 'https://wa.me/5511970603441?text=Olá!%20Gostaria%20de%20fazer%20uma%20videochamada%20com%20vocês%20da%20Rádio%20Tatuapé%20FM',
           privacy_settings: {
             phone_visibility: 'public',
             email_visibility: 'public'
@@ -1180,30 +1185,56 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                     <Button 
                       size="sm"
                       variant="outline" 
-                      className="w-full border-purple-300 text-purple-700 hover:bg-purple-50"
-                      onClick={() => startAudioCall({
-                        id: profile.id,
-                        name: profile.display_name,
-                        photo: profile.photo_url || undefined,
-                        username: profile.username
-                      })}
+                      className={`w-full transition-colors ${
+                        profile.whatsapp_enabled && profile.whatsapp_voice_link
+                          ? 'border-green-300 text-green-700 hover:bg-green-50'
+                          : 'border-purple-300 text-purple-700 hover:bg-purple-50'
+                      }`}
+                      onClick={() => {
+                        if (profile.whatsapp_enabled && profile.whatsapp_voice_link) {
+                          // Open WhatsApp voice call
+                          window.open(profile.whatsapp_voice_link, '_blank', 'noopener,noreferrer');
+                        } else {
+                          // Fallback to Orkut call system
+                          startAudioCall({
+                            id: profile.id,
+                            name: profile.display_name,
+                            photo: profile.photo_url || undefined,
+                            username: profile.username
+                          });
+                        }
+                      }}
+                      title={profile.whatsapp_enabled && profile.whatsapp_voice_link ? 'Abrir WhatsApp para chamada de voz' : 'Chamada de áudio via Orkut'}
                     >
                       <Phone className="h-4 w-4 mr-2" />
-                      Chamada de Áudio
+                      {profile.whatsapp_enabled && profile.whatsapp_voice_link ? 'WhatsApp Áudio' : 'Chamada de Áudio'}
                     </Button>
                     <Button 
                       size="sm"
                       variant="outline" 
-                      className="w-full border-purple-300 text-purple-700 hover:bg-purple-50"
-                      onClick={() => startVideoCall({
-                        id: profile.id,
-                        name: profile.display_name,
-                        photo: profile.photo_url || undefined,
-                        username: profile.username
-                      })}
+                      className={`w-full transition-colors ${
+                        profile.whatsapp_enabled && profile.whatsapp_video_link
+                          ? 'border-green-300 text-green-700 hover:bg-green-50'
+                          : 'border-purple-300 text-purple-700 hover:bg-purple-50'
+                      }`}
+                      onClick={() => {
+                        if (profile.whatsapp_enabled && profile.whatsapp_video_link) {
+                          // Open WhatsApp video call
+                          window.open(profile.whatsapp_video_link, '_blank', 'noopener,noreferrer');
+                        } else {
+                          // Fallback to Orkut call system
+                          startVideoCall({
+                            id: profile.id,
+                            name: profile.display_name,
+                            photo: profile.photo_url || undefined,
+                            username: profile.username
+                          });
+                        }
+                      }}
+                      title={profile.whatsapp_enabled && profile.whatsapp_video_link ? 'Abrir WhatsApp para videochamada' : 'Chamada de vídeo via Orkut'}
                     >
                       <Video className="h-4 w-4 mr-2" />
-                      Chamada de Vídeo
+                      {profile.whatsapp_enabled && profile.whatsapp_video_link ? 'WhatsApp Vídeo' : 'Chamada de Vídeo'}
                     </Button>
                   </div>
                 </div>
@@ -1412,6 +1443,13 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                   </p>
                 </OrkutCardContent>
               </OrkutCard>
+            )}
+            
+            {/* WhatsApp Configuration Card - apenas para o dono do perfil */}
+            {isOwnProfile && (
+              <WhatsAppConfig 
+                isOwnProfile={true}
+              />
             )}
             
             {/* Sistema de Galerias */}

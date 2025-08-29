@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ExternalLink, Music, Users, RefreshCw, Radio, Volume2, VolumeX } from 'lucide-react';
+import { ExternalLink, Music, Users, RefreshCw, Radio, Volume2, VolumeX, ChevronDown, ChevronUp, History } from 'lucide-react';
 import { useRadio } from '@/contexts/RadioContext';
 
 interface RadioWidgetProps {
@@ -15,6 +15,7 @@ const RadioTatuapeWidget: React.FC<RadioWidgetProps> = ({
   const { radioData, isLoading, setIsLoading } = useRadio();
   const [isMuted, setIsMuted] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Site oficial da rádio
   const radioWebsite = "https://radiotatuapefm.radiostream321.com/";
@@ -45,12 +46,16 @@ const RadioTatuapeWidget: React.FC<RadioWidgetProps> = ({
 
   return (
     <div 
-      className={`bg-white rounded-lg shadow-lg border overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-[1.02] ${className}`} 
+      className={`bg-white rounded-lg shadow-lg border overflow-hidden transition-all duration-300 ${className} ${
+        isExpanded ? 'min-h-auto' : 'min-h-[200px]'
+      }`} 
       data-radio-player
-      onClick={handleCardClick}
     >
       {/* Header */}
-      <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white relative">
+      <div 
+        className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white relative cursor-pointer hover:from-purple-600 hover:to-pink-600 transition-all duration-300"
+        onClick={handleCardClick}
+      >
         <div className="flex items-center space-x-3">
           <div className="relative">
             {/* GIF animado quando tocando */}
@@ -116,7 +121,7 @@ const RadioTatuapeWidget: React.FC<RadioWidgetProps> = ({
       </div>
 
       {/* Now Playing */}
-      <div className="px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100 border-b">
+      <div className="px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100">
         <div className="flex items-center space-x-2">
           <Music className="w-4 h-4 text-purple-500 flex-shrink-0" />
           <div className="min-w-0 flex-1">
@@ -153,15 +158,34 @@ const RadioTatuapeWidget: React.FC<RadioWidgetProps> = ({
           </div>
         </div>
       </div>
+      
+      {/* Botão Expandir/Colapsar */}
+      <div className="flex justify-center py-3 border-b">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsExpanded(!isExpanded);
+          }}
+          className="flex items-center space-x-2 px-4 py-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors text-sm font-medium"
+        >
+          <History className="w-4 h-4" />
+          <span>{isExpanded ? 'Ocultar Histórico' : 'Ver Últimas Tocadas'}</span>
+          {isExpanded ? (
+            <ChevronUp className="w-4 h-4" />
+          ) : (
+            <ChevronDown className="w-4 w-4" />
+          )}
+        </button>
+      </div>
 
-      {/* Recent Songs History - restaurado */}
-      {radioData.recentSongs && radioData.recentSongs.length > 0 && (
-        <div className="px-4 py-3 bg-white">
+      {/* Recent Songs History - Expandido */}
+      {isExpanded && radioData.recentSongs && radioData.recentSongs.length > 0 && (
+        <div className="px-4 py-3 bg-white border-b">
           <div className="flex items-center justify-between mb-3">
             <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Últimas Tocadas</h4>
             <span className="text-xs text-gray-400">{radioData.recentSongs.length} músicas</span>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 max-h-48 overflow-y-auto">
             {radioData.recentSongs.map((song, index) => (
               <div key={index} className={`flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0 ${
                 song.isCurrent ? 'bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg px-2 -mx-2' : ''
@@ -203,7 +227,10 @@ const RadioTatuapeWidget: React.FC<RadioWidgetProps> = ({
       {/* Play Button */}
       <div className="p-4 bg-gray-50 text-center">
         <button
-          onClick={openRadioWebsite}
+          onClick={(e) => {
+            e.stopPropagation();
+            openRadioWebsite();
+          }}
           className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.02] shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
           title="Clique para ouvir no site da rádio"
         >

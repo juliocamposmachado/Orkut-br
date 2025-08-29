@@ -778,7 +778,7 @@ export default function HomePage() {
           </div>
 
           {/* Main Content - Postagens no meio */}
-          <div className="mobile-space space-y-4 lg:space-y-6 lg:pr-2 order-1 lg:order-2">
+          <div className="mobile-space space-y-4 lg:space-y-6 lg:pr-2 order-1 lg:order-2 lg:-mt-4">
             {/* 1. No topo mobile: Criar Post */}
             <div className="lg:hidden">
               <CreatePost onPostCreated={() => {
@@ -1021,7 +1021,7 @@ export default function HomePage() {
           </div>
 
           {/* Right Sidebar - Nova organização */}
-          <div className="mobile-space space-y-4 lg:space-y-6 lg:sticky lg:top-6 lg:pl-2 order-3">
+          <div className="mobile-space space-y-4 lg:space-y-6 lg:sticky lg:top-6 lg:pl-2 order-3 lg:-mt-4">
 
             {/* 1. Radio Widget - Colapsado e simplificado */}
             <RadioTatuapeWidget className="shadow-md" />

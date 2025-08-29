@@ -42,6 +42,8 @@ import { BioEditor } from '@/components/profile/bio-editor';
 import { MessageModal } from '@/components/messages/message-modal';
 import { OnlineFriends } from '@/components/friends/online-friends'
 import { RecentActivities } from '@/components/profile/recent-activities'
+import Gallery from '@/components/Gallery'
+import UpdateGalleries from '@/components/UpdateGalleries'
 
 interface UserProfile {
   id: string;
@@ -69,6 +71,26 @@ interface FriendItem {
   avatar?: string;
 }
 
+interface PhotoItem {
+  id: number;
+  url: string;
+  title: string;
+  description: string;
+  uploadedAt: string;
+  views: number;
+  likes: number;
+  comments: number;
+}
+
+interface GalleryItem {
+  id: number;
+  title: string;
+  description?: string;
+  photos: PhotoItem[];
+  isPrivate: boolean;
+  createdAt: string;
+}
+
 const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
   const { user: currentUser, profile: currentUserProfile } = useAuth();
   const { callState, startVideoCall, startAudioCall, endCall } = useCall();
@@ -92,10 +114,129 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
   } | null>(null);
   const [friends, setFriends] = useState<FriendItem[]>([]);
   
+  // Exemplo estático de galerias para demo
+  const [demoGalleries, setDemoGalleries] = useState<GalleryItem[]>([
+    { 
+      id: 1, 
+      title: 'Paisagens', 
+      description: 'Minhas fotos favoritas da natureza',
+      photos: [
+        {
+          id: 101,
+          url: 'https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg?auto=compress&cs=tinysrgb&w=400',
+          title: 'Montanha ao amanhecer',
+          description: 'Vista incrível das montanhas',
+          uploadedAt: '2024-01-15T10:30:00Z',
+          views: 127,
+          likes: 34,
+          comments: 5
+        },
+        {
+          id: 102,
+          url: 'https://images.pexels.com/photos/748837/pexels-photo-748837.jpeg?auto=compress&cs=tinysrgb&w=400',
+          title: 'Floresta verdejante',
+          description: 'Caminhada pela mata',
+          uploadedAt: '2024-01-12T14:20:00Z',
+          views: 89,
+          likes: 23,
+          comments: 3
+        }
+      ],
+      isPrivate: false,
+      createdAt: '2024-01-10T00:00:00Z'
+    },
+    { 
+      id: 2, 
+      title: 'Viagens', 
+      description: 'Momentos especiais das minhas aventuras',
+      photos: [
+        {
+          id: 201,
+          url: 'https://images.pexels.com/photos/460621/pexels-photo-460621.jpeg?auto=compress&cs=tinysrgb&w=400',
+          title: 'Praia paradisíaca',
+          description: 'Férias no litoral',
+          uploadedAt: '2024-01-08T16:45:00Z',
+          views: 203,
+          likes: 67,
+          comments: 12
+        }
+      ],
+      isPrivate: false,
+      createdAt: '2024-01-05T00:00:00Z'
+    },
+    { 
+      id: 3, 
+      title: 'Arte', 
+      photos: [],
+      isPrivate: false,
+      createdAt: '2024-01-03T00:00:00Z'
+    },
+    { 
+      id: 4, 
+      title: 'Família', 
+      description: 'Momentos especiais com pessoas queridas',
+      photos: [],
+      isPrivate: true,
+      createdAt: '2024-01-01T00:00:00Z'
+    }
+  ]);
+  
   // Fotos do usuário baseadas no perfil
   const userPhotos = profile ? getUserPhotos(profile.username) : null;
   const displayPhotos = userPhotos?.photos || getDefaultPhotos();
   const recentPhotos = getRecentPhotos(6);
+  
+  // Handlers para o sistema de galerias
+  const handleCreateGallery = async (gallery: Partial<any>) => {
+    const newGallery: GalleryItem = {
+      id: Date.now(), // ID temporário
+      title: gallery.title || '',
+      description: gallery.description,
+      photos: [],
+      isPrivate: gallery.isPrivate || false,
+      createdAt: new Date().toISOString()
+    };
+    setDemoGalleries(prev => [...prev, newGallery]);
+    console.log('✨ Nova galeria criada:', newGallery);
+  };
+  
+  const handleUpdateGallery = async (updatedGallery: any) => {
+    setDemoGalleries(prev => 
+      prev.map(gallery => 
+        gallery.id === updatedGallery.id ? updatedGallery : gallery
+      )
+    );
+    console.log('📝 Galeria atualizada:', updatedGallery);
+  };
+  
+  const handleDeleteGallery = async (galleryId: number) => {
+    setDemoGalleries(prev => prev.filter(gallery => gallery.id !== galleryId));
+    console.log('🗑️ Galeria deletada:', galleryId);
+  };
+  
+  const handleAddPhotoToGallery = async (galleryId: number, files: File[]) => {
+    // Simular upload e adição de fotos
+    const newPhotos: PhotoItem[] = files.map((file, index) => ({
+      id: Date.now() + index,
+      url: URL.createObjectURL(file),
+      title: file.name.split('.')[0],
+      description: `Enviado em ${new Date().toLocaleDateString()}`,
+      uploadedAt: new Date().toISOString(),
+      views: 0,
+      likes: 0,
+      comments: 0
+    }));
+    
+    setDemoGalleries(prev => 
+      prev.map(gallery => 
+        gallery.id === galleryId 
+          ? { ...gallery, photos: [...gallery.photos, ...newPhotos] }
+          : gallery
+      )
+    );
+    
+    console.log(`📸 ${files.length} foto(s) adicionada(s) à galeria ${galleryId}`);
+  };
   
   // Fallback para status online
   const isOnline = true;
@@ -1041,50 +1182,38 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
               </OrkutCard>
             )}
             
-            {/* Profile Photos */}
-            <OrkutCard>
-              <OrkutCardHeader>
-                <div className="flex items-center space-x-2">
-                  <Camera className="h-4 w-4" />
-                  <span>Fotos ({displayPhotos.length})</span>
-                </div>
-              </OrkutCardHeader>
-              <OrkutCardContent>
-                <div className="grid grid-cols-3 gap-2">
-                  {displayPhotos.slice(0, 6).map((photo, idx) => (
-                    <div key={photo.id || idx} className="aspect-square bg-gray-200 rounded-md overflow-hidden group relative">
-                      <img 
-                        src={photo.url}
-                        alt={photo.title}
-                        className="w-full h-full object-cover hover:opacity-90 transition-all duration-200 cursor-pointer group-hover:scale-105"
-                      />
-                      {/* Overlay com informações */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-end">
-                        <div className="text-white p-2 w-full">
-                          <p className="text-xs font-medium truncate">{photo.title}</p>
-                          {photo.description && (
-                            <p className="text-[10px] text-gray-300 truncate">{photo.description}</p>
-                          )}
-                        </div>
-                      </div>
-                      {/* Badge da categoria */}
-                      {photo.category && (
-                        <div className="absolute top-1 right-1 bg-purple-500 text-white text-[8px] px-1 py-0.5 rounded opacity-0 group-hover:opacity-90 transition-opacity">
-                          {photo.category}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full mt-3 border-purple-300 text-purple-700 hover:bg-purple-50"
-                >
-                  Ver Todas as {displayPhotos.length} Fotos
-                </Button>
-              </OrkutCardContent>
-            </OrkutCard>
+            {/* Sistema de Galerias */}
+            <Gallery 
+              galleries={demoGalleries}
+              isOwner={isOwnProfile}
+              onCreateGallery={() => alert('Função criar galeria será implementada!')}
+              onAddPhoto={(galleryId) => {
+                // Simular seleção de arquivo
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.multiple = true;
+                input.accept = 'image/*';
+                input.onchange = (e) => {
+                  const files = (e.target as HTMLInputElement).files;
+                  if (files) {
+                    handleAddPhotoToGallery(galleryId, Array.from(files));
+                  }
+                };
+                input.click();
+              }}
+            />
+            
+            {/* Painel de Gerenciamento de Galerias - apenas para o dono do perfil */}
+            {isOwnProfile && (
+              <UpdateGalleries
+                galleries={demoGalleries}
+                userId={profile.id}
+                onCreateGallery={handleCreateGallery}
+                onUpdateGallery={handleUpdateGallery}
+                onDeleteGallery={handleDeleteGallery}
+                onAddPhotoToGallery={handleAddPhotoToGallery}
+              />
+            )}
             
             {/* Recent Activities */}
             <OrkutCard>

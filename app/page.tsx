@@ -1073,11 +1073,27 @@ export default function HomePage() {
               </OrkutCardContent>
             </OrkutCard>
 
+            {/* 2. Widget de Rádio - de volta à sidebar direita */}
+            <RadioTatuapeWidget className="shadow-md" />
+
             {/* 3. Contacts/Friends Online - usando dados reais do contexto */}
             <OnlineFriends 
               onOpenMessage={() => router.push('/mensagens')} 
               onStartAudioCall={(user) => startAudioCall(user)}
             />
+
+            {/* 4. Anúncios Patrocinados - sidebar direita */}
+            <OrkutCard>
+              <OrkutCardHeader>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-600">Patrocinado</span>
+                  <span className="text-xs text-gray-400">Anúncio</span>
+                </div>
+              </OrkutCardHeader>
+              <OrkutCardContent className="p-0">
+                <SponsoredCarousel />
+              </OrkutCardContent>
+            </OrkutCard>
 
             {/* 5. Comunidades em Alta - de volta à sidebar */}
             <OrkutCard>
@@ -1115,6 +1131,105 @@ export default function HomePage() {
                 >
                   Ver Todas
                 </Button>
+              </OrkutCardContent>
+            </OrkutCard>
+
+            {/* 6. Ações Rápidas - sidebar direita */}
+            <OrkutCard>
+              <OrkutCardHeader>
+                <span className="text-gray-600 text-sm font-medium">Ações rápidas</span>
+              </OrkutCardHeader>
+              <OrkutCardContent>
+                <div className="space-y-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="w-full justify-start border-purple-300 text-purple-700 hover:bg-purple-50"
+                    onClick={() => router.push('/buscar')}
+                  >
+                    <Search className="h-4 w-4 mr-2" />
+                    Buscar pessoas
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="w-full justify-start border-purple-300 text-purple-700 hover:bg-purple-50"
+                    onClick={() => router.push('/comunidades/criar')}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Criar comunidade
+                  </Button>
+                </div>
+              </OrkutCardContent>
+            </OrkutCard>
+
+            {/* 7. Top Friends - sidebar direita */}
+            <OrkutCard>
+              <OrkutCardHeader>
+                <div className="flex items-center space-x-2">
+                  <Star className="h-4 w-4" />
+                  <span>Top 10 Amigos</span>
+                </div>
+              </OrkutCardHeader>
+              <OrkutCardContent>
+                <div className="grid grid-cols-2 gap-3">
+                  {Array.from({ length: 4 }).map((_, idx) => (
+                    <div key={idx} className="text-center">
+                      <img 
+                        src={`https://images.pexels.com/photos/${220000 + idx}/pexels-photo-${220000 + idx}.jpeg?auto=compress&cs=tinysrgb&w=100`}
+                        alt={`Amigo ${idx + 1}`}
+                        className="w-12 h-12 rounded-full mx-auto mb-1 object-cover hover:opacity-80 transition-opacity cursor-pointer"
+                      />
+                      <p className="text-xs text-gray-600">Amigo {idx + 1}</p>
+                    </div>
+                  ))}
+                </div>
+              </OrkutCardContent>
+            </OrkutCard>
+
+            {/* 8. Download Apps - sidebar direita */}
+            <OrkutCard>
+              <OrkutCardHeader>
+                <div className="flex items-center space-x-2">
+                  <Download className="h-4 w-4 text-purple-600" />
+                  <span className="text-gray-600 text-sm font-medium">Baixar Apps</span>
+                </div>
+              </OrkutCardHeader>
+              <OrkutCardContent>
+                <div className="space-y-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="w-full justify-start border-gray-300 text-gray-600 hover:bg-gray-50 cursor-not-allowed opacity-60"
+                    disabled
+                  >
+                    <Monitor className="h-4 w-4 mr-2" />
+                    Windows 10
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="w-full justify-start border-gray-300 text-gray-600 hover:bg-gray-50 cursor-not-allowed opacity-60"
+                    disabled
+                  >
+                    <Smartphone className="h-4 w-4 mr-2" />
+                    Android
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="w-full justify-start border-gray-300 text-gray-600 hover:bg-gray-50 cursor-not-allowed opacity-60"
+                    disabled
+                  >
+                    <Phone className="h-4 w-4 mr-2" />
+                    iOS
+                  </Button>
+                </div>
+                <div className="mt-3 text-center">
+                  <p className="text-xs text-gray-500">
+                    💡 Em desenvolvimento
+                  </p>
+                </div>
               </OrkutCardContent>
             </OrkutCard>
 

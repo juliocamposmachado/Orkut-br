@@ -193,19 +193,19 @@ export function Navbar() {
             {/* Seja Pro Button ou Badge Pro */}
             {!subscriptionLoading && (
               hasActiveSubscription ? (
-                <div className="flex items-center space-x-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full border-2 border-yellow-300 shadow-lg animate-pulse">
-                  <Crown className="h-4 w-4" />
+                <div className="flex items-center space-x-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full border-2 border-yellow-300 shadow-lg animate-pulse whitespace-nowrap">
+                  <Crown className="h-4 w-4 flex-shrink-0" />
                   <span className="text-sm font-bold">Orkut BR Pro</span>
                 </div>
               ) : (
                 <Link 
                   href="/subscription"
                   onClick={(e) => handleNavClick('/subscription', 'seja pro', e)}
-                  className="group bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white px-3 py-1 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-2 border-yellow-300"
+                  className="group bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white px-3 py-1 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-2 border-yellow-300 whitespace-nowrap"
                   title="Assine o Orkut BR Pro"
                 >
-                  <div className="flex items-center space-x-2">
-                    <Crown className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+                  <div className="flex items-center space-x-1">
+                    <Crown className="h-4 w-4 flex-shrink-0 group-hover:scale-110 transition-transform duration-200" />
                     <span className="text-sm font-bold">Seja Pro</span>
                   </div>
                 </Link>

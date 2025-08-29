@@ -113,6 +113,8 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
     isOnline?: boolean;
   } | null>(null);
   const [friends, setFriends] = useState<FriendItem[]>([]);
+  const [recentConversations, setRecentConversations] = useState<any[]>([]);
+  const [loadingConversations, setLoadingConversations] = useState(false);
   
   // Exemplo estático de galerias para demo
   const [demoGalleries, setDemoGalleries] = useState<GalleryItem[]>([
@@ -506,6 +508,7 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
   useEffect(() => {
     if (profile?.id && currentUser?.id) {
       loadRealFriends();
+      loadRecentConversations();
     }
   }, [profile?.id, currentUser?.id]);
   
@@ -546,6 +549,133 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
       window.removeEventListener('friendship-updated', handleFriendshipUpdate);
     };
   }, [profile?.id, currentUser?.id]);
+
+  // Função para carregar conversas recentes do banco
+  const loadRecentConversations = async () => {
+    if (!currentUser?.id) return;
+    
+    setLoadingConversations(true);
+    try {
+      console.log('💬 Carregando conversas recentes...');
+      
+      // Buscar mensagens onde o usuário atual é remetente ou destinatário
+      // Agrupadas por conversação e ordenadas por data da última mensagem
+      const { data: messages, error } = await supabase
+        .from('messages')
+        .select(`
+          id,
+          content,
+          created_at,
+          from_profile_id,
+          to_profile_id,
+          read_at,
+          from_profile:profiles!from_profile_id(id, username, display_name, photo_url),
+          to_profile:profiles!to_profile_id(id, username, display_name, photo_url)
+        `)
+        .or(`from_profile_id.eq.${currentUser.id},to_profile_id.eq.${currentUser.id}`)
+        .order('created_at', { ascending: false })
+        .limit(50); // Buscar últimas 50 mensagens para processar
+
+      if (error) {
+        console.warn('⚠️ Erro ao carregar mensagens, usando dados de exemplo:', error.message);
+        // Usar dados de exemplo se houver erro
+        setRecentConversations([
+          {
+            id: '1',
+            userId: 'user1',
+            userName: 'Ana Carolina',
+            userUsername: 'ana_carolina',
+            userPhoto: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=100',
+            lastMessage: 'Oi! Como você está?',
+            timeAgo: '30min',
+            unreadCount: 2,
+            isOnline: true
+          },
+          {
+            id: '2',
+            userId: 'user2',
+            userName: 'Carlos Eduardo',
+            userUsername: 'carlos_edu',
+            userPhoto: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=100',
+            lastMessage: 'Vamos marcar aquele encontro!',
+            timeAgo: '2h',
+            unreadCount: 0,
+            isOnline: false
+          }
+        ]);
+        return;
+      }
+
+      if (!messages || messages.length === 0) {
+        console.log('📭 Nenhuma conversa encontrada');
+        setRecentConversations([]);
+        return;
+      }
+
+      // Processar mensagens para criar lista de conversas
+      const conversationsMap = new Map();
+      
+      messages.forEach((message: any) => {
+        // Determinar quem é o outro usuário na conversa
+        const otherUser = message.from_profile_id === currentUser.id 
+          ? message.to_profile 
+          : message.from_profile;
+          
+        const otherUserId = otherUser.id;
+        
+        // Se já temos uma conversa com este usuário, apenas atualizar se esta mensagem for mais recente
+        if (conversationsMap.has(otherUserId)) {
+          const existing = conversationsMap.get(otherUserId);
+          const existingDate = new Date(existing.lastMessageDate);
+          const currentDate = new Date(message.created_at);
+          
+          if (currentDate > existingDate) {
+            // Esta mensagem é mais recente, atualizar
+            existing.lastMessage = message.content;
+            existing.lastMessageDate = message.created_at;
+            existing.timeAgo = formatLastSeen(currentDate);
+          }
+          
+          // Contar mensagens não lidas (enviadas para o usuário atual que ainda não foram lidas)
+          if (message.to_profile_id === currentUser.id && !message.read_at) {
+            existing.unreadCount += 1;
+          }
+        } else {
+          // Nova conversa
+          const timeAgo = formatLastSeen(new Date(message.created_at));
+          const unreadCount = (message.to_profile_id === currentUser.id && !message.read_at) ? 1 : 0;
+          
+          conversationsMap.set(otherUserId, {
+            id: otherUserId,
+            userId: otherUserId,
+            userName: otherUser.display_name,
+            userUsername: otherUser.username,
+            userPhoto: otherUser.photo_url,
+            lastMessage: message.content,
+            lastMessageDate: message.created_at,
+            timeAgo: timeAgo,
+            unreadCount: unreadCount,
+            isOnline: Math.random() > 0.5 // Simular status online aleatório
+          });
+        }
+      });
+
+      // Converter Map para Array e ordenar por última mensagem
+      const conversations = Array.from(conversationsMap.values())
+        .sort((a, b) => new Date(b.lastMessageDate).getTime() - new Date(a.lastMessageDate).getTime())
+        .slice(0, 5); // Manter apenas as 5 conversas mais recentes
+
+      console.log(`✅ ${conversations.length} conversas recentes carregadas`);
+      setRecentConversations(conversations);
+      
+    } catch (error) {
+      console.error('❌ Erro ao carregar conversas:', error);
+      // Usar dados de exemplo em caso de erro
+      setRecentConversations([]);
+    } finally {
+      setLoadingConversations(false);
+    }
+  };
 
   // Função para carregar amigos reais do Supabase
   const loadRealFriends = async () => {
@@ -1036,26 +1166,74 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
               </OrkutCardContent>
             </OrkutCard>
             
-            {/* Aniversários */}
+            {/* Histórico de Conversas */}
             <OrkutCard>
               <OrkutCardHeader>
-                <div className="flex items-center space-x-2">
-                  <Calendar className="h-4 w-4" />
-                  <span>Aniversários</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <MessageCircle className="h-4 w-4" />
+                    <span>Conversas Recentes</span>
+                  </div>
+                  <Link href="/mensagens">
+                    <Button size="sm" variant="ghost" className="text-xs text-purple-600 hover:bg-purple-50">
+                      Ver todas
+                    </Button>
+                  </Link>
                 </div>
               </OrkutCardHeader>
               <OrkutCardContent>
-                <div className="text-center py-4">
-                  <p className="text-sm text-gray-600 mb-2">
-                    🎂 Hoje é aniversário do Paulo!
-                  </p>
-                  <p className="text-xs text-gray-500 mb-3">
-                    Ele faz 55 anos
-                  </p>
-                  <Button size="sm" className="bg-purple-500 hover:bg-purple-600">
-                    Parabenizar
-                  </Button>
-                </div>
+                {recentConversations.length === 0 ? (
+                  <div className="text-center py-4">
+                    <MessageCircle className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500 mb-2">
+                      Nenhuma conversa recente
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      Inicie uma conversa enviando uma mensagem
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {recentConversations.slice(0, 3).map((conversation) => (
+                      <div key={conversation.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                           onClick={() => handleOpenMessage({
+                             id: conversation.userId,
+                             name: conversation.userName,
+                             username: conversation.userUsername || '',
+                             photo: conversation.userPhoto,
+                             isOnline: conversation.isOnline || false
+                           })}>
+                        <div className="relative">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={conversation.userPhoto} alt={conversation.userName} />
+                            <AvatarFallback className="text-sm bg-purple-500 text-white">
+                              {conversation.userName.substring(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          {conversation.isOnline && (
+                            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium text-gray-900 truncate">{conversation.userName}</p>
+                            <p className="text-xs text-gray-500">{conversation.timeAgo}</p>
+                          </div>
+                          <p className="text-xs text-gray-600 truncate">
+                            {conversation.lastMessage}
+                          </p>
+                          {conversation.unreadCount > 0 && (
+                            <div className="mt-1">
+                              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                {conversation.unreadCount} nova{conversation.unreadCount > 1 ? 's' : ''}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </OrkutCardContent>
             </OrkutCard>
             

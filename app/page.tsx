@@ -370,6 +370,8 @@ export default function HomePage() {
           
           {/* Left Sidebar */}
           <div className="space-y-4 lg:sticky lg:top-4 order-2 lg:order-1">
+            {/* Espaçamento para alinhamento com card central */}
+            <div className="hidden lg:block h-16"></div>
             {/* Streaming Player Widget removido por não funcionar */}
             
             {/* Radio Widget - Movido da sidebar direita para cá */}
@@ -903,6 +905,8 @@ export default function HomePage() {
 
           {/* Right Sidebar - Nova organização */}
           <div className="space-y-4 lg:space-y-6 lg:sticky lg:top-4 order-3">
+            {/* Espaçamento para alinhamento com card central */}
+            <div className="hidden lg:block h-16"></div>
 
             {/* 1. Site Users - Gmail Users movido para cima */}
             <OrkutCard className="h-[400px] flex flex-col">

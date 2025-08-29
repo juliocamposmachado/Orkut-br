@@ -908,7 +908,13 @@ export default function HomePage() {
             {/* Espaçamento para alinhamento com card central */}
             <div className="hidden lg:block h-16"></div>
 
-            {/* 1. Site Users - Gmail Users compacto */}
+            {/* 1. Amigos Online - PRIMEIRO CARD */}
+            <OnlineFriends 
+              onOpenMessage={() => router.push('/mensagens')} 
+              onStartAudioCall={(user) => startAudioCall(user)}
+            />
+
+            {/* 2. Site Users - Gmail Users compacto */}
             <OrkutCard className="flex flex-col">
               <OrkutCardHeader>
                 <div className="flex items-center justify-between">
@@ -1071,14 +1077,8 @@ export default function HomePage() {
               </OrkutCardContent>
             </OrkutCard>
 
-            {/* 2. Widget de Rádio - de volta à sidebar direita */}
+            {/* 3. Widget de Rádio - de volta à sidebar direita */}
             <RadioTatuapeWidget className="shadow-md" />
-
-            {/* 3. Contacts/Friends Online - usando dados reais do contexto */}
-            <OnlineFriends 
-              onOpenMessage={() => router.push('/mensagens')} 
-              onStartAudioCall={(user) => startAudioCall(user)}
-            />
 
             {/* 4. Anúncios Patrocinados - sidebar direita */}
             <OrkutCard>

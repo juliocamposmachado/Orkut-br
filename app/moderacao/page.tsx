@@ -117,18 +117,27 @@ export default function ModeracaoPage() {
   const [domainBan, setDomainBan] = useState(false)
 
   useEffect(() => {
-    // Verificar se o usuário é admin/moderador
-    if (!user || !profile) {
+    // Aguardar carregamento completo do usuário/perfil
+    if (!user && !profile) return
+    
+    // Se usuário não está logado, redirecionar para login
+    if (!user) {
       router.push('/login')
       return
     }
 
-    if (!profile.role || !(['admin', 'moderator'] as string[]).includes(profile.role)) {
-      toast.error('Acesso negado. Apenas administradores podem acessar esta página.')
-      router.push('/')
+    // Se perfil ainda não carregou, aguardar
+    if (!profile) return
+
+    // Verificar permissões - se não for admin/moderador, mostrar mensagem e redirecionar
+    if (!profile.role || !(['admin', 'moderator'].includes(profile.role))) {
+      console.log('Usuário sem permissão:', profile)
+      toast.error(`Acesso negado. Apenas administradores podem acessar esta página. Seu role: ${profile.role || 'undefined'}`)
+      setTimeout(() => router.push('/'), 2000) // Aguardar 2s antes de redirecionar
       return
     }
 
+    // Se chegou até aqui, tem permissão
     loadModerationData()
   }, [user, profile, router])
 

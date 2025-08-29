@@ -31,7 +31,8 @@ import {
   UserPlus,
   Github,
   ExternalLink,
-  Camera
+  Camera,
+  Shield
 } from 'lucide-react'
 import { useAuth } from '@/contexts/enhanced-auth-context'
 import { useVoice } from '@/contexts/voice-context'
@@ -156,6 +157,18 @@ export function Navbar() {
 
           {/* Right Side - Facebook Style */}
           <div className="flex items-center space-x-2 w-80 justify-end">
+            {/* Moderation Button - Only for admins/moderators */}
+            {(profile?.role === 'admin' || profile?.role === 'moderator') && (
+              <Link 
+                href="/moderacao"
+                onClick={(e) => handleNavClick('/moderacao', 'moderação', e)}
+                className="group text-white hover:bg-white/30 w-10 h-10 p-0 rounded-full flex items-center justify-center transition-all duration-200 relative z-10 cursor-pointer transform hover:scale-105 hover:shadow-md"
+                title="Centro de Moderação"
+              >
+                <Shield className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
+              </Link>
+            )}
+            
             {/* Notifications */}
             <NotificationsDropdown />
 

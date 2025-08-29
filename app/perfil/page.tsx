@@ -345,7 +345,11 @@ export default function ProfilePage() {
                         <Users className="h-4 w-4 mr-2" />
                         Adicionar como Amigo
                       </Button>
-                      <Button variant="outline" className="border-purple-300 text-purple-700">
+                      <Button 
+                        variant="outline" 
+                        className="border-purple-300 text-purple-700"
+                        onClick={() => router.push('/mensagens')}
+                      >
                         <Mail className="h-4 w-4 mr-2" />
                         Enviar Mensagem
                       </Button>

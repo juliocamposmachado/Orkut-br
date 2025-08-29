@@ -47,7 +47,7 @@ export function Navbar() {
   const navItems = [
     { icon: Home, label: 'início', href: '/' },
     { icon: Users, label: 'amigos', href: '/amigos' },
-    { icon: MessageCircle, label: 'mensagens', href: '/recados' },
+    { icon: MessageCircle, label: 'mensagens', href: '/mensagens' },
     { icon: Globe, label: 'comunidades', href: '/comunidades' },
     { icon: Camera, label: 'fotos', href: '/fotos' },
     { icon: Search, label: 'buscar', href: '/buscar' },

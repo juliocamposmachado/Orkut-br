@@ -900,7 +900,7 @@ export default function HomePage() {
           <div className="mobile-space space-y-4 lg:space-y-6 lg:sticky lg:top-6 lg:pl-2 order-3 lg:-mt-4">
 
             {/* 1. Site Users - Gmail Users movido para cima */}
-            <OrkutCard className="min-h-[200px]">
+            <OrkutCard className="h-[400px] flex flex-col">
               <OrkutCardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
@@ -919,8 +919,36 @@ export default function HomePage() {
                     <span>{gmailUsersStats.total}</span>
                   </div>
                 </div>
+                
+                {/* Contador regressivo da meta */}
+                <div className="mt-3 p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+                  <div className="text-center">
+                    <div className="text-xs text-purple-600 font-medium mb-1">🎯 Meta: 1.000 Usuários</div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-600">Progresso:</span>
+                      <span className="font-bold text-purple-700">
+                        {gmailUsersStats.total}/1000
+                      </span>
+                    </div>
+                    {/* Barra de progresso */}
+                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                      <div 
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${Math.min((gmailUsersStats.total / 1000) * 100, 100)}%` }}
+                      ></div>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {Math.max(1000 - gmailUsersStats.total, 0)} usuários restantes
+                    </div>
+                    {gmailUsersStats.total >= 1000 && (
+                      <div className="text-xs text-green-600 font-bold mt-1">
+                        🎉 Meta alcançada!
+                      </div>
+                    )}
+                  </div>
+                </div>
               </OrkutCardHeader>
-              <OrkutCardContent className="p-0">
+              <OrkutCardContent className="p-0 flex-1 flex flex-col">
                 {loadingGmailUsers ? (
                   <div className="p-8 text-center">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600 mx-auto mb-2"></div>

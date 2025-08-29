@@ -13,6 +13,7 @@ import { useAuth } from '@/contexts/enhanced-auth-context';
 import { toast } from 'sonner';
 import { Eye, EyeOff, ChevronDown, ChevronUp, BarChart3 } from 'lucide-react';
 import { FcGoogle } from 'react-icons/fc';
+import { Crown } from 'lucide-react';
 import { 
   Collapsible,
   CollapsibleContent,
@@ -94,9 +95,33 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Botão Google Principal */}
+        {/* Botões Principais de Acesso */}
         <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl mb-6">
-          <CardContent className="pt-6">
+          <CardContent className="pt-6 space-y-4">
+            {/* Botão Orkut BR Pro */}
+            <Button
+              onClick={() => {
+                toast.success('👑 Redirecionando para assinatura Orkut BR Pro!')
+                router.push('/subscription')
+              }}
+              disabled={isLoading}
+              className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-4 text-lg shadow-lg border-2 border-yellow-300"
+            >
+              <Crown className="mr-3 text-2xl" />
+              Assinar Orkut BR Pro
+            </Button>
+            <p className="text-xs text-gray-600 text-center font-medium">
+              ✨ Recursos exclusivos por apenas R$ 1,99/mês!
+            </p>
+            
+            {/* Divisor */}
+            <div className="flex items-center space-x-4 my-4">
+              <hr className="flex-1 border-gray-300" />
+              <span className="text-gray-500 text-sm font-medium">ou</span>
+              <hr className="flex-1 border-gray-300" />
+            </div>
+            
+            {/* Botão Google */}
             <Button
               onClick={handleGoogleLogin}
               disabled={isLoading}
@@ -105,7 +130,7 @@ export default function LoginPage() {
               <FcGoogle className="mr-3 text-2xl" />
               {buttonText}
             </Button>
-            <p className="text-xs text-gray-500 mt-3 text-center">
+            <p className="text-xs text-gray-500 mt-2 text-center">
               Rápido, seguro e sem senhas para lembrar! 🚀
             </p>
             

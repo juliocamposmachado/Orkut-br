@@ -58,6 +58,7 @@ import { CallModal } from '@/components/call/call-modal'
 import { useCall } from '@/hooks/use-call'
 import { CommunityRulesCard } from '@/components/CommunityRulesCard'
 import OnlineFriends from '@/components/friends/online-friends'
+import GoogleTrends from '@/components/GoogleTrends'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -1045,44 +1046,8 @@ export default function HomePage() {
               onStartAudioCall={(user) => startAudioCall(user)}
             />
 
-            {/* 5. Communities in Spotlight - QUINTO */}
-            <OrkutCard>
-              <OrkutCardHeader>
-                <div className="flex items-center space-x-2">
-                  <TrendingUp className="h-4 w-4" />
-                  <span>Comunidades em Alta</span>
-                </div>
-              </OrkutCardHeader>
-              <OrkutCardContent>
-                <div className="space-y-3">
-                  {communities.slice(0, 5).map((community) => (
-                    <div key={community.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer">
-                      <img 
-                        src={community.photo_url} 
-                        alt={community.name}
-                        className="w-10 h-10 rounded-lg object-cover"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm text-gray-800 truncate">
-                          {community.name}
-                        </h4>
-                        <p className="text-xs text-gray-600">
-                          {community.members_count.toLocaleString('pt-BR')} membros
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full mt-3 border-purple-300 text-purple-700 hover:bg-purple-50"
-                  onClick={() => router.push('/comunidades')}
-                >
-                  Ver Todas
-                </Button>
-              </OrkutCardContent>
-            </OrkutCard>
+            {/* 5. Google Trends - Assuntos em Alta */}
+            <GoogleTrends />
 
           </div>
         </div>

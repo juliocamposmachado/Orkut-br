@@ -360,7 +360,7 @@ export default function HomePage() {
       <Navbar />
       
       {/* AI-Powered Marquee Banner - Full Width */}
-      <MarqueeBanner className="mb-4" />
+      <MarqueeBanner className="mb-2" />
       
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Email Verification Banner */}
@@ -369,7 +369,7 @@ export default function HomePage() {
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_280px] xl:grid-cols-[300px_1fr_300px] gap-6">
           
           {/* Left Sidebar */}
-          <div className="space-y-4 lg:sticky lg:top-6 order-2 lg:order-1">
+          <div className="space-y-4 lg:sticky lg:top-4 order-2 lg:order-1">
             {/* Streaming Player Widget removido por não funcionar */}
             
             {/* Radio Widget - Movido da sidebar direita para cá */}
@@ -897,7 +897,7 @@ export default function HomePage() {
           </div>
 
           {/* Right Sidebar - Nova organização */}
-          <div className="space-y-4 lg:space-y-6 lg:sticky lg:top-6 order-3">
+          <div className="space-y-4 lg:space-y-6 lg:sticky lg:top-4 order-3">
 
             {/* 1. Site Users - Gmail Users movido para cima */}
             <OrkutCard className="h-[400px] flex flex-col">

@@ -362,11 +362,11 @@ export default function HomePage() {
       {/* AI-Powered Marquee Banner - Full Width */}
       <MarqueeBanner className="mb-2" />
       
-      <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="max-w-7xl mx-auto px-4 py-4">
         {/* Email Verification Banner */}
         <EmailVerificationBanner />
         
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_280px] xl:grid-cols-[300px_1fr_300px] gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_280px] xl:grid-cols-[300px_1fr_300px] gap-6 items-start">
           
           {/* Left Sidebar */}
           <div className="space-y-4 lg:sticky lg:top-4 order-2 lg:order-1">

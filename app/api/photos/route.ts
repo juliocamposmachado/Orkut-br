@@ -7,7 +7,9 @@ const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.
 
 // Verificar se as variáveis estão configuradas
 if (!supabaseUrl || !supabaseServiceKey) {
-  console.warn('Supabase não configurado completamente')
+  console.error('❌ ERRO: Variáveis do Supabase não configuradas:')
+  console.error('NEXT_PUBLIC_SUPABASE_URL:', supabaseUrl ? 'OK' : 'MISSING')
+  console.error('SUPABASE_SERVICE_ROLE_KEY:', supabaseServiceKey ? 'OK' : 'MISSING')
 }
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey)

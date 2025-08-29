@@ -362,14 +362,14 @@ export default function HomePage() {
       {/* AI-Powered Marquee Banner - Full Width */}
       <MarqueeBanner className="mb-4" />
       
-      <div className="max-w-7xl mx-auto mobile-padding px-4 py-6">
+      <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Email Verification Banner */}
         <EmailVerificationBanner />
         
-        <div className="grid mobile-grid grid-cols-1 lg:grid-cols-[300px_1fr_300px] xl:grid-cols-[320px_1fr_320px] gap-4 lg:gap-6 lg:items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_280px] xl:grid-cols-[300px_1fr_300px] gap-6">
           
           {/* Left Sidebar */}
-          <div className="mobile-space space-y-4 lg:sticky lg:top-6 order-2 lg:order-1">
+          <div className="space-y-4 lg:sticky lg:top-6 order-2 lg:order-1">
             {/* Streaming Player Widget removido por não funcionar */}
             
             {/* Radio Widget - Movido da sidebar direita para cá */}
@@ -641,7 +641,7 @@ export default function HomePage() {
           </div>
 
           {/* Main Content - Postagens no meio */}
-          <div className="mobile-space space-y-4 lg:space-y-6 order-1 lg:order-2 lg:-mt-4 flex flex-col items-center">
+          <div className="space-y-4 lg:space-y-6 order-1 lg:order-2 flex flex-col items-center">
             {/* 1. No topo mobile: Criar Post */}
             <div className="lg:hidden">
               <CreatePost onPostCreated={() => {
@@ -897,7 +897,7 @@ export default function HomePage() {
           </div>
 
           {/* Right Sidebar - Nova organização */}
-          <div className="mobile-space space-y-4 lg:space-y-6 lg:sticky lg:top-6 lg:pl-2 order-3 lg:-mt-4">
+          <div className="space-y-4 lg:space-y-6 lg:sticky lg:top-6 order-3">
 
             {/* 1. Site Users - Gmail Users movido para cima */}
             <OrkutCard className="h-[400px] flex flex-col">

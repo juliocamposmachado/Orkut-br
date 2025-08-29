@@ -196,6 +196,26 @@ export async function POST(request: NextRequest) {
           throw new Error(`Erro no banco: ${dbError.message}`)
         }
 
+        // ✨ REMOVER FOTOS DE EXEMPLO APÓS PRIMEIRO UPLOAD REAL
+        // Verificar se este é o primeiro upload real do usuário
+        const { data: userPhotosCount } = await supabase
+          .from('user_photos')
+          .select('id', { count: 'exact' })
+          .eq('user_id', user.id)
+          .not('title', 'like', '%[EXEMPLO]%')
+
+        // Se esta é a primeira foto real, remover todas as fotos de exemplo
+        if (userPhotosCount?.length === 1) {
+          const { error: deleteExamplesError } = await supabase
+            .from('user_photos')
+            .delete()
+            .like('title', '%[EXEMPLO]%')
+            
+          if (!deleteExamplesError) {
+            console.log('Fotos de exemplo removidas após primeiro upload real')
+          }
+        }
+
         results.push({
           success: true,
           data: {

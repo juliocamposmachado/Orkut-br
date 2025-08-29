@@ -128,12 +128,10 @@ export function Navbar() {
                 <Image 
                   src="/opensource-logo.svg" 
                   alt="Open Source" 
-                  width={20} 
-                  height={20} 
+                  width={24} 
+                  height={24} 
                   className="transition-transform duration-200 group-hover:scale-110"
                 />
-                <span className="text-sm font-medium text-white">Open Source</span>
-                <ExternalLink className="h-3 w-3 opacity-70 group-hover:opacity-100 transition-opacity duration-200 text-white" />
               </Link>
             </div>
           </div>

@@ -365,7 +365,7 @@ export default function HomePage() {
         {/* Email Verification Banner */}
         <EmailVerificationBanner />
         
-        <div className="grid mobile-grid grid-cols-1 lg:grid-cols-[300px_1fr_300px] xl:grid-cols-[320px_1fr_320px] gap-4 lg:gap-6 items-start">
+        <div className="grid mobile-grid grid-cols-1 lg:grid-cols-[300px_1fr_300px] xl:grid-cols-[320px_1fr_320px] gap-4 lg:gap-6 lg:items-start">
           
           {/* Left Sidebar */}
           <div className="mobile-space space-y-4 lg:sticky lg:top-6 order-2 lg:order-1">
@@ -894,7 +894,7 @@ export default function HomePage() {
           <div className="mobile-space space-y-4 lg:space-y-6 lg:sticky lg:top-6 lg:pl-2 order-3 lg:-mt-4">
 
             {/* 1. Site Users - Gmail Users movido para cima */}
-            <OrkutCard>
+            <OrkutCard className="min-h-[200px]">
               <OrkutCardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">

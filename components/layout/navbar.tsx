@@ -32,10 +32,12 @@ import {
   Github,
   ExternalLink,
   Camera,
-  Shield
+  Shield,
+  Crown
 } from 'lucide-react'
 import { useAuth } from '@/contexts/enhanced-auth-context'
 import { useVoice } from '@/contexts/voice-context'
+import { useSubscription } from '@/hooks/use-subscription'
 import { NotificationsDropdown } from '@/components/notifications/notifications-dropdown'
 import BugReporter from '@/components/bug-reporter'
 
@@ -44,6 +46,7 @@ export function Navbar() {
   const pathname = usePathname()
   const { user, profile, signOut } = useAuth()
   const { isVoiceEnabled, toggleVoice, isListening } = useVoice()
+  const { hasActiveSubscription, isLoading: subscriptionLoading } = useSubscription()
 
   const navItems = [
     { icon: Home, label: 'início', href: '/' },
@@ -185,6 +188,28 @@ export function Navbar() {
               >
                 <Shield className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
               </Link>
+            )}
+            
+            {/* Seja Pro Button ou Badge Pro */}
+            {!subscriptionLoading && (
+              hasActiveSubscription ? (
+                <div className="flex items-center space-x-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full border-2 border-yellow-300 shadow-lg animate-pulse">
+                  <Crown className="h-4 w-4" />
+                  <span className="text-sm font-bold">Orkut BR Pro</span>
+                </div>
+              ) : (
+                <Link 
+                  href="/subscription"
+                  onClick={(e) => handleNavClick('/subscription', 'seja pro', e)}
+                  className="group bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white px-3 py-1 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-2 border-yellow-300"
+                  title="Assine o Orkut BR Pro"
+                >
+                  <div className="flex items-center space-x-2">
+                    <Crown className="h-4 w-4 group-hover:scale-110 transition-transform duration-200" />
+                    <span className="text-sm font-bold">Seja Pro</span>
+                  </div>
+                </Link>
+              )
             )}
             
             {/* Notifications */}

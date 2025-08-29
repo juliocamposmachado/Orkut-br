@@ -3,13 +3,14 @@
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/enhanced-auth-context';
+import { useSubscription } from '@/hooks/use-subscription';
 import { toast } from 'sonner';
 import { Eye, EyeOff, ChevronDown, ChevronUp, BarChart3 } from 'lucide-react';
 import { FcGoogle } from 'react-icons/fc';

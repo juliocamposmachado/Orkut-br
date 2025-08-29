@@ -491,6 +491,17 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
     setMessageTarget(null);
   };
 
+  // Função para abrir Gmail com dados preenchidos
+  const handleOpenGmail = (email: string, userName: string) => {
+    if (!email || isOwnProfile) return; // Não abre Gmail para o próprio perfil
+    
+    const subject = encodeURIComponent('mensagem vinda do orkut');
+    const body = encodeURIComponent(`Olá ${userName},\n\nEspero que esteja bem!\n\nEnviado através do Orkut.\n\nAtenciosamente`);
+    const gmailUrl = `https://mail.google.com/mail/u/0/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${subject}&body=${body}`;
+    
+    window.open(gmailUrl, '_blank', 'noopener,noreferrer');
+  };
+
   useEffect(() => {
     if (username) {
       loadProfile();
@@ -782,6 +793,39 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
         }
       } catch (supabaseError) {
         console.log('⚠️ Supabase indisponível, usando dados fallback:', supabaseError);
+      }
+
+      // Fallback para perfil da Rádio Tatuapé FM
+      if (username === 'radiotatuapefm') {
+        console.log('🔄 Usando fallback profile para Rádio Tatuapé FM...');
+        
+        const radioProfile: UserProfile = {
+          id: 'radio-tatuape-fm-oficial',
+          display_name: 'Rádio Tatuapé FM',
+          username: 'radiotatuapefm',
+          email: 'radiotatuapefm@gmail.com',
+          photo_url: '/logoradiotatuapefm.png',
+          phone: '11970603441',
+          bio: 'Rádio Tatuapé FM Classic Rock, Hard Rock, 70s, 80s, 90s, Heavy Metal tradicional, Raridades, B-Sides e bandas atuais com influência sonora dos anos 80. Uma jornada abrangente e eclética.',
+          location: 'São Paulo, SP',
+          birthday: '1995-01-01',
+          relationship: 'Solteiro(a)',
+          whatsapp_enabled: true,
+          privacy_settings: {
+            phone_visibility: 'public',
+            email_visibility: 'public'
+          },
+          fans_count: 0,
+          created_at: '2024-01-01T00:00:00Z',
+          scrapy_count: 0,
+          profile_views: 1247,
+          birth_date: '1995-01-01'
+        };
+        
+        console.log('✅ Usando perfil da rádio:', radioProfile);
+        setProfile(radioProfile);
+        
+        return;
       }
 
       // Fallback: usar dados do contexto de auth se for o próprio usuário
@@ -1288,7 +1332,17 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                     <div className="space-y-2">
                       <div className="flex items-center gap-2 text-sm">
                         <Mail size={14} className="text-purple-500" />
-                        <span className="text-gray-700">{profile.email}</span>
+                        {!isOwnProfile ? (
+                          <span 
+                            className="text-gray-700 cursor-pointer hover:text-purple-600 hover:underline transition-colors"
+                            onClick={() => handleOpenGmail(profile.email, profile.display_name)}
+                            title="Clique para enviar um email"
+                          >
+                            {profile.email}
+                          </span>
+                        ) : (
+                          <span className="text-gray-700">{profile.email}</span>
+                        )}
                       </div>
                       
                       {profile.location && (

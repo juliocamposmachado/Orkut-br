@@ -908,8 +908,8 @@ export default function HomePage() {
             {/* Espaçamento para alinhamento com card central */}
             <div className="hidden lg:block h-16"></div>
 
-            {/* 1. Site Users - Gmail Users movido para cima */}
-            <OrkutCard className="h-[400px] flex flex-col">
+            {/* 1. Site Users - Gmail Users compacto */}
+            <OrkutCard className="flex flex-col">
               <OrkutCardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
@@ -919,41 +919,41 @@ export default function HomePage() {
                       Gmail
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2 text-xs text-gray-500">
-                    <div className="flex items-center space-x-1">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span>{gmailUsersStats.online} on</span>
-                    </div>
-                    <span>•</span>
-                    <span>{gmailUsersStats.total}</span>
+                  <div className="flex items-center space-x-1 text-xs text-gray-500">
+                    <span>🔄 {gmailUsersStats.total}</span>
                   </div>
                 </div>
                 
-                {/* Contador regressivo da meta */}
-                <div className="mt-3 p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
-                  <div className="text-center">
-                    <div className="text-xs text-purple-600 font-medium mb-1">🎯 Meta: 1.000 Usuários</div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-600">Progresso:</span>
-                      <span className="font-bold text-purple-700">
-                        {gmailUsersStats.total}/1000
-                      </span>
+                {/* Meta Compacta */}
+                <div className="mt-2 p-2 bg-gradient-to-r from-purple-50 to-pink-50 rounded border border-purple-200">
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="text-purple-600 font-medium">🎯 Meta: 1.000</span>
+                    <span className="font-bold text-purple-700">{gmailUsersStats.total}/1000</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                    <div 
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 h-1.5 rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min((gmailUsersStats.total / 1000) * 100, 100)}%` }}
+                    ></div>
+                  </div>
+                  {gmailUsersStats.total < 1000 && (
+                    <div className="text-xs text-gray-500 mt-1 text-center">
+                      {Math.max(1000 - gmailUsersStats.total, 0)} restantes
                     </div>
-                    {/* Barra de progresso */}
-                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                      <div 
-                        className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${Math.min((gmailUsersStats.total / 1000) * 100, 100)}%` }}
-                      ></div>
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      {Math.max(1000 - gmailUsersStats.total, 0)} usuários restantes
-                    </div>
-                    {gmailUsersStats.total >= 1000 && (
-                      <div className="text-xs text-green-600 font-bold mt-1">
-                        🎉 Meta alcançada!
-                      </div>
-                    )}
+                  )}
+                </div>
+
+                {/* Next Level 500.000 */}
+                <div className="mt-2 p-2 bg-gradient-to-r from-green-50 to-emerald-50 rounded border border-green-200">
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="text-green-600 font-medium">🚀 Next level: 500.000</span>
+                    <span className="font-bold text-green-700">{gmailUsersStats.total}/500000</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                    <div 
+                      className="bg-gradient-to-r from-green-500 to-emerald-500 h-1.5 rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min((gmailUsersStats.total / 500000) * 100, 100)}%` }}
+                    ></div>
                   </div>
                 </div>
               </OrkutCardHeader>
@@ -971,49 +971,39 @@ export default function HomePage() {
                   </div>
                 ) : (
                   <div className="max-h-72 overflow-y-auto">
-                    {/* Online Users Section */}
+                    {/* Online Users Section - Compacta */}
                     {gmailUsers.filter(u => u.status === 'online').length > 0 && (
-                      <div className="p-3 pb-2">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                          <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                            Online — {gmailUsers.filter(u => u.status === 'online').length}
+                      <div className="px-2 pb-1">
+                        <div className="flex items-center space-x-1 mb-1.5">
+                          <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                          <span className="text-xs font-medium text-gray-600">
+                            Online ({gmailUsers.filter(u => u.status === 'online').length})
                           </span>
                         </div>
                         <div className="space-y-1">
-                          {gmailUsers.filter(u => u.status === 'online').map((user, idx) => (
-                            <div key={user.id} className="flex items-center space-x-3 px-2 py-1.5 rounded hover:bg-gray-50 transition-colors cursor-pointer group">
+                          {gmailUsers.filter(u => u.status === 'online').slice(0, 3).map((user, idx) => (
+                            <div key={user.id} className="flex items-center space-x-2 px-1.5 py-1 rounded hover:bg-gray-50 transition-colors cursor-pointer group">
                               <div className="relative">
-                                <Avatar className="h-8 w-8">
+                                <Avatar className="h-6 w-6">
                                   <AvatarImage src={user.photo_url} alt={user.display_name} />
                                   <AvatarFallback className="text-xs bg-purple-500 text-white">
-                                    {user.display_name.substring(0, 2).toUpperCase()}
+                                    {user.display_name.substring(0, 1).toUpperCase()}
                                   </AvatarFallback>
                                 </Avatar>
-                                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                                <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full border border-white"></div>
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-900 truncate">{user.display_name}</p>
-                                <p className="text-xs text-gray-500 truncate">{user.activity || 'Online'}</p>
+                                <p className="text-xs font-medium text-gray-900 truncate">{user.display_name.split(' ')[0]}</p>
                               </div>
-                              <div className="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Button 
                                   size="sm" 
                                   variant="ghost" 
-                                  className="p-1 h-6 w-6 text-gray-600 hover:bg-gray-200"
-                                  title="Enviar mensagem"
-                                  onClick={() => router.push('/mensagens')}
-                                >
-                                  <MessageCircle className="h-3 w-3" />
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="ghost" 
-                                  className="p-1 h-6 w-6 text-gray-600 hover:bg-gray-200"
+                                  className="p-0.5 h-5 w-5 text-gray-600 hover:bg-gray-200"
                                   title="Ver perfil"
                                   onClick={() => router.push(`/perfil/${user.username}`)}
                                 >
-                                  <UserCheck className="h-3 w-3" />
+                                  <UserCheck className="h-2.5 w-2.5" />
                                 </Button>
                               </div>
                             </div>
@@ -1022,40 +1012,39 @@ export default function HomePage() {
                       </div>
                     )}
                     
-                    {/* Offline Users Section */}
+                    {/* Offline Users Section - Compacta */}
                     {gmailUsers.filter(u => u.status === 'offline').length > 0 && (
-                      <div className="p-3 pt-2">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                          <span className="text-xs font-medium text-gray-600 uppercase tracking-wide">
-                            Offline — {gmailUsers.filter(u => u.status === 'offline').length}
+                      <div className="px-2 pb-1">
+                        <div className="flex items-center space-x-1 mb-1.5">
+                          <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+                          <span className="text-xs font-medium text-gray-600">
+                            Offline ({gmailUsers.filter(u => u.status === 'offline').length})
                           </span>
                         </div>
                         <div className="space-y-1">
-                          {gmailUsers.filter(u => u.status === 'offline').slice(0, 5).map((user) => (
-                            <div key={user.id} className="flex items-center space-x-3 px-2 py-1.5 rounded hover:bg-gray-50 transition-colors cursor-pointer group opacity-60">
+                          {gmailUsers.filter(u => u.status === 'offline').slice(0, 2).map((user) => (
+                            <div key={user.id} className="flex items-center space-x-2 px-1.5 py-1 rounded hover:bg-gray-50 transition-colors cursor-pointer group opacity-60">
                               <div className="relative">
-                                <Avatar className="h-8 w-8">
+                                <Avatar className="h-6 w-6">
                                   <AvatarImage src={user.photo_url} alt={user.display_name} />
                                   <AvatarFallback className="text-xs bg-gray-500 text-white">
-                                    {user.display_name.substring(0, 2).toUpperCase()}
+                                    {user.display_name.substring(0, 1).toUpperCase()}
                                   </AvatarFallback>
                                 </Avatar>
-                                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-gray-400 rounded-full border-2 border-white"></div>
+                                <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-gray-400 rounded-full border border-white"></div>
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-gray-700 truncate">{user.display_name}</p>
-                                <p className="text-xs text-gray-500 truncate">{user.lastSeen || 'Offline'}</p>
+                                <p className="text-xs font-medium text-gray-700 truncate">{user.display_name.split(' ')[0]}</p>
                               </div>
-                              <div className="opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Button 
                                   size="sm" 
                                   variant="ghost" 
-                                  className="p-1 h-6 w-6 text-gray-600 hover:bg-gray-200"
+                                  className="p-0.5 h-5 w-5 text-gray-600 hover:bg-gray-200"
                                   title="Ver perfil"
                                   onClick={() => router.push(`/perfil/${user.username}`)}
                                 >
-                                  <UserCheck className="h-3 w-3" />
+                                  <UserCheck className="h-2.5 w-2.5" />
                                 </Button>
                               </div>
                             </div>

@@ -38,8 +38,12 @@ interface Community {
 
 const categories = [
   'Todos',
+  'Trabalho',
+  'Educação',
+  'Tecnologia',
+  'Negócios', 
+  'Carreira',
   'Música',
-  'Tecnologia', 
   'Jogos',
   'Entretenimento',
   'Esportes',
@@ -204,12 +208,6 @@ export default function CommunitiesPage() {
               </div>
             </div>
             <div className="flex space-x-2 mt-4 md:mt-0">
-              <Button 
-                onClick={() => createEpicCommunity()}
-                className="bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white font-bold"
-              >
-                🎭 Criar "NÃO É CULPA NOSSA!"
-              </Button>
               <CreateCommunityModal onCommunityCreated={loadCommunities} />
             </div>
           </div>

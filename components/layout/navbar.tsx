@@ -86,7 +86,7 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center h-16">
           {/* Left Side - Logo + GitHub */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 w-80">
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-2">
               <div className="bg-white rounded-full p-2 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
@@ -97,7 +97,7 @@ export function Navbar() {
             </Link>
 
             {/* iFood Button - Left Side */}
-            <div className="hidden md:flex">
+            <div className="hidden lg:flex">
               <Link 
                 href="https://www.ifood.com.br/delivery/sao-paulo-sp/adega-radio-tatuape-fm-24-horas-vila-regente-feijo/"
                 target="_blank"
@@ -116,7 +116,7 @@ export function Navbar() {
             </div>
 
             {/* GitHub Button - Left Side */}
-            <div className="hidden md:flex">
+            <div className="hidden xl:flex">
               <Link 
                 href="https://github.com/juliocamposmachado/Orkut-br"
                 target="_blank"
@@ -133,7 +133,7 @@ export function Navbar() {
 
           {/* Center - Navigation Items */}
           <div className="flex-1 flex justify-center">
-            <div className="hidden md:flex items-center space-x-2 px-6 py-2">
+            <div className="hidden md:flex items-center space-x-1">
               {navItems.map((item) => {
                 const Icon = item.icon
                 const isActive = pathname === item.href
@@ -142,12 +142,12 @@ export function Navbar() {
                     key={item.href} 
                     href={item.href}
                     onClick={(e) => handleNavClick(item.href, item.label, e)}
-                    className={`group text-white hover:bg-white/30 transition-all duration-200 w-12 h-12 p-0 rounded-xl flex items-center justify-center relative z-10 cursor-pointer transform hover:scale-105 ${
+                    className={`group text-white hover:bg-white/30 transition-all duration-200 w-11 h-11 p-0 rounded-xl flex items-center justify-center relative z-10 cursor-pointer transform hover:scale-105 ${
                       isActive ? 'bg-white/30 border-b-2 border-white shadow-lg' : 'hover:shadow-md'
                     }`}
                     title={item.label.charAt(0).toUpperCase() + item.label.slice(1)}
                   >
-                    <Icon className="h-6 w-6 group-hover:scale-110 transition-transform duration-200" />
+                    <Icon className="h-5 w-5 group-hover:scale-110 transition-transform duration-200" />
                   </Link>
                 )
               })}
@@ -155,7 +155,7 @@ export function Navbar() {
           </div>
 
           {/* Right Side - Facebook Style */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 w-80 justify-end">
             {/* Notifications */}
             <NotificationsDropdown />
 

@@ -37,6 +37,7 @@ import {
 import { useAuth } from '@/contexts/enhanced-auth-context'
 import { useVoice } from '@/contexts/voice-context'
 import { NotificationsDropdown } from '@/components/notifications/notifications-dropdown'
+import BugReporter from '@/components/bug-reporter'
 
 export function Navbar() {
   const router = useRouter()
@@ -161,6 +162,19 @@ export function Navbar() {
 
           {/* Right Side - Facebook Style */}
           <div className="flex items-center space-x-2 w-80 justify-end">
+            {/* Bug Reporter */}
+            <div className="relative">
+              <BugReporter 
+                variant="icon" 
+                size="sm" 
+                className="text-white hover:bg-white/30 w-10 h-10 p-0 rounded-full flex items-center justify-center transition-all duration-200 relative z-10 cursor-pointer transform hover:scale-105 hover:shadow-md"
+                context={{
+                  url: pathname || '',
+                  component: 'navbar'
+                }}
+              />
+            </div>
+
             {/* Moderation Button - Only for admins/moderators */}
             {(profile?.role === 'admin' || profile?.role === 'moderator') && (
               <Link 

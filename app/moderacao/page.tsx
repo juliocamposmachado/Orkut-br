@@ -46,6 +46,7 @@ import { ptBR } from 'date-fns/locale'
 import { toast } from 'sonner'
 import ModeratorManager from '@/components/ModeratorManager'
 import { UserManagement } from '@/components/admin/user-management'
+import { BugReportsManagement } from '@/components/admin/bug-reports-management'
 
 interface Report {
   id: number
@@ -428,9 +429,10 @@ export default function ModeracaoPage() {
 
         {/* Tabs de conteúdo */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="users">Usuários</TabsTrigger>
             <TabsTrigger value="reports">Denúncias</TabsTrigger>
+            <TabsTrigger value="bugs">🐛 Bugs</TabsTrigger>
             <TabsTrigger value="actions">Ações</TabsTrigger>
             <TabsTrigger value="banned">Banimentos</TabsTrigger>
             <TabsTrigger value="moderators">Moderadores</TabsTrigger>
@@ -439,6 +441,10 @@ export default function ModeracaoPage() {
 
           <TabsContent value="users" className="space-y-4">
             <UserManagement />
+          </TabsContent>
+
+          <TabsContent value="bugs" className="space-y-4">
+            <BugReportsManagement />
           </TabsContent>
 
           <TabsContent value="reports" className="space-y-4">

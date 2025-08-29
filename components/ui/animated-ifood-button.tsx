@@ -2,17 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
+import { Crown } from 'lucide-react'
 
 interface AnimatediFoodButtonProps {
   className?: string
-  width?: number
-  height?: number
 }
 
 export function AnimatediFoodButton({ 
-  className = "", 
-  width = 32, 
-  height = 32 
+  className = "" 
 }: AnimatediFoodButtonProps) {
   const [currentState, setCurrentState] = useState<'logo' | 'text'>('logo')
   const [currentTextIndex, setCurrentTextIndex] = useState(0)
@@ -53,33 +50,25 @@ export function AnimatediFoodButton({
   }, [currentState, currentTextIndex, texts.length])
   
   return (
-    <div 
-      className={`flex items-center justify-center transition-all duration-500 ${className}`}
-      style={{ 
-        width: `${width}px`, 
-        height: `${height}px`,
-        minWidth: `${width}px`,
-        minHeight: `${height}px`
-      }}
-    >
+    <div className={`flex items-center space-x-2 h-10 ${className}`}>
       {currentState === 'logo' ? (
-        <Image 
-          src="/ifood-logo.svg" 
-          alt="iFood - Adega Rádio Tatuapé FM" 
-          width={width} 
-          height={height} 
-          className="transition-all duration-300 rounded-full animate-pulse"
-        />
+        <>
+          <Image 
+            src="/ifood-logo.png" 
+            alt="iFood - Adega Rádio Tatuapé FM" 
+            width={24} 
+            height={24} 
+            className="transition-all duration-300 animate-pulse flex-shrink-0 rounded"
+          />
+          <span className="text-base font-bold whitespace-nowrap">Adega</span>
+        </>
       ) : (
-        <span 
-          className="text-white font-bold text-xs whitespace-nowrap animate-bounce overflow-hidden text-center leading-tight"
-          style={{ 
-            fontSize: width > 24 ? '10px' : '8px',
-            maxWidth: `${width + 20}px` // Um pouco mais largo para o texto
-          }}
-        >
-          {texts[currentTextIndex]}
-        </span>
+        <>
+          <Crown className="h-6 w-6 flex-shrink-0 animate-bounce text-yellow-300" />
+          <span className="text-base font-bold whitespace-nowrap animate-pulse">
+            {texts[currentTextIndex]}
+          </span>
+        </>
       )}
     </div>
   )

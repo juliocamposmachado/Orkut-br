@@ -108,14 +108,10 @@ export function Navbar() {
                 href="https://www.ifood.com.br/delivery/sao-paulo-sp/adega-radio-tatuape-fm-24-horas-vila-regente-feijo/29aa6191-cf23-4569-a8c3-d7bd66d877b5"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg border border-white/30 flex items-center space-x-2 px-3 py-2"
-                title="Adega Rádio Tatuapé FM - Bebidas Nacionais e Importadas"
+                className="group bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-2 border-red-300 px-3 py-1"
+                title="Adega Rádio Tatuapé FM - Bebidas Nacionais e Importadas - Entrega em todo Brasil"
               >
-                <AnimatediFoodButton 
-                  width={32} 
-                  height={32} 
-                  className="transition-transform duration-200 group-hover:scale-110"
-                />
+                <AnimatediFoodButton className="group-hover:scale-110 transition-transform duration-200" />
               </Link>
             </div>
 
@@ -316,7 +312,7 @@ export function Navbar() {
             )
           })}
           
-          {/* iFood Button Animado Mobile */}
+          {/* iFood Button Mobile */}
           <Link 
             href="https://www.ifood.com.br/delivery/sao-paulo-sp/adega-radio-tatuape-fm-24-horas-vila-regente-feijo/29aa6191-cf23-4569-a8c3-d7bd66d877b5"
             target="_blank"
@@ -328,10 +324,12 @@ export function Navbar() {
               size="sm"
               className="text-white hover:bg-white/20 transition-all duration-200 flex-col h-auto py-2 cursor-pointer"
             >
-              <AnimatediFoodButton 
+              <Image 
+                src="/ifood-logo.png" 
+                alt="iFood - Adega" 
                 width={16} 
                 height={16} 
-                className="rounded-full"
+                className="rounded"
               />
               <span className="text-xs mt-1">adega</span>
             </Button>

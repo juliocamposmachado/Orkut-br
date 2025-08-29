@@ -6,6 +6,7 @@ import { VoiceProvider } from '@/contexts/voice-context';
 import { OnlineStatusProvider } from '@/contexts/OnlineStatusContext';
 import { WebRTCProvider } from '@/contexts/webrtc-context';
 import { RadioProvider } from '@/contexts/RadioContext';
+import { FriendsProvider } from '@/contexts/FriendsContext';
 import { Toaster } from '@/components/ui/sonner';
 import { StructuredData } from '@/components/seo/structured-data';
 // Import polyfills to fix runtime errors
@@ -165,11 +166,13 @@ export default function RootLayout({
             <OnlineStatusProvider>
               <WebRTCProvider>
                 <VoiceProvider>
-                  {children}
-                  {/* CallManager removido - funcionalidades integradas nas páginas específicas */}
-                  {/* WebRTC diagnostics moved to developer dashboard */}
-                  {/* <EventListenerMonitor /> */}
-                  <Toaster />
+                  <FriendsProvider>
+                    {children}
+                    {/* CallManager removido - funcionalidades integradas nas páginas específicas */}
+                    {/* WebRTC diagnostics moved to developer dashboard */}
+                    {/* <EventListenerMonitor /> */}
+                    <Toaster />
+                  </FriendsProvider>
                 </VoiceProvider>
               </WebRTCProvider>
             </OnlineStatusProvider>

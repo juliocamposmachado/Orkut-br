@@ -50,22 +50,22 @@ export function AnimatediFoodButton({
   }, [currentState, currentTextIndex, texts.length])
   
   return (
-    <div className={`flex items-center space-x-2 h-10 ${className}`}>
+    <div className={`flex items-center space-x-2 h-10 min-w-fit ${className}`}>
       {currentState === 'logo' ? (
         <>
           <Image 
             src="/ifood-logo.png" 
             alt="iFood - Adega Rádio Tatuapé FM" 
-            width={24} 
-            height={24} 
+            width={20} 
+            height={20} 
             className="transition-all duration-300 animate-pulse flex-shrink-0 rounded"
           />
-          <span className="text-base font-bold whitespace-nowrap">Adega</span>
+          <span className="text-sm font-bold whitespace-nowrap">Adega</span>
         </>
       ) : (
         <>
-          <Crown className="h-6 w-6 flex-shrink-0 animate-bounce text-yellow-300" />
-          <span className="text-base font-bold whitespace-nowrap animate-pulse">
+          <Crown className="h-4 w-4 flex-shrink-0 animate-bounce text-yellow-300" />
+          <span className="text-sm font-bold whitespace-nowrap animate-pulse">
             {texts[currentTextIndex]}
           </span>
         </>

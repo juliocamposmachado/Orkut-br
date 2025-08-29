@@ -6,13 +6,13 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { X, ChevronLeft, ChevronRight, Download, Heart, Share2, User } from "lucide-react"
-import { ProfilePhoto } from "@/data/profile-photos"
+import { Photo } from "@/hooks/use-photos"
 import { cn } from "@/lib/utils"
 
 interface PhotoModalProps {
   isOpen: boolean
   onClose: () => void
-  photos: ProfilePhoto[]
+  photos: Photo[]
   initialIndex: number
   userName?: string
 }

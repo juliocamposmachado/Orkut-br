@@ -11,13 +11,8 @@ import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { PhotoCard } from '@/components/photos/photo-card'
 import { PhotoModal } from '@/components/photos/photo-modal'
-import { 
-  profilePhotosData, 
-  getUserPhotos, 
-  getRecentPhotos, 
-  getPhotosByCategory,
-  ProfilePhoto 
-} from '@/data/profile-photos'
+import { PhotoUpload } from '@/components/photos/photo-upload'
+import { usePhotos, type Photo } from '@/hooks/use-photos'
 import { 
   Camera, 
   Filter, 
@@ -27,13 +22,17 @@ import {
   Upload,
   Grid3x3,
   List,
-  Eye
+  Eye,
+  RefreshCw,
+  Heart,
+  MessageCircle,
+  Loader2,
+  AlertCircle
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 
 type ViewMode = 'grid' | 'list'
-type FilterMode = 'all' | 'recent' | 'category' | 'user'
 
 export default function PhotosPage() {
   const { user, profile } = useAuth()
@@ -41,89 +40,90 @@ export default function PhotosPage() {
   const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedUser, setSelectedUser] = useState('')
   const [viewMode, setViewMode] = useState<ViewMode>('grid')
-  const [filterMode, setFilterMode] = useState<FilterMode>('all')
   const [modalOpen, setModalOpen] = useState(false)
-  const [selectedPhotos, setSelectedPhotos] = useState<ProfilePhoto[]>([])
+  const [selectedPhotos, setSelectedPhotos] = useState<Photo[]>([])
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(0)
+  
+  // Hook personalizado para gerenciar fotos
+  const {
+    photos,
+    loading,
+    error,
+    stats,
+    popularCategories,
+    pagination,
+    fetchPhotos,
+    loadMore,
+    refreshPhotos,
+    likePhoto,
+    incrementViews,
+    filters,
+    setFilters,
+    clearFilters
+  } = usePhotos()
 
-  // Obter todas as fotos com filtros aplicados
-  const filteredPhotos = useMemo(() => {
-    let photos: ProfilePhoto[] = []
-    
-    switch (filterMode) {
-      case 'recent':
-        photos = getRecentPhotos(24)
-        break
-      case 'category':
-        if (selectedCategory) {
-          photos = getPhotosByCategory(selectedCategory)
-        }
-        break
-      case 'user':
-        if (selectedUser) {
-          const userPhotos = getUserPhotos(selectedUser)
-          photos = userPhotos?.photos || []
-        }
-        break
-      default:
-        // Todas as fotos
-        profilePhotosData.forEach(user => {
-          photos.push(...user.photos)
-        })
-    }
-    
-    // Aplicar busca por texto
-    if (searchQuery) {
-      photos = photos.filter(photo => 
-        photo.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        photo.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        photo.category?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    }
-    
-    return photos
-  }, [filterMode, selectedCategory, selectedUser, searchQuery])
+  // Aplicar filtros quando mudarem
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchQuery(value)
+    setFilters({ ...filters, search: value || undefined, offset: 0 })
+  }, [filters, setFilters])
 
-  // Obter categorias únicas
-  const categories = useMemo(() => {
-    const cats = new Set<string>()
-    profilePhotosData.forEach(user => {
-      user.photos.forEach(photo => {
-        if (photo.category) cats.add(photo.category)
-      })
+  const handleCategoryFilter = useCallback((category: string) => {
+    const newCategory = category === selectedCategory ? '' : category
+    setSelectedCategory(newCategory)
+    setFilters({ 
+      ...filters, 
+      category: newCategory || undefined,
+      userId: undefined,
+      offset: 0 
     })
-    return Array.from(cats).sort()
-  }, [])
+    setSelectedUser('')
+  }, [selectedCategory, filters, setFilters])
 
-  // Obter usuários com fotos
-  const usersWithPhotos = useMemo(() => {
-    return profilePhotosData.filter(user => user.photos.length > 0)
-  }, [])
+  const handleUserFilter = useCallback((userId: string) => {
+    const newUser = userId === selectedUser ? '' : userId
+    setSelectedUser(newUser)
+    setFilters({ 
+      ...filters, 
+      userId: newUser || undefined,
+      category: undefined,
+      offset: 0 
+    })
+    setSelectedCategory('')
+  }, [selectedUser, filters, setFilters])
 
-  const openPhotoModal = useCallback((photoId: string, photos: ProfilePhoto[]) => {
-    const index = photos.findIndex(p => p.id === photoId)
-    if (index >= 0) {
-      setSelectedPhotos(photos)
-      setSelectedPhotoIndex(index)
-      setModalOpen(true)
-    }
-  }, [])
-
-  const getUserDisplayName = (photoId: string): string => {
-    for (const user of profilePhotosData) {
-      if (user.photos.some(p => p.id === photoId)) {
-        return user.displayName
-      }
-    }
-    return 'Usuário'
-  }
-
-  const clearFilters = () => {
-    setFilterMode('all')
+  const handleShowAll = useCallback(() => {
     setSelectedCategory('')
     setSelectedUser('')
     setSearchQuery('')
-  }
+    clearFilters()
+  }, [clearFilters])
+
+  const handleShowRecent = useCallback(() => {
+    setSelectedCategory('')
+    setSelectedUser('')
+    setFilters({ ...filters, offset: 0 })
+  }, [filters, setFilters])
+
+  const openPhotoModal = useCallback((photoId: string, photosArray: Photo[]) => {
+    const index = photosArray.findIndex(p => p.id === photoId)
+    if (index >= 0) {
+      setSelectedPhotos(photosArray)
+      setSelectedPhotoIndex(index)
+      setModalOpen(true)
+      // Incrementar views quando abrir modal
+      incrementViews(photoId)
+    }
+  }, [incrementViews])
+
+  const handleUploadComplete = useCallback((uploadedPhotos: any[]) => {
+    // Refresh das fotos após upload
+    refreshPhotos()
+  }, [refreshPhotos])
+
+  const handleLikePhoto = useCallback(async (photoId: string) => {
+    await likePhoto(photoId)
+  }, [likePhoto])
 
   if (!user) {
     return (
@@ -152,21 +152,32 @@ export default function PhotosPage() {
               <div className="bg-white/20 rounded-full p-3">
                 <Camera className="w-8 h-8" />
               </div>
-              <div>
-                <h1 className="text-3xl font-bold">Orkut Fotos</h1>
-                <p className="text-purple-100">
-                  Explore {filteredPhotos.length} fotos da comunidade
-                </p>
-              </div>
+            <div>
+              <h1 className="text-3xl font-bold">Orkut Fotos</h1>
+              <p className="text-purple-100">
+                {loading 
+                  ? 'Carregando fotos...' 
+                  : `Explore ${stats?.total || photos.length} fotos da comunidade`
+                }
+              </p>
+            </div>
             </div>
             
-            <Button 
-              variant="secondary"
-              className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              Upload Foto
-            </Button>
+            <div className="flex space-x-2">
+              <Button 
+                variant="secondary"
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                onClick={refreshPhotos}
+                disabled={loading}
+              >
+                <RefreshCw className={cn('w-4 h-4 mr-2', loading && 'animate-spin')} />
+                Atualizar
+              </Button>
+              <PhotoUpload 
+                onUploadComplete={handleUploadComplete}
+                categories={popularCategories.map(c => c.category)}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -188,7 +199,7 @@ export default function PhotosPage() {
                 <Input
                   placeholder="Digite para buscar..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => handleSearchChange(e.target.value)}
                   className="w-full"
                 />
               </OrkutCardContent>
@@ -205,39 +216,31 @@ export default function PhotosPage() {
               <OrkutCardContent className="space-y-3">
                 <div className="space-y-2">
                   <Button
-                    variant={filterMode === 'all' ? 'default' : 'ghost'}
+                    variant={!selectedCategory && !selectedUser ? 'default' : 'ghost'}
                     size="sm"
                     className="w-full justify-start"
-                    onClick={() => {
-                      setFilterMode('all')
-                      setSelectedCategory('')
-                      setSelectedUser('')
-                    }}
+                    onClick={handleShowAll}
                   >
                     <Eye className="w-4 h-4 mr-2" />
                     Todas as Fotos
                   </Button>
                   
                   <Button
-                    variant={filterMode === 'recent' ? 'default' : 'ghost'}
+                    variant="ghost"
                     size="sm"
                     className="w-full justify-start"
-                    onClick={() => {
-                      setFilterMode('recent')
-                      setSelectedCategory('')
-                      setSelectedUser('')
-                    }}
+                    onClick={handleShowRecent}
                   >
                     <TrendingUp className="w-4 h-4 mr-2" />
                     Mais Recentes
                   </Button>
                 </div>
                 
-                {(filterMode !== 'all' || searchQuery) && (
+                {(selectedCategory || selectedUser || searchQuery) && (
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={clearFilters}
+                    onClick={handleShowAll}
                     className="w-full"
                   >
                     Limpar Filtros
@@ -253,18 +256,15 @@ export default function PhotosPage() {
               </OrkutCardHeader>
               <OrkutCardContent>
                 <div className="flex flex-wrap gap-2">
-                  {categories.map((category) => (
+                  {popularCategories.map((categoryData) => (
                     <Badge
-                      key={category}
-                      variant={selectedCategory === category ? "default" : "secondary"}
-                      className="cursor-pointer hover:bg-primary/80"
-                      onClick={() => {
-                        setSelectedCategory(category === selectedCategory ? '' : category)
-                        setFilterMode('category')
-                        setSelectedUser('')
-                      }}
+                      key={categoryData.category}
+                      variant={selectedCategory === categoryData.category ? "default" : "secondary"}
+                      className="cursor-pointer hover:bg-primary/80 flex items-center space-x-1"
+                      onClick={() => handleCategoryFilter(categoryData.category)}
                     >
-                      {category}
+                      <span>{categoryData.category}</span>
+                      <span className="text-xs opacity-75">({categoryData.count})</span>
                     </Badge>
                   ))}
                 </div>
@@ -281,34 +281,17 @@ export default function PhotosPage() {
               </OrkutCardHeader>
               <OrkutCardContent>
                 <div className="space-y-2">
-                  {usersWithPhotos.map((user) => (
-                    <Button
-                      key={user.username}
-                      variant={selectedUser === user.username ? "default" : "ghost"}
-                      size="sm"
-                      className="w-full justify-start"
-                      onClick={() => {
-                        setSelectedUser(user.username === selectedUser ? '' : user.username)
-                        setFilterMode('user')
-                        setSelectedCategory('')
-                      }}
-                    >
-                      <Avatar className="w-6 h-6 mr-2">
-                        <AvatarImage src={user.profilePhoto} />
-                        <AvatarFallback>
-                          {user.displayName.substring(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 text-left">
-                        <div className="text-xs font-medium truncate">
-                          {user.displayName}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {user.photos.length} fotos
-                        </div>
-                      </div>
-                    </Button>
-                  ))}
+                  {/* Mostrar usuários apenas se houver dados */}
+                  {stats && Object.keys(stats.categories).length > 0 && (
+                    <div className="text-xs text-gray-500 mb-2">
+                      Total: {stats.total} fotos • Públicas: {stats.public}
+                    </div>
+                  )}
+                  
+                  {/* Implementar busca por usuário quando necessário */}
+                  <div className="text-sm text-gray-500">
+                    Filtrar por usuário em breve...
+                  </div>
                 </div>
               </OrkutCardContent>
             </OrkutCard>
@@ -320,17 +303,22 @@ export default function PhotosPage() {
             <div className="flex items-center justify-between bg-white rounded-lg p-4 shadow">
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-gray-600">
-                  {filteredPhotos.length} foto{filteredPhotos.length !== 1 ? 's' : ''} encontrada{filteredPhotos.length !== 1 ? 's' : ''}
+                  {loading ? (
+                    <div className="flex items-center space-x-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Carregando...</span>
+                    </div>
+                  ) : (
+                    `${photos.length} foto${photos.length !== 1 ? 's' : ''} encontrada${photos.length !== 1 ? 's' : ''}`
+                  )}
                 </span>
-                {(filterMode !== 'all' || searchQuery) && (
+                {(selectedCategory || selectedUser || searchQuery) && (
                   <div className="flex items-center space-x-2">
                     {selectedCategory && (
                       <Badge variant="outline">#{selectedCategory}</Badge>
                     )}
                     {selectedUser && (
-                      <Badge variant="outline">
-                        @{usersWithPhotos.find(u => u.username === selectedUser)?.displayName}
-                      </Badge>
+                      <Badge variant="outline">@{selectedUser}</Badge>
                     )}
                     {searchQuery && (
                       <Badge variant="outline">"{searchQuery}"</Badge>
@@ -357,86 +345,163 @@ export default function PhotosPage() {
               </div>
             </div>
 
+            {/* Error State */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="w-5 h-5 text-red-500" />
+                  <h3 className="font-medium text-red-800">Erro ao carregar fotos</h3>
+                </div>
+                <p className="text-red-600 mt-1">{error}</p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-2"
+                  onClick={refreshPhotos}
+                >
+                  Tentar novamente
+                </Button>
+              </div>
+            )}
+
             {/* Grid de Fotos */}
-            {filteredPhotos.length > 0 ? (
-              <div className={cn(
-                viewMode === 'grid' 
-                  ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
-                  : "space-y-4"
-              )}>
-                {filteredPhotos.map((photo) => (
-                  <div 
-                    key={photo.id}
-                    className={cn(
-                      "group cursor-pointer",
-                      viewMode === 'grid' ? "aspect-square" : "flex items-center space-x-4 bg-white rounded-lg p-4 hover:shadow-md transition-shadow"
-                    )}
-                    onClick={() => openPhotoModal(photo.id, filteredPhotos)}
-                  >
-                    {viewMode === 'grid' ? (
-                      <PhotoCard
-                        id={photo.id}
-                        src={photo.url}
-                        title={photo.title}
-                        className="w-full h-full"
-                      />
-                    ) : (
-                      <>
-                        <PhotoCard
-                          id={photo.id}
-                          src={photo.url}
-                          title={photo.title}
-                          className="w-16 h-16 flex-shrink-0"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium text-gray-900 truncate">
-                            {photo.title}
-                          </h3>
-                          <p className="text-sm text-gray-600 truncate">
-                            {photo.description || 'Sem descrição'}
-                          </p>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <span className="text-xs text-gray-500">
-                              {getUserDisplayName(photo.id)}
-                            </span>
-                            {photo.category && (
-                              <Badge variant="secondary" className="text-xs">
-                                {photo.category}
-                              </Badge>
-                            )}
+            {!error && photos.length > 0 ? (
+              <>
+                <div className={cn(
+                  viewMode === 'grid' 
+                    ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
+                    : "space-y-4"
+                )}>
+                  {photos.map((photo) => (
+                    <div 
+                      key={photo.id}
+                      className={cn(
+                        "group cursor-pointer",
+                        viewMode === 'grid' ? "aspect-square" : "flex items-center space-x-4 bg-white rounded-lg p-4 hover:shadow-md transition-shadow"
+                      )}
+                      onClick={() => openPhotoModal(photo.id, photos)}
+                    >
+                      {viewMode === 'grid' ? (
+                        <div className="relative w-full h-full">
+                          <PhotoCard
+                            id={photo.id}
+                            src={photo.thumbnail_url || photo.url}
+                            title={photo.title}
+                            className="w-full h-full"
+                          />
+                          {/* Stats overlay */}
+                          <div className="absolute bottom-2 left-2 right-2 flex justify-between text-white text-xs">
+                            <div className="flex items-center space-x-3">
+                              <div className="flex items-center space-x-1">
+                                <Heart className="w-3 h-3" />
+                                <span>{photo.likes_count}</span>
+                              </div>
+                              <div className="flex items-center space-x-1">
+                                <MessageCircle className="w-3 h-3" />
+                                <span>{photo.comments_count}</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Eye className="w-3 h-3" />
+                              <span>{photo.views_count}</span>
+                            </div>
                           </div>
                         </div>
-                      </>
-                    )}
+                      ) : (
+                        <>
+                          <PhotoCard
+                            id={photo.id}
+                            src={photo.thumbnail_url || photo.url}
+                            title={photo.title}
+                            className="w-16 h-16 flex-shrink-0"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-gray-900 truncate">
+                              {photo.title}
+                            </h3>
+                            <p className="text-sm text-gray-600 truncate">
+                              {photo.description || 'Sem descrição'}
+                            </p>
+                            <div className="flex items-center space-x-3 mt-1">
+                              <span className="text-xs text-gray-500">
+                                Por {photo.user_name}
+                              </span>
+                              {photo.category && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {photo.category}
+                                </Badge>
+                              )}
+                              <div className="flex items-center space-x-2 text-xs text-gray-500">
+                                <span>{photo.likes_count} ❤️</span>
+                                <span>{photo.comments_count} 💬</span>
+                                <span>{photo.views_count} 👁️</span>
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Load More Button */}
+                {pagination.hasMore && (
+                  <div className="text-center mt-8">
+                    <Button 
+                      onClick={loadMore}
+                      disabled={loading}
+                      className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Carregando...
+                        </>
+                      ) : (
+                        `Carregar mais fotos (${pagination.total - photos.length} restantes)`
+                      )}
+                    </Button>
                   </div>
-                ))}
-              </div>
-            ) : (
+                )}
+              </>
+            ) : !loading && !error ? (
               <div className="text-center py-12 bg-white rounded-lg">
                 <Camera className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   Nenhuma foto encontrada
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  Tente ajustar os filtros ou faça uma nova busca
+                  {selectedCategory || selectedUser || searchQuery 
+                    ? 'Tente ajustar os filtros ou faça uma nova busca'
+                    : 'Seja o primeiro a fazer upload de uma foto!'
+                  }
                 </p>
-                <Button variant="outline" onClick={clearFilters}>
-                  Limpar Filtros
-                </Button>
+                {(selectedCategory || selectedUser || searchQuery) ? (
+                  <Button variant="outline" onClick={handleShowAll}>
+                    Limpar Filtros
+                  </Button>
+                ) : (
+                  <PhotoUpload 
+                    onUploadComplete={handleUploadComplete}
+                    categories={popularCategories.map(c => c.category)}
+                  />
+                )}
               </div>
-            )}
+            ) : null}
           </div>
         </div>
       </div>
 
       {/* Modal de Foto */}
-      <PhotoModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        photos={selectedPhotos}
-        initialIndex={selectedPhotoIndex}
-        userName={selectedPhotos[selectedPhotoIndex] ? getUserDisplayName(selectedPhotos[selectedPhotoIndex].id) : undefined}
-      />
+      {selectedPhotos.length > 0 && (
+        <PhotoModal
+          isOpen={modalOpen}
+          onClose={() => setModalOpen(false)}
+          photos={selectedPhotos}
+          initialIndex={selectedPhotoIndex}
+          userName={selectedPhotos[selectedPhotoIndex]?.user_name}
+        />
+      )}
 
       <Footer />
     </div>

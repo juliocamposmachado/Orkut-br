@@ -59,6 +59,8 @@ export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [hasExistingConfig, setHasExistingConfig] = useState(false);
+  const [showConfigForm, setShowConfigForm] = useState(false);
 
   // Carregar configurações existentes
   useEffect(() => {
@@ -79,6 +81,7 @@ export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({
         .single();
 
       if (!error && data) {
+        setHasExistingConfig(true);
         setSettings({
           voice_call_link: data.voice_call_link || '',
           video_call_link: data.video_call_link || '',
@@ -86,6 +89,10 @@ export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({
           whatsapp_groups: data.whatsapp_groups || [],
           enabled: data.is_enabled || false
         });
+      } else {
+        // Não há configuração existente
+        setHasExistingConfig(false);
+        setShowConfigForm(true); // Mostrar formulário para primeira configuração
       }
     } catch (error) {
       console.error('Erro ao carregar configurações WhatsApp:', error);
@@ -118,6 +125,10 @@ export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({
         throw error;
       }
 
+      // Marcar que agora temos configuração existente
+      setHasExistingConfig(true);
+      setShowConfigForm(false); // Ocultar o formulário após salvar
+      
       toast.success('✅ Configurações do WhatsApp salvas com sucesso!');
     } catch (error) {
       console.error('Erro ao salvar configurações WhatsApp:', error);

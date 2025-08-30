@@ -26,22 +26,37 @@ export const useUserWhatsApp = (userId?: string) => {
     setState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
+      console.log('🔗 useUserWhatsApp: Fazendo consulta ao Supabase...');
       const { data, error } = await supabase
         .from('whatsapp_config')
         .select('*')
         .eq('user_id', userId)
         .single();
 
-      console.log('📊 useUserWhatsApp: Resposta do Supabase:', { data, error });
+      console.log('📊 useUserWhatsApp: Resposta do Supabase:', { 
+        data: data, 
+        error: error,
+        userId: userId,
+        errorCode: error?.code,
+        errorMessage: error?.message
+      });
 
       if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
         throw error;
       }
 
-      // Se não há configuração ou está desabilitada, retornar null
-      if (!data || !data.is_enabled) {
-        console.log('❌ useUserWhatsApp: Configuração não encontrada ou desabilitada:', { data: !!data, enabled: data?.is_enabled });
+      // Se não há configuração, retornar null
+      if (!data) {
+        console.log('❌ useUserWhatsApp: Configuração não encontrada:', { data: !!data });
         setState({ config: null, loading: false, error: null });
+        return;
+      }
+      
+      // Se a configuração existe mas está desabilitada, ainda vamos carregá-la
+      // para que o componente de configuração possa mostrar o estado atual
+      if (!data.is_enabled) {
+        console.log('⚠️ useUserWhatsApp: Configuração encontrada mas desabilitada:', { enabled: data.is_enabled });
+        setState({ config: data, loading: false, error: null });
         return;
       }
 

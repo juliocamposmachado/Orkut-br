@@ -46,6 +46,7 @@ import Gallery from '@/components/Gallery'
 import UpdateGalleries from '@/components/UpdateGalleries'
 import { WhatsAppConfig } from '@/components/profile/whatsapp-config'
 import { useUserWhatsApp } from '@/hooks/useUserWhatsApp'
+import { useJulioWhatsApp } from '@/hooks/useJulioWhatsApp'
 
 interface UserProfile {
   id: string;
@@ -106,6 +107,12 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
   
   // Hook para carregar configurações WhatsApp do usuário
   const userWhatsApp = useUserWhatsApp(profile?.id);
+  
+  // Hook especial para configurações do Julio (hardcoded)
+  const julioWhatsApp = useJulioWhatsApp(profile?.id);
+  
+  // Usar configurações específicas do Julio se for o perfil dele
+  const whatsappConfig = profile?.username === 'juliocamposmachado' ? julioWhatsApp : userWhatsApp;
   
   const [friendshipStatus, setFriendshipStatus] = useState<string>('none');
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
@@ -925,6 +932,37 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
           console.log('⚠️ Erro ao tentar criar perfil:', createError);
         }
         
+        // Tentar criar/atualizar configuração WhatsApp no banco para Julio
+        try {
+          console.log('🔧 Criando/atualizando configuração WhatsApp do Julio...');
+          
+          const whatsappConfig = {
+            user_id: currentUser.id,
+            is_enabled: true,
+            allow_calls: true,
+            voice_call_link: 'https://call.whatsapp.com/voice/c8OLiu8Wec4ZqODTqPTjMk',
+            video_call_link: 'https://call.whatsapp.com/video/6GrHTFI5lLxMiJhwc0PkGn',
+            whatsapp_phone: '5511970603441',
+            whatsapp_groups: [],
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+          
+          const { error: whatsappError } = await supabase
+            .from('whatsapp_config')
+            .upsert(whatsappConfig, {
+              onConflict: 'user_id'
+            });
+          
+          if (whatsappError) {
+            console.log('⚠️ Erro ao criar configuração WhatsApp do Julio:', whatsappError.message);
+          } else {
+            console.log('✅ Configuração WhatsApp do Julio criada/atualizada com sucesso!');
+          }
+        } catch (whatsappError) {
+          console.log('⚠️ Erro ao tentar criar configuração WhatsApp do Julio:', whatsappError);
+        }
+        
         return;
       }
 
@@ -1293,23 +1331,23 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                       size="sm"
                       variant="outline" 
                       className={`w-full transition-all ${
-                        userWhatsApp.hasVoiceLink 
+                        whatsappConfig.hasVoiceLink 
                           ? 'border-green-300 text-green-700 hover:bg-green-50 bg-green-50' 
                           : 'border-gray-300 text-gray-500 bg-gray-50 cursor-not-allowed'
                       }`}
                       onClick={() => {
-                        if (userWhatsApp.hasVoiceLink) {
-                          const validLinks = userWhatsApp.getValidLinks();
+                        if (whatsappConfig.hasVoiceLink) {
+                          const validLinks = whatsappConfig.getValidLinks();
                           // Usar link específico se disponível, senão usar wa.me com telefone
                           if (validLinks.voice) {
                             window.open(validLinks.voice, '_blank', 'noopener,noreferrer');
                           } else if (validLinks.phone) {
-                            window.open(`https://wa.me/${validLinks.phone}?text=Olá!%20Gostaria%20de%20fazer%20uma%20chamada%20de%20voz`, '_blank', 'noopener,noreferrer');
+                            window.open(`https://wa.me/${validLinks.phone}?text=Olá!%20Gostaria%20de%20falar%20com%20vocês%20da%20Rádio%20Tatuapé%20FM`, '_blank', 'noopener,noreferrer');
                           }
                         }
                       }}
-                      disabled={!userWhatsApp.hasVoiceLink}
-                      title={userWhatsApp.hasVoiceLink ? "Abrir chamada de voz no WhatsApp" : "WhatsApp Áudio não configurado"}
+                      disabled={!whatsappConfig.hasVoiceLink}
+                      title={whatsappConfig.hasVoiceLink ? "Abrir chamada de voz no WhatsApp" : "WhatsApp Áudio não configurado"}
                     >
                       <Phone className="h-4 w-4 mr-2" />
                       📞 WhatsApp Áudio
@@ -1320,13 +1358,13 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                       size="sm"
                       variant="outline" 
                       className={`w-full transition-all ${
-                        userWhatsApp.hasVideoLink 
+                        whatsappConfig.hasVideoLink 
                           ? 'border-green-300 text-green-700 hover:bg-green-50 bg-green-50' 
                           : 'border-gray-300 text-gray-500 bg-gray-50 cursor-not-allowed'
                       }`}
                       onClick={() => {
-                        if (userWhatsApp.hasVideoLink) {
-                          const validLinks = userWhatsApp.getValidLinks();
+                        if (whatsappConfig.hasVideoLink) {
+                          const validLinks = whatsappConfig.getValidLinks();
                           // Usar link específico se disponível, senão usar wa.me com telefone
                           if (validLinks.video) {
                             window.open(validLinks.video, '_blank', 'noopener,noreferrer');
@@ -1335,8 +1373,8 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                           }
                         }
                       }}
-                      disabled={!userWhatsApp.hasVideoLink}
-                      title={userWhatsApp.hasVideoLink ? "Abrir videochamada no WhatsApp" : "WhatsApp Vídeo não configurado"}
+                      disabled={!whatsappConfig.hasVideoLink}
+                      title={whatsappConfig.hasVideoLink ? "Abrir videochamada no WhatsApp" : "WhatsApp Vídeo não configurado"}
                     >
                       <Video className="h-4 w-4 mr-2" />
                       📹 WhatsApp Vídeo
@@ -1347,36 +1385,36 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                       size="sm"
                       variant="outline" 
                       className={`w-full transition-all ${
-                        userWhatsApp.hasPhone 
+                        whatsappConfig.hasPhone 
                           ? 'border-green-300 text-green-700 hover:bg-green-50 bg-green-50' 
                           : 'border-gray-300 text-gray-500 bg-gray-50 cursor-not-allowed'
                       }`}
                       onClick={() => {
-                        if (userWhatsApp.hasPhone) {
-                          const validLinks = userWhatsApp.getValidLinks();
+                        if (whatsappConfig.hasPhone) {
+                          const validLinks = whatsappConfig.getValidLinks();
                           if (validLinks.phone) {
                             window.open(`https://wa.me/${validLinks.phone}?text=Vim+do+Orkut,+Tudo+bem+?`, '_blank', 'noopener,noreferrer');
                           }
                         }
                       }}
-                      disabled={!userWhatsApp.hasPhone}
-                      title={userWhatsApp.hasPhone ? "Enviar mensagem pelo WhatsApp" : "WhatsApp não configurado"}
+                      disabled={!whatsappConfig.hasPhone}
+                      title={whatsappConfig.hasPhone ? "Enviar mensagem pelo WhatsApp" : "WhatsApp não configurado"}
                     >
                       <MessageCircle className="h-4 w-4 mr-2" />
                       💬 WhatsApp Mensagem
                     </Button>
                   </div>
-                  {userWhatsApp.loading && (
+                  {whatsappConfig.loading && (
                     <p className="text-xs text-gray-500 mt-2 text-center">
                       Carregando configurações...
                     </p>
                   )}
-                  {!userWhatsApp.loading && !userWhatsApp.hasValidConfig() && (
+                  {!whatsappConfig.loading && !whatsappConfig.hasValidConfig() && (
                     <p className="text-xs text-gray-500 mt-2 text-center">
                       WhatsApp não configurado pelo usuário
                     </p>
                   )}
-                  {!userWhatsApp.loading && userWhatsApp.hasValidConfig() && (
+                  {!whatsappConfig.loading && whatsappConfig.hasValidConfig() && (
                     <p className="text-xs text-green-600 mt-2 text-center">
                       Clique nos botões verdes para contato direto
                     </p>
@@ -1597,7 +1635,7 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
             )}
             
             {/* Grupos WhatsApp - apenas para visitantes se o usuário tiver grupos configurados */}
-            {!isOwnProfile && userWhatsApp.hasGroups && (
+            {!isOwnProfile && whatsappConfig.hasGroups && (
               <OrkutCard>
                 <OrkutCardHeader>
                   <div className="flex items-center space-x-2">
@@ -1607,7 +1645,7 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                 </OrkutCardHeader>
                 <OrkutCardContent>
                   <div className="space-y-2">
-                    {userWhatsApp.getValidLinks().groups.map((group, index) => (
+                    {whatsappConfig.getValidLinks().groups.map((group, index) => (
                       <Button
                         key={index}
                         size="sm"

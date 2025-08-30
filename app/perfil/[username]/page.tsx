@@ -1208,14 +1208,14 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                       </>
                     )}
                     
-                    {/* Botões de Chamada - para todos */}
+                    {/* Botões de Comunicação WhatsApp - sempre visíveis */}
                     <Button 
                       size="sm"
                       variant="outline" 
                       className={`w-full transition-colors ${
                         userWhatsApp.hasVoiceLink
                           ? 'border-green-300 text-green-700 hover:bg-green-50'
-                          : 'border-purple-300 text-purple-700 hover:bg-purple-50'
+                          : 'border-gray-300 text-gray-600 hover:bg-gray-50'
                       }`}
                       onClick={() => {
                         const validLinks = userWhatsApp.getValidLinks();
@@ -1232,18 +1232,19 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                           });
                         }
                       }}
-                      title={userWhatsApp.hasVoiceLink ? 'Abrir WhatsApp para chamada de voz' : 'Chamada de áudio via Orkut'}
+                      title={userWhatsApp.hasVoiceLink ? 'Abrir WhatsApp para chamada de voz' : 'Chamada de áudio via Orkut (WhatsApp não configurado)'}
                     >
                       <Phone className="h-4 w-4 mr-2" />
                       {userWhatsApp.hasVoiceLink ? 'WhatsApp Áudio' : 'Chamada de Áudio'}
                     </Button>
+                    
                     <Button 
                       size="sm"
                       variant="outline" 
                       className={`w-full transition-colors ${
                         userWhatsApp.hasVideoLink
                           ? 'border-green-300 text-green-700 hover:bg-green-50'
-                          : 'border-purple-300 text-purple-700 hover:bg-purple-50'
+                          : 'border-gray-300 text-gray-600 hover:bg-gray-50'
                       }`}
                       onClick={() => {
                         const validLinks = userWhatsApp.getValidLinks();
@@ -1260,30 +1261,41 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                           });
                         }
                       }}
-                      title={userWhatsApp.hasVideoLink ? 'Abrir WhatsApp para videochamada' : 'Chamada de vídeo via Orkut'}
+                      title={userWhatsApp.hasVideoLink ? 'Abrir WhatsApp para videochamada' : 'Chamada de vídeo via Orkut (WhatsApp não configurado)'}
                     >
                       <Video className="h-4 w-4 mr-2" />
                       {userWhatsApp.hasVideoLink ? 'WhatsApp Vídeo' : 'Chamada de Vídeo'}
                     </Button>
                     
-                    {/* Botão de Mensagem WhatsApp - apenas se tiver telefone configurado */}
-                    {userWhatsApp.hasPhone && (
-                      <Button 
-                        size="sm"
-                        variant="outline" 
-                        className="w-full border-green-300 text-green-700 hover:bg-green-50"
-                        onClick={() => {
-                          const validLinks = userWhatsApp.getValidLinks();
-                          if (validLinks.phone) {
-                            window.open(`https://wa.me/${validLinks.phone}?text=Vim+do+Orkut,+Tudo+bem+?`, '_blank', 'noopener,noreferrer');
-                          }
-                        }}
-                        title="Enviar mensagem pelo WhatsApp"
-                      >
-                        <MessageCircle className="h-4 w-4 mr-2" />
-                        WhatsApp Mensagem
-                      </Button>
-                    )}
+                    {/* Botão de Mensagem WhatsApp - sempre visível */}
+                    <Button 
+                      size="sm"
+                      variant="outline" 
+                      className={`w-full transition-colors ${
+                        userWhatsApp.hasPhone
+                          ? 'border-green-300 text-green-700 hover:bg-green-50'
+                          : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                      }`}
+                      onClick={() => {
+                        const validLinks = userWhatsApp.getValidLinks();
+                        if (validLinks.phone) {
+                          window.open(`https://wa.me/${validLinks.phone}?text=Vim+do+Orkut,+Tudo+bem+?`, '_blank', 'noopener,noreferrer');
+                        } else {
+                          // Fallback para sistema de mensagens do Orkut
+                          handleOpenMessage({
+                            id: profile.id,
+                            name: profile.display_name,
+                            username: profile.username,
+                            photo: profile.photo_url,
+                            isOnline: isOnline
+                          });
+                        }
+                      }}
+                      title={userWhatsApp.hasPhone ? 'Enviar mensagem pelo WhatsApp' : 'Enviar mensagem via Orkut (WhatsApp não configurado)'}
+                    >
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      {userWhatsApp.hasPhone ? 'WhatsApp Mensagem' : 'Enviar Mensagem'}
+                    </Button>
                   </div>
                 </div>
               </OrkutCardContent>

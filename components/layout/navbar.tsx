@@ -188,7 +188,7 @@ export function Navbar() {
             {/* Seja Pro Button ou Badge Pro */}
             {!subscriptionLoading && (
               hasActiveSubscription ? (
-                <div className="flex items-center space-x-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-3 py-1 rounded-full border-2 border-yellow-300 shadow-lg animate-pulse whitespace-nowrap">
+                <div className="flex items-center space-x-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-2 rounded-full border-2 border-yellow-300 shadow-lg animate-pulse whitespace-nowrap">
                   <Crown className="h-4 w-4 flex-shrink-0" />
                   <span className="text-sm font-bold">Orkut BR Pro</span>
                 </div>
@@ -196,7 +196,7 @@ export function Navbar() {
                 <Link 
                   href="/subscription"
                   onClick={(e) => handleNavClick('/subscription', 'seja pro', e)}
-                  className="group bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white px-3 py-1 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-2 border-yellow-300 whitespace-nowrap"
+                  className="group bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white px-4 py-2 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-2 border-yellow-300 whitespace-nowrap"
                   title="Assine o Orkut BR Pro"
                 >
                   <div className="flex items-center space-x-1">

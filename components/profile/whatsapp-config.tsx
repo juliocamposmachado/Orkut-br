@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,125 +18,81 @@ import {
   Info,
   Copy,
   Share,
-  Settings
+  Settings,
+  Loader2
 } from 'lucide-react';
-import { useAuth } from '@/contexts/enhanced-auth-context';
-import { supabase } from '@/lib/supabase';
+import { useWhatsApp } from '@/hooks/useWhatsApp';
+import { toast } from 'sonner';
 
 interface WhatsAppConfigProps {
   className?: string;
   isOwnProfile?: boolean;
   profileId?: string;
-  currentConfig?: {
-    whatsapp_enabled: boolean;
-    whatsapp_voice_link: string;
-    whatsapp_video_link: string;
-  };
-  onConfigUpdate?: (updatedConfig: {
-    whatsapp_enabled: boolean;
-    whatsapp_voice_link: string;
-    whatsapp_video_link: string;
-  }) => void;
-}
-
-interface WhatsAppSettings {
-  voice_link: string;
-  video_link: string;
-  enabled: boolean;
 }
 
 export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({ 
   className = "", 
   isOwnProfile = false 
 }) => {
-  const { user } = useAuth();
-  const [settings, setSettings] = useState<WhatsAppSettings>({
+  const {
+    config,
+    loading,
+    saving,
+    error,
+    saveConfig,
+    disableWhatsApp,
+    validateWhatsAppLink,
+    getExampleLinks,
+    clearError
+  } = useWhatsApp();
+  
+  const [localSettings, setLocalSettings] = useState({
     voice_link: '',
     video_link: '',
     enabled: false
   });
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
 
-  // Carregar configurações existentes
-  useEffect(() => {
-    if (user && isOwnProfile) {
-      loadWhatsAppSettings();
+  // Sincronizar configuração com estado local
+  React.useEffect(() => {
+    if (config) {
+      setLocalSettings({
+        voice_link: config.voice_call_link || '',
+        video_link: config.video_call_link || '',
+        enabled: config.is_enabled || false
+      });
     }
-  }, [user, isOwnProfile]);
-
-  const loadWhatsAppSettings = async () => {
-    if (!user?.id) return;
-    
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('whatsapp_voice_link, whatsapp_video_link, whatsapp_enabled')
-        .eq('id', user.id)
-        .single();
-
-      if (!error && data) {
-        setSettings({
-          voice_link: data.whatsapp_voice_link || '',
-          video_link: data.whatsapp_video_link || '',
-          enabled: data.whatsapp_enabled || false
-        });
-      }
-    } catch (error) {
-      console.error('Erro ao carregar configurações WhatsApp:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [config]);
 
   const saveWhatsAppSettings = async () => {
-    if (!user?.id) return;
-    
-    setSaving(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          whatsapp_voice_link: settings.voice_link || null,
-          whatsapp_video_link: settings.video_link || null,
-          whatsapp_enabled: settings.enabled
-        })
-        .eq('id', user.id);
-
-      if (error) {
-        throw error;
-      }
-
-      alert('✅ Configurações do WhatsApp salvas com sucesso!');
+      await saveConfig({
+        is_enabled: localSettings.enabled,
+        allow_calls: true,
+        voice_call_link: localSettings.voice_link || undefined,
+        video_call_link: localSettings.video_link || undefined
+      });
+      
+      toast.success('✅ Configurações do WhatsApp salvas com sucesso!');
     } catch (error) {
       console.error('Erro ao salvar configurações WhatsApp:', error);
-      alert('❌ Erro ao salvar configurações. Tente novamente.');
-    } finally {
-      setSaving(false);
+      toast.error('❌ Erro ao salvar configurações. Tente novamente.');
     }
   };
 
-  const validateWhatsAppLink = (link: string, type: 'voice' | 'video'): boolean => {
-    if (!link) return true; // Link vazio é válido
-    const pattern = new RegExp(`^https://call\\.whatsapp\\.com/${type}/[A-Za-z0-9_-]+$`);
-    return pattern.test(link);
-  };
 
   const handleLinkChange = (type: 'voice' | 'video', value: string) => {
-    setSettings(prev => ({
+    setLocalSettings(prev => ({
       ...prev,
       [`${type}_link`]: value
     }));
   };
 
   const copyExampleLink = (type: 'voice' | 'video') => {
-    const exampleLink = type === 'voice' 
-      ? 'https://call.whatsapp.com/voice/SEU_CODIGO_AQUI'
-      : 'https://call.whatsapp.com/video/SEU_CODIGO_AQUI';
+    const examples = getExampleLinks();
+    const exampleLink = type === 'voice' ? examples.voice : examples.video;
     
     navigator.clipboard.writeText(exampleLink);
-    alert(`Link de exemplo copiado! Cole no campo ${type === 'voice' ? 'Voz' : 'Vídeo'} e substitua SEU_CODIGO_AQUI pelo seu código real.`);
+    toast.info(`Link de exemplo copiado! Cole no campo ${type === 'voice' ? 'Voz' : 'Vídeo'} e substitua SEU_CODIGO_AQUI pelo seu código real.`);
   };
 
   if (!isOwnProfile) {
@@ -156,6 +112,24 @@ export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({
       </CardHeader>
       
       <CardContent className="space-y-6">
+        {/* Mostrar erro se houver */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+            <div className="flex items-center space-x-2">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+              <span className="text-sm text-red-700">{error}</span>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={clearError}
+                className="text-red-600 hover:text-red-700"
+              >
+                ✕
+              </Button>
+            </div>
+          </div>
+        )}
+        
         {/* Switch principal */}
         <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
           <div className="flex items-center space-x-3">
@@ -168,12 +142,13 @@ export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({
             </div>
           </div>
           <Switch 
-            checked={settings.enabled}
-            onCheckedChange={(enabled) => setSettings(prev => ({ ...prev, enabled }))}
+            checked={localSettings.enabled}
+            disabled={loading || saving}
+            onCheckedChange={(enabled) => setLocalSettings(prev => ({ ...prev, enabled }))}
           />
         </div>
 
-        {settings.enabled && (
+        {localSettings.enabled && (
           <>
             <Separator />
             
@@ -226,15 +201,16 @@ export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({
                 id="voice_link"
                 type="url"
                 placeholder="https://call.whatsapp.com/voice/SEU_CODIGO_AQUI"
-                value={settings.voice_link}
+                value={localSettings.voice_link}
+                disabled={loading || saving}
                 onChange={(e) => handleLinkChange('voice', e.target.value)}
                 className={`text-sm ${
-                  settings.voice_link && !validateWhatsAppLink(settings.voice_link, 'voice')
+                  localSettings.voice_link && !validateWhatsAppLink(localSettings.voice_link, 'voice')
                     ? 'border-red-300 focus:border-red-500' 
                     : 'border-green-300 focus:border-green-500'
                 }`}
               />
-              {settings.voice_link && !validateWhatsAppLink(settings.voice_link, 'voice') && (
+              {localSettings.voice_link && !validateWhatsAppLink(localSettings.voice_link, 'voice') && (
                 <div className="flex items-center space-x-1 text-red-600">
                   <AlertCircle className="h-3 w-3" />
                   <span className="text-xs">Link inválido. Use o formato correto do WhatsApp.</span>
@@ -254,15 +230,16 @@ export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({
                 id="video_link"
                 type="url"
                 placeholder="https://call.whatsapp.com/video/SEU_CODIGO_AQUI"
-                value={settings.video_link}
+                value={localSettings.video_link}
+                disabled={loading || saving}
                 onChange={(e) => handleLinkChange('video', e.target.value)}
                 className={`text-sm ${
-                  settings.video_link && !validateWhatsAppLink(settings.video_link, 'video')
+                  localSettings.video_link && !validateWhatsAppLink(localSettings.video_link, 'video')
                     ? 'border-red-300 focus:border-red-500' 
                     : 'border-green-300 focus:border-green-500'
                 }`}
               />
-              {settings.video_link && !validateWhatsAppLink(settings.video_link, 'video') && (
+              {localSettings.video_link && !validateWhatsAppLink(localSettings.video_link, 'video') && (
                 <div className="flex items-center space-x-1 text-red-600">
                   <AlertCircle className="h-3 w-3" />
                   <span className="text-xs">Link inválido. Use o formato correto do WhatsApp.</span>
@@ -271,13 +248,13 @@ export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({
             </div>
 
             {/* Preview dos links */}
-            {(settings.voice_link || settings.video_link) && (
+            {(localSettings.voice_link || localSettings.video_link) && (
               <div className="bg-gray-50 rounded-lg p-4">
                 <Label className="text-sm font-medium text-gray-700 mb-3 block">
                   Preview dos seus links:
                 </Label>
                 <div className="space-y-2">
-                  {settings.voice_link && validateWhatsAppLink(settings.voice_link, 'voice') && (
+                  {localSettings.voice_link && validateWhatsAppLink(localSettings.voice_link, 'voice') && (
                     <div className="flex items-center justify-between p-2 bg-white rounded border">
                       <div className="flex items-center space-x-2">
                         <Phone className="h-4 w-4 text-green-600" />
@@ -287,7 +264,7 @@ export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => window.open(settings.voice_link, '_blank')}
+                        onClick={() => window.open(localSettings.voice_link, '_blank')}
                         className="text-xs"
                       >
                         <ExternalLink className="h-3 w-3 mr-1" />
@@ -296,7 +273,7 @@ export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({
                     </div>
                   )}
                   
-                  {settings.video_link && validateWhatsAppLink(settings.video_link, 'video') && (
+                  {localSettings.video_link && validateWhatsAppLink(localSettings.video_link, 'video') && (
                     <div className="flex items-center justify-between p-2 bg-white rounded border">
                       <div className="flex items-center space-x-2">
                         <Video className="h-4 w-4 text-green-600" />
@@ -306,7 +283,7 @@ export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => window.open(settings.video_link, '_blank')}
+                        onClick={() => window.open(localSettings.video_link, '_blank')}
                         className="text-xs"
                       >
                         <ExternalLink className="h-3 w-3 mr-1" />
@@ -325,7 +302,12 @@ export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({
         {/* Botões de ação */}
         <div className="flex justify-between items-center">
           <div className="text-xs text-gray-500">
-            {settings.enabled ? (
+            {loading ? (
+              <div className="flex items-center space-x-1 text-blue-600">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                <span>Carregando...</span>
+              </div>
+            ) : localSettings.enabled ? (
               <div className="flex items-center space-x-1 text-green-600">
                 <Check className="h-3 w-3" />
                 <span>WhatsApp habilitado</span>
@@ -340,7 +322,14 @@ export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({
             disabled={saving || loading}
             className="bg-green-600 hover:bg-green-700 text-white"
           >
-            {saving ? 'Salvando...' : 'Salvar Configurações'}
+            {saving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Salvando...
+              </>
+            ) : (
+              'Salvar Configurações'
+            )}
           </Button>
         </div>
 

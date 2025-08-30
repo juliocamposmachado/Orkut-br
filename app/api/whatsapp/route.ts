@@ -10,6 +10,8 @@ interface WhatsAppConfig {
   allow_calls: boolean
   voice_call_link?: string
   video_call_link?: string
+  whatsapp_phone?: string
+  whatsapp_groups?: Array<{ name: string; link: string }>
   created_at?: string
   updated_at?: string
 }
@@ -51,7 +53,9 @@ export async function GET(request: NextRequest) {
           is_enabled: false,
           allow_calls: true,
           voice_call_link: '',
-          video_call_link: ''
+          video_call_link: '',
+          whatsapp_phone: '',
+          whatsapp_groups: []
         }
       })
     }
@@ -84,7 +88,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { is_enabled, allow_calls, voice_call_link, video_call_link } = body
+    const { is_enabled, allow_calls, voice_call_link, video_call_link, whatsapp_phone, whatsapp_groups } = body
 
     // Validar dados
     if (typeof is_enabled !== 'boolean') {
@@ -109,6 +113,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validar telefone WhatsApp se fornecido
+    if (whatsapp_phone && !validatePhone(whatsapp_phone)) {
+      return NextResponse.json(
+        { error: 'Número de telefone inválido. Use apenas números (8-15 dígitos)' },
+        { status: 400 }
+      )
+    }
+
+    // Validar grupos WhatsApp se fornecidos
+    if (whatsapp_groups && !validateWhatsAppGroups(whatsapp_groups)) {
+      return NextResponse.json(
+        { error: 'Grupos inválidos. Máximo 5 grupos com nome e link válidos' },
+        { status: 400 }
+      )
+    }
+
     // Usar UPSERT para inserir ou atualizar
     const { data, error } = await supabase
       .from('whatsapp_config')
@@ -118,6 +138,8 @@ export async function POST(request: NextRequest) {
         allow_calls: allow_calls !== undefined ? allow_calls : true,
         voice_call_link: voice_call_link || null,
         video_call_link: video_call_link || null,
+        whatsapp_phone: whatsapp_phone || null,
+        whatsapp_groups: whatsapp_groups || [],
         updated_at: new Date().toISOString()
       }, {
         onConflict: 'user_id',
@@ -139,7 +161,9 @@ export async function POST(request: NextRequest) {
       is_enabled,
       allow_calls,
       has_voice_link: !!voice_call_link,
-      has_video_link: !!video_call_link
+      has_video_link: !!video_call_link,
+      has_phone: !!whatsapp_phone,
+      groups_count: whatsapp_groups?.length || 0
     }, request)
 
     return NextResponse.json({
@@ -178,6 +202,8 @@ export async function DELETE(request: NextRequest) {
         allow_calls: false,
         voice_call_link: null,
         video_call_link: null,
+        whatsapp_phone: null,
+        whatsapp_groups: [],
         updated_at: new Date().toISOString()
       }, {
         onConflict: 'user_id'
@@ -216,6 +242,25 @@ function validateWhatsAppLink(link: string, type: 'voice' | 'video'): boolean {
   
   const pattern = new RegExp(`^https://call\\.whatsapp\\.com/${type}/[A-Za-z0-9_-]+$`)
   return pattern.test(link)
+}
+
+// Função para validar telefone WhatsApp
+function validatePhone(phone: string): boolean {
+  if (!phone) return true // Telefone vazio é válido
+  const cleanPhone = phone.replace(/\D/g, '')
+  return cleanPhone.length >= 8 && cleanPhone.length <= 15
+}
+
+// Função para validar grupos WhatsApp
+function validateWhatsAppGroups(groups: Array<{ name: string; link: string }>): boolean {
+  if (!groups || groups.length === 0) return true // Array vazio é válido
+  if (groups.length > 5) return false // Máximo 5 grupos
+  
+  return groups.every(group => {
+    if (!group.name || !group.link) return false
+    if (group.name.trim().length === 0) return false
+    return /^https:\/\/chat\.whatsapp\.com\/[A-Za-z0-9_-]+$/.test(group.link)
+  })
 }
 
 // Função para registrar logs de atividade

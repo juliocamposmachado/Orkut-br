@@ -45,6 +45,7 @@ import { RecentActivities } from '@/components/profile/recent-activities'
 import Gallery from '@/components/Gallery'
 import UpdateGalleries from '@/components/UpdateGalleries'
 import { WhatsAppConfig } from '@/components/profile/whatsapp-config'
+import { useUserWhatsApp } from '@/hooks/useUserWhatsApp'
 
 interface UserProfile {
   id: string;
@@ -102,6 +103,9 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Hook para carregar configurações WhatsApp do usuário
+  const userWhatsApp = useUserWhatsApp(profile?.id);
   const [friendshipStatus, setFriendshipStatus] = useState<string>('none');
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const [actionLoading, setActionLoading] = useState<string>('');
@@ -1186,14 +1190,15 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                       size="sm"
                       variant="outline" 
                       className={`w-full transition-colors ${
-                        profile.whatsapp_enabled && profile.whatsapp_voice_link
+                        userWhatsApp.hasVoiceLink
                           ? 'border-green-300 text-green-700 hover:bg-green-50'
                           : 'border-purple-300 text-purple-700 hover:bg-purple-50'
                       }`}
                       onClick={() => {
-                        if (profile.whatsapp_enabled && profile.whatsapp_voice_link) {
+                        const validLinks = userWhatsApp.getValidLinks();
+                        if (validLinks.voice) {
                           // Open WhatsApp voice call
-                          window.open(profile.whatsapp_voice_link, '_blank', 'noopener,noreferrer');
+                          window.open(validLinks.voice, '_blank', 'noopener,noreferrer');
                         } else {
                           // Fallback to Orkut call system
                           startAudioCall({
@@ -1204,23 +1209,24 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                           });
                         }
                       }}
-                      title={profile.whatsapp_enabled && profile.whatsapp_voice_link ? 'Abrir WhatsApp para chamada de voz' : 'Chamada de áudio via Orkut'}
+                      title={userWhatsApp.hasVoiceLink ? 'Abrir WhatsApp para chamada de voz' : 'Chamada de áudio via Orkut'}
                     >
                       <Phone className="h-4 w-4 mr-2" />
-                      {profile.whatsapp_enabled && profile.whatsapp_voice_link ? 'WhatsApp Áudio' : 'Chamada de Áudio'}
+                      {userWhatsApp.hasVoiceLink ? 'WhatsApp Áudio' : 'Chamada de Áudio'}
                     </Button>
                     <Button 
                       size="sm"
                       variant="outline" 
                       className={`w-full transition-colors ${
-                        profile.whatsapp_enabled && profile.whatsapp_video_link
+                        userWhatsApp.hasVideoLink
                           ? 'border-green-300 text-green-700 hover:bg-green-50'
                           : 'border-purple-300 text-purple-700 hover:bg-purple-50'
                       }`}
                       onClick={() => {
-                        if (profile.whatsapp_enabled && profile.whatsapp_video_link) {
+                        const validLinks = userWhatsApp.getValidLinks();
+                        if (validLinks.video) {
                           // Open WhatsApp video call
-                          window.open(profile.whatsapp_video_link, '_blank', 'noopener,noreferrer');
+                          window.open(validLinks.video, '_blank', 'noopener,noreferrer');
                         } else {
                           // Fallback to Orkut call system
                           startVideoCall({
@@ -1231,11 +1237,30 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                           });
                         }
                       }}
-                      title={profile.whatsapp_enabled && profile.whatsapp_video_link ? 'Abrir WhatsApp para videochamada' : 'Chamada de vídeo via Orkut'}
+                      title={userWhatsApp.hasVideoLink ? 'Abrir WhatsApp para videochamada' : 'Chamada de vídeo via Orkut'}
                     >
                       <Video className="h-4 w-4 mr-2" />
-                      {profile.whatsapp_enabled && profile.whatsapp_video_link ? 'WhatsApp Vídeo' : 'Chamada de Vídeo'}
+                      {userWhatsApp.hasVideoLink ? 'WhatsApp Vídeo' : 'Chamada de Vídeo'}
                     </Button>
+                    
+                    {/* Botão de Mensagem WhatsApp - apenas se tiver telefone configurado */}
+                    {userWhatsApp.hasPhone && (
+                      <Button 
+                        size="sm"
+                        variant="outline" 
+                        className="w-full border-green-300 text-green-700 hover:bg-green-50"
+                        onClick={() => {
+                          const validLinks = userWhatsApp.getValidLinks();
+                          if (validLinks.phone) {
+                            window.open(`https://wa.me/${validLinks.phone}?text=Vim+do+Orkut,+Tudo+bem+?`, '_blank', 'noopener,noreferrer');
+                          }
+                        }}
+                        title="Enviar mensagem pelo WhatsApp"
+                      >
+                        <MessageCircle className="h-4 w-4 mr-2" />
+                        WhatsApp Mensagem
+                      </Button>
+                    )}
                   </div>
                 </div>
               </OrkutCardContent>
@@ -1450,6 +1475,38 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
               <WhatsAppConfig 
                 isOwnProfile={true}
               />
+            )}
+            
+            {/* Grupos WhatsApp - apenas para visitantes se o usuário tiver grupos configurados */}
+            {!isOwnProfile && userWhatsApp.hasGroups && (
+              <OrkutCard>
+                <OrkutCardHeader>
+                  <div className="flex items-center space-x-2">
+                    <Users className="h-4 w-4 text-green-600" />
+                    <span>Grupos WhatsApp de {profile.display_name}</span>
+                  </div>
+                </OrkutCardHeader>
+                <OrkutCardContent>
+                  <div className="space-y-2">
+                    {userWhatsApp.getValidLinks().groups.map((group, index) => (
+                      <Button
+                        key={index}
+                        size="sm"
+                        variant="outline"
+                        onClick={() => window.open(group.link, '_blank', 'noopener,noreferrer')}
+                        className="w-full justify-start text-left bg-green-50 border-green-200 hover:bg-green-100"
+                      >
+                        <Users className="h-4 w-4 mr-2 text-green-600" />
+                        <span className="truncate">{group.name}</span>
+                        <span className="ml-auto text-xs text-green-600">Entrar →</span>
+                      </Button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-3 text-center">
+                    Clique para entrar nos grupos do WhatsApp
+                  </p>
+                </OrkutCardContent>
+              </OrkutCard>
             )}
             
             {/* Sistema de Galerias */}

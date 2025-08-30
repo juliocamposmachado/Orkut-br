@@ -9,6 +9,8 @@ export interface WhatsAppConfig {
   allow_calls: boolean
   voice_call_link?: string
   video_call_link?: string
+  whatsapp_phone?: string
+  whatsapp_groups?: Array<{ name: string; link: string }>
   created_at?: string
   updated_at?: string
 }
@@ -27,6 +29,8 @@ interface UpdateConfigParams {
   allow_calls?: boolean
   voice_call_link?: string
   video_call_link?: string
+  whatsapp_phone?: string
+  whatsapp_groups?: Array<{ name: string; link: string }>
 }
 
 export const useWhatsApp = () => {
@@ -151,7 +155,9 @@ export const useWhatsApp = () => {
             is_enabled: false,
             allow_calls: false,
             voice_call_link: '',
-            video_call_link: ''
+            video_call_link: '',
+            whatsapp_phone: '',
+            whatsapp_groups: []
           } : null,
           saving: false
         }))
@@ -171,29 +177,41 @@ export const useWhatsApp = () => {
   }, [user?.id])
 
   // Validar link do WhatsApp
-  const validateWhatsAppLink = useCallback((link: string, type: 'voice' | 'video'): boolean => {
+  const validateWhatsAppLink = useCallback((link: string, type: 'voice' | 'video' | 'group'): boolean => {
     if (!link) return true // Link vazio é válido
+    if (type === 'group') {
+      return /^https:\/\/chat\.whatsapp\.com\/[A-Za-z0-9_-]+$/.test(link)
+    }
     const pattern = new RegExp(`^https://call\\.whatsapp\\.com/${type}/[A-Za-z0-9_-]+$`)
     return pattern.test(link)
+  }, [])
+
+  // Validar telefone WhatsApp
+  const validatePhone = useCallback((phone: string): boolean => {
+    if (!phone) return true // Telefone vazio é válido
+    const cleanPhone = phone.replace(/\D/g, '')
+    return cleanPhone.length >= 8 && cleanPhone.length <= 15
   }, [])
 
   // Gerar links de exemplo
   const getExampleLinks = useCallback(() => ({
     voice: 'https://call.whatsapp.com/voice/SEU_CODIGO_AQUI',
-    video: 'https://call.whatsapp.com/video/SEU_CODIGO_AQUI'
+    video: 'https://call.whatsapp.com/video/SEU_CODIGO_AQUI',
+    group: 'https://chat.whatsapp.com/SEU_CODIGO_AQUI'
   }), [])
 
   // Verificar se o usuário tem WhatsApp configurado
   const isConfigured = useCallback(() => {
     return !!(state.config?.is_enabled && (
       state.config?.voice_call_link || 
-      state.config?.video_call_link
+      state.config?.video_call_link ||
+      state.config?.whatsapp_phone
     ))
   }, [state.config])
 
   // Obter links válidos
   const getValidLinks = useCallback(() => {
-    if (!state.config?.is_enabled) return { voice: null, video: null }
+    if (!state.config?.is_enabled) return { voice: null, video: null, phone: null, groups: [] }
     
     return {
       voice: state.config?.voice_call_link && 
@@ -203,9 +221,16 @@ export const useWhatsApp = () => {
       video: state.config?.video_call_link && 
              validateWhatsAppLink(state.config.video_call_link, 'video') 
              ? state.config.video_call_link 
-             : null
+             : null,
+      phone: state.config?.whatsapp_phone && 
+             validatePhone(state.config.whatsapp_phone) 
+             ? state.config.whatsapp_phone 
+             : null,
+      groups: state.config?.whatsapp_groups?.filter(group => 
+        group.name && group.link && validateWhatsAppLink(group.link, 'group')
+      ) || []
     }
-  }, [state.config, validateWhatsAppLink])
+  }, [state.config, validateWhatsAppLink, validatePhone])
 
   // Limpar erro
   const clearError = useCallback(() => {
@@ -241,6 +266,7 @@ export const useWhatsApp = () => {
     
     // Utilitários
     validateWhatsAppLink,
+    validatePhone,
     getExampleLinks,
     isConfigured,
     getValidLinks,
@@ -249,6 +275,8 @@ export const useWhatsApp = () => {
     isEnabled: state.config?.is_enabled || false,
     hasVoiceLink: !!(state.config?.voice_call_link),
     hasVideoLink: !!(state.config?.video_call_link),
+    hasPhone: !!(state.config?.whatsapp_phone),
+    hasGroups: !!(state.config?.whatsapp_groups?.length),
   }
 }
 

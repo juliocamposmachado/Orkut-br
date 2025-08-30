@@ -142,10 +142,10 @@ export const useUserWhatsApp = (userId?: string) => {
     hasValidConfig,
     getBestCommunicationMethod,
     
-    // Estado computado
+  // Estado computado
     isEnabled: state.config?.is_enabled || false,
-    hasVoiceLink: !!(state.config?.voice_call_link && validateWhatsAppLink(state.config.voice_call_link, 'voice')),
-    hasVideoLink: !!(state.config?.video_call_link && validateWhatsAppLink(state.config.video_call_link, 'video')),
+    hasVoiceLink: !!(state.config?.voice_call_link && validateWhatsAppLink(state.config.voice_call_link, 'voice')) || !!(state.config?.whatsapp_phone && validatePhone(state.config.whatsapp_phone)),
+    hasVideoLink: !!(state.config?.video_call_link && validateWhatsAppLink(state.config.video_call_link, 'video')) || !!(state.config?.whatsapp_phone && validatePhone(state.config.whatsapp_phone)),
     hasPhone: !!(state.config?.whatsapp_phone && validatePhone(state.config.whatsapp_phone)),
     hasGroups: !!(state.config?.whatsapp_groups?.some(group => 
       group.name && group.link && validateWhatsAppLink(group.link, 'group')

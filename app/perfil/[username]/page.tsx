@@ -835,6 +835,39 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
         console.log('✅ Usando perfil da rádio:', radioProfile);
         setProfile(radioProfile);
         
+        // Tentar criar/atualizar configuração WhatsApp no banco para rádio
+        try {
+          console.log('🔧 Criando/atualizando configuração WhatsApp da rádio...');
+          
+          const whatsappConfig = {
+            user_id: radioProfile.id,
+            is_enabled: true,
+            whatsapp_phone: '5511970603441',
+            voice_call_link: null, // Usaremos o telefone para chamadas
+            video_call_link: null, // Usaremos o telefone para videochamadas
+            whatsapp_groups: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+          
+          const { error: whatsappError } = await supabase
+            .from('whatsapp_config')
+            .upsert(whatsappConfig, {
+              onConflict: 'user_id'
+            });
+          
+          if (whatsappError) {
+            console.log('⚠️ Erro ao criar configuração WhatsApp da rádio:', whatsappError.message);
+          } else {
+            console.log('✅ Configuração WhatsApp da rádio criada/atualizada');
+          }
+        } catch (whatsappError) {
+          console.log('⚠️ Erro ao tentar criar configuração WhatsApp da rádio:', whatsappError);
+        }
+        
+        console.log('✅ Usando perfil da rádio:', radioProfile);
+        setProfile(radioProfile);
+        
         return;
       }
 
@@ -1267,8 +1300,11 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                       onClick={() => {
                         if (userWhatsApp.hasVoiceLink) {
                           const validLinks = userWhatsApp.getValidLinks();
+                          // Usar link específico se disponível, senão usar wa.me com telefone
                           if (validLinks.voice) {
                             window.open(validLinks.voice, '_blank', 'noopener,noreferrer');
+                          } else if (validLinks.phone) {
+                            window.open(`https://wa.me/${validLinks.phone}?text=Olá!%20Gostaria%20de%20fazer%20uma%20chamada%20de%20voz`, '_blank', 'noopener,noreferrer');
                           }
                         }
                       }}
@@ -1291,8 +1327,11 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                       onClick={() => {
                         if (userWhatsApp.hasVideoLink) {
                           const validLinks = userWhatsApp.getValidLinks();
+                          // Usar link específico se disponível, senão usar wa.me com telefone
                           if (validLinks.video) {
                             window.open(validLinks.video, '_blank', 'noopener,noreferrer');
+                          } else if (validLinks.phone) {
+                            window.open(`https://wa.me/${validLinks.phone}?text=Olá!%20Gostaria%20de%20fazer%20uma%20videochamada`, '_blank', 'noopener,noreferrer');
                           }
                         }
                       }}

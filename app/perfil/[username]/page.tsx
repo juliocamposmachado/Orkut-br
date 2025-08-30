@@ -45,8 +45,7 @@ import { RecentActivities } from '@/components/profile/recent-activities'
 import Gallery from '@/components/Gallery'
 import UpdateGalleries from '@/components/UpdateGalleries'
 import { WhatsAppConfig } from '@/components/profile/whatsapp-config'
-import { useUserWhatsApp } from '@/hooks/useUserWhatsApp'
-import { useJulioWhatsApp } from '@/hooks/useJulioWhatsApp'
+import { useSmartWhatsApp } from '@/hooks/useSmartWhatsApp'
 
 interface UserProfile {
   id: string;
@@ -105,14 +104,8 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Hook para carregar configurações WhatsApp do usuário
-  const userWhatsApp = useUserWhatsApp(profile?.id);
-  
-  // Hook especial para configurações do Julio (hardcoded)
-  const julioWhatsApp = useJulioWhatsApp(profile?.id);
-  
-  // Usar configurações específicas do Julio se for o perfil dele
-  const whatsappConfig = profile?.username === 'juliocamposmachado' ? julioWhatsApp : userWhatsApp;
+  // Hook inteligente que funciona para todos os usuários
+  const whatsappConfig = useSmartWhatsApp(profile?.id, profile?.username, profile?.display_name);
   
   const [friendshipStatus, setFriendshipStatus] = useState<string>('none');
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
@@ -1021,19 +1014,19 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
         isOwnProfile,
         username: profile.username,
         displayName: profile.display_name,
-        userWhatsAppConfig: {
-          loading: userWhatsApp.loading,
-          error: userWhatsApp.error,
-          isEnabled: userWhatsApp.isEnabled,
-          hasVoiceLink: userWhatsApp.hasVoiceLink,
-          hasVideoLink: userWhatsApp.hasVideoLink,
-          hasPhone: userWhatsApp.hasPhone,
-          hasGroups: userWhatsApp.hasGroups,
-          config: userWhatsApp.config
+        whatsappConfig: {
+          loading: whatsappConfig.loading,
+          error: whatsappConfig.error,
+          isEnabled: whatsappConfig.isEnabled,
+          hasVoiceLink: whatsappConfig.hasVoiceLink,
+          hasVideoLink: whatsappConfig.hasVideoLink,
+          hasPhone: whatsappConfig.hasPhone,
+          hasGroups: whatsappConfig.hasGroups,
+          config: whatsappConfig.config
         }
       });
     }
-  }, [profile?.id, isOwnProfile, userWhatsApp]);
+  }, [profile?.id, isOwnProfile, whatsappConfig]);
   
   // Função para salvar biografia
   const handleSaveBio = async (newBio: string) => {
@@ -1342,7 +1335,7 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                           if (validLinks.voice) {
                             window.open(validLinks.voice, '_blank', 'noopener,noreferrer');
                           } else if (validLinks.phone) {
-                            window.open(`https://wa.me/${validLinks.phone}?text=Olá!%20Gostaria%20de%20falar%20com%20vocês%20da%20Rádio%20Tatuapé%20FM`, '_blank', 'noopener,noreferrer');
+                            window.open(`https://wa.me/${validLinks.phone}?text=Olá!%20Gostaria%20de%20fazer%20uma%20chamada%20de%20voz`, '_blank', 'noopener,noreferrer');
                           }
                         }
                       }}

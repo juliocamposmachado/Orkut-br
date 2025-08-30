@@ -17,10 +17,12 @@ export const useUserWhatsApp = (userId?: string) => {
 
   const loadUserWhatsAppConfig = useCallback(async () => {
     if (!userId) {
+      console.log('🚫 useUserWhatsApp: userId não fornecido');
       setState({ config: null, loading: false, error: null });
       return;
     }
 
+    console.log('🔍 useUserWhatsApp: Carregando configuração para userId:', userId);
     setState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
@@ -30,20 +32,24 @@ export const useUserWhatsApp = (userId?: string) => {
         .eq('user_id', userId)
         .single();
 
+      console.log('📊 useUserWhatsApp: Resposta do Supabase:', { data, error });
+
       if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
         throw error;
       }
 
       // Se não há configuração ou está desabilitada, retornar null
       if (!data || !data.is_enabled) {
+        console.log('❌ useUserWhatsApp: Configuração não encontrada ou desabilitada:', { data: !!data, enabled: data?.is_enabled });
         setState({ config: null, loading: false, error: null });
         return;
       }
 
+      console.log('✅ useUserWhatsApp: Configuração carregada:', data);
       setState({ config: data, loading: false, error: null });
 
     } catch (error) {
-      console.error('Erro ao carregar configuração WhatsApp do usuário:', error);
+      console.error('❌ useUserWhatsApp: Erro ao carregar configuração:', error);
       setState({
         config: null,
         loading: false,

@@ -106,6 +106,28 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
   
   // Hook para carregar configurações WhatsApp do usuário
   const userWhatsApp = useUserWhatsApp(profile?.id);
+  
+  // Debug WhatsApp config
+  useEffect(() => {
+    if (profile?.id) {
+      console.log('📊 Perfil DEBUG:', {
+        profileId: profile.id,
+        isOwnProfile,
+        username: profile.username,
+        displayName: profile.display_name,
+        userWhatsAppConfig: {
+          loading: userWhatsApp.loading,
+          error: userWhatsApp.error,
+          isEnabled: userWhatsApp.isEnabled,
+          hasVoiceLink: userWhatsApp.hasVoiceLink,
+          hasVideoLink: userWhatsApp.hasVideoLink,
+          hasPhone: userWhatsApp.hasPhone,
+          hasGroups: userWhatsApp.hasGroups,
+          config: userWhatsApp.config
+        }
+      });
+    }
+  }, [profile?.id, isOwnProfile, userWhatsApp]);
   const [friendshipStatus, setFriendshipStatus] = useState<string>('none');
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const [actionLoading, setActionLoading] = useState<string>('');

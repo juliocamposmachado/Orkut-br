@@ -14,7 +14,7 @@ export function AnimatediFoodButton({
   const [currentState, setCurrentState] = useState<'logo' | 'text'>('logo')
   const [currentTextIndex, setCurrentTextIndex] = useState(0)
   
-  const texts = ['Peça Agora', 'Cerveja', 'Whisky', 'Vodka', 'Cachaça', 'Vinho', 'Gin']
+  const texts = ['iFood', 'Adega', 'Rádio', 'Tatuapé', 'FM', 'Cerveja', 'Whisky', 'Vodka', 'Cachaça', 'Vinho', 'Gin', 'Peça', 'Agora', '24 Horas']
   
   useEffect(() => {
     let timeoutId: NodeJS.Timeout
@@ -50,7 +50,7 @@ export function AnimatediFoodButton({
   }, [currentState, currentTextIndex, texts.length])
   
   return (
-    <div className={`flex items-center space-x-2 h-10 min-w-fit ${className}`}>
+    <div className={`flex items-center space-x-2 h-10 min-w-max ${className}`}>
       {currentState === 'logo' ? (
         <>
           <Image 

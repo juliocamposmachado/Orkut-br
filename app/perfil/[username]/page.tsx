@@ -1236,74 +1236,74 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                           <Video className="h-4 w-4 mr-2" />
                           Chamada de Vídeo
                         </Button>
-                      </>
-                    )}
-                    
-                    {/* Botões WhatsApp ADICIONAIS - Seção separada que só aparece se configurado */}
-                    {userWhatsApp.hasValidConfig() && (
-                      <>
-                        <div className="border-t pt-3 mt-3">
-                          <div className="text-xs text-gray-500 mb-2 text-center font-medium flex items-center justify-center">
-                            <span className="mr-1">📱</span>
-                            Contato WhatsApp
-                          </div>
-                        </div>
                         
-                        {/* Botão WhatsApp Áudio */}
-                        {userWhatsApp.hasVoiceLink && (
-                          <Button 
-                            size="sm"
-                            variant="outline" 
-                            className="w-full border-green-300 text-green-700 hover:bg-green-50 bg-green-50"
-                            onClick={() => {
-                              const validLinks = userWhatsApp.getValidLinks();
-                              if (validLinks.voice) {
-                                window.open(validLinks.voice, '_blank', 'noopener,noreferrer');
-                              }
-                            }}
-                            title="Abrir chamada de voz no WhatsApp"
-                          >
-                            <Phone className="h-4 w-4 mr-2" />
-                            📞 WhatsApp Áudio
-                          </Button>
-                        )}
-                        
-                        {/* Botão WhatsApp Vídeo */}
-                        {userWhatsApp.hasVideoLink && (
-                          <Button 
-                            size="sm"
-                            variant="outline" 
-                            className="w-full border-green-300 text-green-700 hover:bg-green-50 bg-green-50"
-                            onClick={() => {
-                              const validLinks = userWhatsApp.getValidLinks();
-                              if (validLinks.video) {
-                                window.open(validLinks.video, '_blank', 'noopener,noreferrer');
-                              }
-                            }}
-                            title="Abrir videochamada no WhatsApp"
-                          >
-                            <Video className="h-4 w-4 mr-2" />
-                            📹 WhatsApp Vídeo
-                          </Button>
-                        )}
-                        
-                        {/* Botão WhatsApp Mensagem */}
-                        {userWhatsApp.hasPhone && (
-                          <Button 
-                            size="sm"
-                            variant="outline" 
-                            className="w-full border-green-300 text-green-700 hover:bg-green-50 bg-green-50"
-                            onClick={() => {
-                              const validLinks = userWhatsApp.getValidLinks();
-                              if (validLinks.phone) {
-                                window.open(`https://wa.me/${validLinks.phone}?text=Vim+do+Orkut,+Tudo+bem+?`, '_blank', 'noopener,noreferrer');
-                              }
-                            }}
-                            title="Enviar mensagem pelo WhatsApp"
-                          >
-                            <MessageCircle className="h-4 w-4 mr-2" />
-                            💬 WhatsApp Mensagem
-                          </Button>
+                        {/* Seção Contato WhatsApp - Apenas se configurado */}
+                        {userWhatsApp.hasValidConfig() && (
+                          <>
+                            <div className="border-t pt-3 mt-3">
+                              <div className="text-xs text-gray-500 mb-2 text-center font-medium flex items-center justify-center">
+                                <span className="mr-1">📱</span>
+                                Contato WhatsApp
+                              </div>
+                            </div>
+                            
+                            {/* Botão WhatsApp Áudio */}
+                            {userWhatsApp.hasVoiceLink && (
+                              <Button 
+                                size="sm"
+                                variant="outline" 
+                                className="w-full border-green-300 text-green-700 hover:bg-green-50 bg-green-50"
+                                onClick={() => {
+                                  const validLinks = userWhatsApp.getValidLinks();
+                                  if (validLinks.voice) {
+                                    window.open(validLinks.voice, '_blank', 'noopener,noreferrer');
+                                  }
+                                }}
+                                title="Abrir chamada de voz no WhatsApp"
+                              >
+                                <Phone className="h-4 w-4 mr-2" />
+                                📞 WhatsApp Áudio
+                              </Button>
+                            )}
+                            
+                            {/* Botão WhatsApp Vídeo */}
+                            {userWhatsApp.hasVideoLink && (
+                              <Button 
+                                size="sm"
+                                variant="outline" 
+                                className="w-full border-green-300 text-green-700 hover:bg-green-50 bg-green-50"
+                                onClick={() => {
+                                  const validLinks = userWhatsApp.getValidLinks();
+                                  if (validLinks.video) {
+                                    window.open(validLinks.video, '_blank', 'noopener,noreferrer');
+                                  }
+                                }}
+                                title="Abrir videochamada no WhatsApp"
+                              >
+                                <Video className="h-4 w-4 mr-2" />
+                                📹 WhatsApp Vídeo
+                              </Button>
+                            )}
+                            
+                            {/* Botão WhatsApp Mensagem */}
+                            {userWhatsApp.hasPhone && (
+                              <Button 
+                                size="sm"
+                                variant="outline" 
+                                className="w-full border-green-300 text-green-700 hover:bg-green-50 bg-green-50"
+                                onClick={() => {
+                                  const validLinks = userWhatsApp.getValidLinks();
+                                  if (validLinks.phone) {
+                                    window.open(`https://wa.me/${validLinks.phone}?text=Vim+do+Orkut,+Tudo+bem+?`, '_blank', 'noopener,noreferrer');
+                                  }
+                                }}
+                                title="Enviar mensagem pelo WhatsApp"
+                              >
+                                <MessageCircle className="h-4 w-4 mr-2" />
+                                💬 WhatsApp Mensagem
+                              </Button>
+                            )}
+                          </>
                         )}
                       </>
                     )}

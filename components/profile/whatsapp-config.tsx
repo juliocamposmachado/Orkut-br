@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,11 +17,13 @@ import {
   AlertCircle, 
   Info,
   Copy,
-  Share,
-  Settings,
+  Users,
+  Plus,
+  Trash2,
   Loader2
 } from 'lucide-react';
-import { useWhatsApp } from '@/hooks/useWhatsApp';
+import { useAuth } from '@/contexts/enhanced-auth-context';
+import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 
 interface WhatsAppConfigProps {
@@ -30,69 +32,149 @@ interface WhatsAppConfigProps {
   profileId?: string;
 }
 
+interface WhatsAppGroup {
+  name: string;
+  link: string;
+}
+
+interface WhatsAppSettings {
+  voice_call_link: string;
+  video_call_link: string;
+  whatsapp_phone: string;
+  whatsapp_groups: WhatsAppGroup[];
+  enabled: boolean;
+}
+
 export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({ 
   className = "", 
   isOwnProfile = false 
 }) => {
-  const {
-    config,
-    loading,
-    saving,
-    error,
-    saveConfig,
-    disableWhatsApp,
-    validateWhatsAppLink,
-    getExampleLinks,
-    clearError
-  } = useWhatsApp();
-  
-  const [localSettings, setLocalSettings] = useState({
-    voice_link: '',
-    video_link: '',
+  const { user } = useAuth();
+  const [settings, setSettings] = useState<WhatsAppSettings>({
+    voice_call_link: '',
+    video_call_link: '',
+    whatsapp_phone: '',
+    whatsapp_groups: [],
     enabled: false
   });
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  // Sincronizar configuração com estado local
-  React.useEffect(() => {
-    if (config) {
-      setLocalSettings({
-        voice_link: config.voice_call_link || '',
-        video_link: config.video_call_link || '',
-        enabled: config.is_enabled || false
-      });
+  // Carregar configurações existentes
+  useEffect(() => {
+    if (user && isOwnProfile) {
+      loadWhatsAppSettings();
     }
-  }, [config]);
+  }, [user, isOwnProfile]);
+
+  const loadWhatsAppSettings = async () => {
+    if (!user?.id) return;
+    
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('whatsapp_config')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!error && data) {
+        setSettings({
+          voice_call_link: data.voice_call_link || '',
+          video_call_link: data.video_call_link || '',
+          whatsapp_phone: data.whatsapp_phone || '',
+          whatsapp_groups: data.whatsapp_groups || [],
+          enabled: data.is_enabled || false
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao carregar configurações WhatsApp:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const saveWhatsAppSettings = async () => {
+    if (!user?.id) return;
+    
+    setSaving(true);
     try {
-      await saveConfig({
-        is_enabled: localSettings.enabled,
-        allow_calls: true,
-        voice_call_link: localSettings.voice_link || undefined,
-        video_call_link: localSettings.video_link || undefined
-      });
-      
+      const { error } = await supabase
+        .from('whatsapp_config')
+        .upsert({
+          user_id: user.id,
+          is_enabled: settings.enabled,
+          allow_calls: true,
+          voice_call_link: settings.voice_call_link || null,
+          video_call_link: settings.video_call_link || null,
+          whatsapp_phone: settings.whatsapp_phone || null,
+          whatsapp_groups: settings.whatsapp_groups,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (error) {
+        throw error;
+      }
+
       toast.success('✅ Configurações do WhatsApp salvas com sucesso!');
     } catch (error) {
       console.error('Erro ao salvar configurações WhatsApp:', error);
       toast.error('❌ Erro ao salvar configurações. Tente novamente.');
+    } finally {
+      setSaving(false);
     }
   };
 
 
-  const handleLinkChange = (type: 'voice' | 'video', value: string) => {
-    setLocalSettings(prev => ({
+  const validateWhatsAppLink = (link: string, type: 'voice' | 'video' | 'group'): boolean => {
+    if (!link) return true;
+    if (type === 'voice') return /^https:\/\/call\.whatsapp\.com\/voice\/[A-Za-z0-9_-]+$/.test(link);
+    if (type === 'video') return /^https:\/\/call\.whatsapp\.com\/video\/[A-Za-z0-9_-]+$/.test(link);
+    if (type === 'group') return /^https:\/\/chat\.whatsapp\.com\/[A-Za-z0-9_-]+$/.test(link);
+    return false;
+  };
+
+  const validatePhone = (phone: string): boolean => {
+    if (!phone) return true;
+    return /^\d{8,15}$/.test(phone.replace(/\D/g, ''));
+  };
+
+  const addGroup = () => {
+    if (settings.whatsapp_groups.length < 5) {
+      setSettings(prev => ({
+        ...prev,
+        whatsapp_groups: [...prev.whatsapp_groups, { name: '', link: '' }]
+      }));
+    }
+  };
+
+  const removeGroup = (index: number) => {
+    setSettings(prev => ({
       ...prev,
-      [`${type}_link`]: value
+      whatsapp_groups: prev.whatsapp_groups.filter((_, i) => i !== index)
     }));
   };
 
-  const copyExampleLink = (type: 'voice' | 'video') => {
-    const examples = getExampleLinks();
-    const exampleLink = type === 'voice' ? examples.voice : examples.video;
+  const updateGroup = (index: number, field: 'name' | 'link', value: string) => {
+    setSettings(prev => ({
+      ...prev,
+      whatsapp_groups: prev.whatsapp_groups.map((group, i) => 
+        i === index ? { ...group, [field]: value } : group
+      )
+    }));
+  };
+
+  const copyExampleLink = (type: 'voice' | 'video' | 'group') => {
+    const examples = {
+      voice: 'https://call.whatsapp.com/voice/SEU_CODIGO_AQUI',
+      video: 'https://call.whatsapp.com/video/SEU_CODIGO_AQUI',
+      group: 'https://chat.whatsapp.com/SEU_CODIGO_AQUI'
+    };
     
-    navigator.clipboard.writeText(exampleLink);
-    toast.info(`Link de exemplo copiado! Cole no campo ${type === 'voice' ? 'Voz' : 'Vídeo'} e substitua SEU_CODIGO_AQUI pelo seu código real.`);
+    navigator.clipboard.writeText(examples[type]);
+    toast.info(`Link de exemplo copiado! Substitua SEU_CODIGO_AQUI pelo código real.`);
   };
 
   if (!isOwnProfile) {
@@ -112,20 +194,12 @@ export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({
       </CardHeader>
       
       <CardContent className="space-y-6">
-        {/* Mostrar erro se houver */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+        {/* Loading state */}
+        {loading && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex items-center space-x-2">
-              <AlertCircle className="h-4 w-4 text-red-600" />
-              <span className="text-sm text-red-700">{error}</span>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={clearError}
-                className="text-red-600 hover:text-red-700"
-              >
-                ✕
-              </Button>
+              <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+              <span className="text-sm text-blue-700">Carregando configurações...</span>
             </div>
           </div>
         )}
@@ -142,13 +216,13 @@ export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({
             </div>
           </div>
           <Switch 
-            checked={localSettings.enabled}
+            checked={settings.enabled}
             disabled={loading || saving}
-            onCheckedChange={(enabled) => setLocalSettings(prev => ({ ...prev, enabled }))}
+            onCheckedChange={(enabled) => setSettings(prev => ({ ...prev, enabled }))}
           />
         </div>
 
-        {localSettings.enabled && (
+        {settings.enabled && (
           <>
             <Separator />
             
@@ -201,16 +275,16 @@ export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({
                 id="voice_link"
                 type="url"
                 placeholder="https://call.whatsapp.com/voice/SEU_CODIGO_AQUI"
-                value={localSettings.voice_link}
+                value={settings.voice_call_link}
                 disabled={loading || saving}
-                onChange={(e) => handleLinkChange('voice', e.target.value)}
+                onChange={(e) => setSettings(prev => ({ ...prev, voice_call_link: e.target.value }))}
                 className={`text-sm ${
-                  localSettings.voice_link && !validateWhatsAppLink(localSettings.voice_link, 'voice')
+                  settings.voice_call_link && !validateWhatsAppLink(settings.voice_call_link, 'voice')
                     ? 'border-red-300 focus:border-red-500' 
                     : 'border-green-300 focus:border-green-500'
                 }`}
               />
-              {localSettings.voice_link && !validateWhatsAppLink(localSettings.voice_link, 'voice') && (
+              {settings.voice_call_link && !validateWhatsAppLink(settings.voice_call_link, 'voice') && (
                 <div className="flex items-center space-x-1 text-red-600">
                   <AlertCircle className="h-3 w-3" />
                   <span className="text-xs">Link inválido. Use o formato correto do WhatsApp.</span>
@@ -230,16 +304,16 @@ export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({
                 id="video_link"
                 type="url"
                 placeholder="https://call.whatsapp.com/video/SEU_CODIGO_AQUI"
-                value={localSettings.video_link}
+                value={settings.video_call_link}
                 disabled={loading || saving}
-                onChange={(e) => handleLinkChange('video', e.target.value)}
+                onChange={(e) => setSettings(prev => ({ ...prev, video_call_link: e.target.value }))}
                 className={`text-sm ${
-                  localSettings.video_link && !validateWhatsAppLink(localSettings.video_link, 'video')
+                  settings.video_call_link && !validateWhatsAppLink(settings.video_call_link, 'video')
                     ? 'border-red-300 focus:border-red-500' 
                     : 'border-green-300 focus:border-green-500'
                 }`}
               />
-              {localSettings.video_link && !validateWhatsAppLink(localSettings.video_link, 'video') && (
+              {settings.video_call_link && !validateWhatsAppLink(settings.video_call_link, 'video') && (
                 <div className="flex items-center space-x-1 text-red-600">
                   <AlertCircle className="h-3 w-3" />
                   <span className="text-xs">Link inválido. Use o formato correto do WhatsApp.</span>
@@ -247,14 +321,114 @@ export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({
               )}
             </div>
 
+            {/* Campo para número do WhatsApp (mensagens) */}
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <MessageSquare className="h-4 w-4 text-green-600" />
+                <Label htmlFor="whatsapp_phone" className="text-sm font-medium">
+                  Número do WhatsApp (Mensagens)
+                </Label>
+              </div>
+              <Input
+                id="whatsapp_phone"
+                type="tel"
+                placeholder="5511999887766 (apenas números)"
+                value={settings.whatsapp_phone}
+                disabled={loading || saving}
+                onChange={(e) => setSettings(prev => ({ ...prev, whatsapp_phone: e.target.value.replace(/\D/g, '') }))}
+                className={`text-sm ${
+                  settings.whatsapp_phone && !validatePhone(settings.whatsapp_phone)
+                    ? 'border-red-300 focus:border-red-500' 
+                    : 'border-green-300 focus:border-green-500'
+                }`}
+              />
+              {settings.whatsapp_phone && !validatePhone(settings.whatsapp_phone) && (
+                <div className="flex items-center space-x-1 text-red-600">
+                  <AlertCircle className="h-3 w-3" />
+                  <span className="text-xs">Número inválido. Use apenas números (ex: 5511999887766).</span>
+                </div>
+              )}
+            </div>
+
+            {/* Grupos do WhatsApp */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Users className="h-4 w-4 text-green-600" />
+                  <Label className="text-sm font-medium">Grupos do WhatsApp</Label>
+                  <Badge variant="secondary" className="text-xs">{settings.whatsapp_groups.length}/5</Badge>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={addGroup}
+                  disabled={settings.whatsapp_groups.length >= 5 || loading || saving}
+                  className="text-xs"
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  Adicionar Grupo
+                </Button>
+              </div>
+
+              {settings.whatsapp_groups.map((group, index) => (
+                <div key={index} className="p-3 border rounded-lg space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Grupo {index + 1}</span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => removeGroup(index)}
+                      className="text-red-600 hover:text-red-700 p-1 h-6 w-6"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <Input
+                    placeholder="Nome do grupo"
+                    value={group.name}
+                    onChange={(e) => updateGroup(index, 'name', e.target.value)}
+                    className="text-sm"
+                    disabled={loading || saving}
+                  />
+                  <Input
+                    placeholder="https://chat.whatsapp.com/SEU_CODIGO_AQUI"
+                    value={group.link}
+                    onChange={(e) => updateGroup(index, 'link', e.target.value)}
+                    className={`text-sm ${
+                      group.link && !validateWhatsAppLink(group.link, 'group')
+                        ? 'border-red-300 focus:border-red-500' 
+                        : 'border-green-300 focus:border-green-500'
+                    }`}
+                    disabled={loading || saving}
+                  />
+                  {group.link && !validateWhatsAppLink(group.link, 'group') && (
+                    <div className="flex items-center space-x-1 text-red-600">
+                      <AlertCircle className="h-3 w-3" />
+                      <span className="text-xs">Link inválido. Use o formato: https://chat.whatsapp.com/CODIGO</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+
+              <Button 
+                size="sm" 
+                variant="outline" 
+                onClick={() => copyExampleLink('group')}
+                className="text-xs w-full"
+              >
+                <Copy className="h-3 w-3 mr-1" />
+                Copiar exemplo de link de grupo
+              </Button>
+            </div>
+
             {/* Preview dos links */}
-            {(localSettings.voice_link || localSettings.video_link) && (
+            {(settings.voice_call_link || settings.video_call_link || settings.whatsapp_phone || settings.whatsapp_groups.some(g => g.name && g.link)) && (
               <div className="bg-gray-50 rounded-lg p-4">
                 <Label className="text-sm font-medium text-gray-700 mb-3 block">
                   Preview dos seus links:
                 </Label>
                 <div className="space-y-2">
-                  {localSettings.voice_link && validateWhatsAppLink(localSettings.voice_link, 'voice') && (
+                  {settings.voice_call_link && validateWhatsAppLink(settings.voice_call_link, 'voice') && (
                     <div className="flex items-center justify-between p-2 bg-white rounded border">
                       <div className="flex items-center space-x-2">
                         <Phone className="h-4 w-4 text-green-600" />
@@ -264,7 +438,7 @@ export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => window.open(localSettings.voice_link, '_blank')}
+                        onClick={() => window.open(settings.voice_call_link, '_blank')}
                         className="text-xs"
                       >
                         <ExternalLink className="h-3 w-3 mr-1" />
@@ -273,7 +447,7 @@ export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({
                     </div>
                   )}
                   
-                  {localSettings.video_link && validateWhatsAppLink(localSettings.video_link, 'video') && (
+                  {settings.video_call_link && validateWhatsAppLink(settings.video_call_link, 'video') && (
                     <div className="flex items-center justify-between p-2 bg-white rounded border">
                       <div className="flex items-center space-x-2">
                         <Video className="h-4 w-4 text-green-600" />
@@ -283,7 +457,7 @@ export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({
                       <Button
                         size="sm"
                         variant="ghost"
-                        onClick={() => window.open(localSettings.video_link, '_blank')}
+                        onClick={() => window.open(settings.video_call_link, '_blank')}
                         className="text-xs"
                       >
                         <ExternalLink className="h-3 w-3 mr-1" />
@@ -291,6 +465,44 @@ export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({
                       </Button>
                     </div>
                   )}
+
+                  {settings.whatsapp_phone && validatePhone(settings.whatsapp_phone) && (
+                    <div className="flex items-center justify-between p-2 bg-white rounded border">
+                      <div className="flex items-center space-x-2">
+                        <MessageSquare className="h-4 w-4 text-green-600" />
+                        <span className="text-sm">Mensagens (+{settings.whatsapp_phone.slice(0,2)} {settings.whatsapp_phone.slice(2,4)} {settings.whatsapp_phone.slice(4,9)}-{settings.whatsapp_phone.slice(9)})</span>
+                        <Badge variant="outline" className="text-xs">Configurado</Badge>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => window.open(`https://wa.me/${settings.whatsapp_phone}?text=Vim+do+Orkut,+Tudo+bem+?`, '_blank')}
+                        className="text-xs"
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        Testar
+                      </Button>
+                    </div>
+                  )}
+
+                  {settings.whatsapp_groups.filter(g => g.name && g.link && validateWhatsAppLink(g.link, 'group')).map((group, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 bg-white rounded border">
+                      <div className="flex items-center space-x-2">
+                        <Users className="h-4 w-4 text-green-600" />
+                        <span className="text-sm">{group.name}</span>
+                        <Badge variant="outline" className="text-xs">Grupo</Badge>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => window.open(group.link, '_blank')}
+                        className="text-xs"
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        Entrar
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
@@ -307,7 +519,7 @@ export const WhatsAppConfig: React.FC<WhatsAppConfigProps> = ({
                 <Loader2 className="h-3 w-3 animate-spin" />
                 <span>Carregando...</span>
               </div>
-            ) : localSettings.enabled ? (
+            ) : settings.enabled ? (
               <div className="flex items-center space-x-1 text-green-600">
                 <Check className="h-3 w-3" />
                 <span>WhatsApp habilitado</span>

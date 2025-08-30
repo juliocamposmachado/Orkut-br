@@ -287,8 +287,8 @@ export function Navbar() {
 
       {/* Mobile Navigation */}
       <div className="md:hidden border-t border-white/20">
-        <div className="flex justify-around py-2">
-          {navItems.slice(0, 6).map((item) => {
+        <div className="flex justify-around items-center py-1 px-1">
+          {navItems.map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href
             return (
@@ -296,17 +296,17 @@ export function Navbar() {
                 key={item.href} 
                 href={item.href} 
                 onClick={(e) => handleNavClick(item.href, item.label, e)}
-                className="cursor-pointer"
+                className="flex-1 max-w-[50px] cursor-pointer"
+                title={item.label.charAt(0).toUpperCase() + item.label.slice(1)}
               >
                 <Button
                   variant="ghost"
                   size="sm"
-                  className={`text-white hover:bg-white/20 transition-all duration-200 flex-col h-auto py-2 cursor-pointer ${
-                    isActive ? 'bg-white/20' : ''
+                  className={`w-full h-10 p-0 text-white hover:bg-white/20 transition-all duration-200 rounded-lg cursor-pointer ${
+                    isActive ? 'bg-white/20 shadow-md' : ''
                   }`}
                 >
-                  <Icon className="h-4 w-4" />
-                  <span className="text-xs mt-1">{item.label}</span>
+                  <Icon className="h-5 w-5" />
                 </Button>
               </Link>
             )
@@ -317,21 +317,21 @@ export function Navbar() {
             href="https://www.ifood.com.br/delivery/sao-paulo-sp/adega-radio-tatuape-fm-24-horas-vila-regente-feijo/29aa6191-cf23-4569-a8c3-d7bd66d877b5"
             target="_blank"
             rel="noopener noreferrer"
-            className="cursor-pointer"
+            className="flex-1 max-w-[50px] cursor-pointer"
+            title="iFood - Adega Rádio Tatuapé FM"
           >
             <Button
               variant="ghost"
               size="sm"
-              className="text-white hover:bg-white/20 transition-all duration-200 flex-col h-auto py-2 cursor-pointer"
+              className="w-full h-10 p-0 text-white hover:bg-white/20 transition-all duration-200 rounded-lg cursor-pointer"
             >
               <Image 
                 src="/ifood-logo.png" 
-                alt="iFood - Adega" 
-                width={16} 
-                height={16} 
+                alt="iFood" 
+                width={20} 
+                height={20} 
                 className="rounded"
               />
-              <span className="text-xs mt-1">adega</span>
             </Button>
           </Link>
           
@@ -340,21 +340,20 @@ export function Navbar() {
             href="https://github.com/juliocamposmachado/Orkut-br"
             target="_blank"
             rel="noopener noreferrer"
-            className="cursor-pointer"
+            className="flex-1 max-w-[50px] cursor-pointer"
+            title="Código Aberto - GitHub"
           >
             <Button
               variant="ghost"
               size="sm"
-              className="text-white hover:bg-white/20 transition-all duration-200 flex-col h-auto py-2 cursor-pointer"
+              className="w-full h-10 p-0 text-white hover:bg-white/20 transition-all duration-200 rounded-lg cursor-pointer"
             >
               <Image 
                 src="/opensource-logo.svg" 
                 alt="Open Source" 
-                width={16} 
-                height={16} 
-                className=""
+                width={20} 
+                height={20}
               />
-              <span className="text-xs mt-1">source</span>
             </Button>
           </Link>
         </div>

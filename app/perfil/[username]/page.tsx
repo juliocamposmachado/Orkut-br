@@ -1308,113 +1308,130 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
               </OrkutCardContent>
             </OrkutCard>
             
-            {/* Card Contato WhatsApp - apenas para outros perfis */}
-            {!isOwnProfile && (
-              <OrkutCard>
-                <OrkutCardHeader>
-                  <div className="flex items-center space-x-2">
-                    <MessageCircle className="h-4 w-4" />
-                    <span>📱 Contato WhatsApp</span>
-                  </div>
-                </OrkutCardHeader>
-                <OrkutCardContent>
-                  <div className="space-y-2">
-                    {/* Botão WhatsApp Áudio */}
+            {/* Card Contato WhatsApp - para todos os perfis */}
+            <OrkutCard>
+              <OrkutCardHeader>
+                <div className="flex items-center space-x-2">
+                  <MessageCircle className="h-4 w-4" />
+                  <span>📱 Contato WhatsApp</span>
+                  {isOwnProfile && (
                     <Button 
-                      size="sm"
-                      variant="outline" 
-                      className={`w-full transition-all ${
-                        whatsappConfig.hasVoiceLink 
-                          ? 'border-green-300 text-green-700 hover:bg-green-50 bg-green-50' 
-                          : 'border-gray-300 text-gray-500 bg-gray-50 cursor-not-allowed'
-                      }`}
+                      size="sm" 
+                      variant="ghost" 
+                      className="ml-auto text-xs text-purple-600 hover:bg-purple-50"
                       onClick={() => {
-                        if (whatsappConfig.hasVoiceLink) {
-                          const validLinks = whatsappConfig.getValidLinks();
-                          // Usar link específico se disponível, senão usar wa.me com telefone
-                          if (validLinks.voice) {
-                            window.open(validLinks.voice, '_blank', 'noopener,noreferrer');
-                          } else if (validLinks.phone) {
-                            window.open(`https://wa.me/${validLinks.phone}?text=Olá!%20Gostaria%20de%20fazer%20uma%20chamada%20de%20voz`, '_blank', 'noopener,noreferrer');
-                          }
+                        const element = document.querySelector('[data-whatsapp-config]');
+                        if (element) {
+                          window.scrollTo({ 
+                            top: element.getBoundingClientRect().top + window.scrollY - 100, 
+                            behavior: 'smooth' 
+                          });
                         }
                       }}
-                      disabled={!whatsappConfig.hasVoiceLink}
-                      title={whatsappConfig.hasVoiceLink ? "Abrir chamada de voz no WhatsApp" : "WhatsApp Áudio não configurado"}
                     >
-                      <Phone className="h-4 w-4 mr-2" />
-                      📞 WhatsApp Áudio
+                      <Settings className="h-3 w-3 mr-1" />
+                      Configurar
                     </Button>
-                    
-                    {/* Botão WhatsApp Vídeo */}
-                    <Button 
-                      size="sm"
-                      variant="outline" 
-                      className={`w-full transition-all ${
-                        whatsappConfig.hasVideoLink 
-                          ? 'border-green-300 text-green-700 hover:bg-green-50 bg-green-50' 
-                          : 'border-gray-300 text-gray-500 bg-gray-50 cursor-not-allowed'
-                      }`}
-                      onClick={() => {
-                        if (whatsappConfig.hasVideoLink) {
-                          const validLinks = whatsappConfig.getValidLinks();
-                          // Usar link específico se disponível, senão usar wa.me com telefone
-                          if (validLinks.video) {
-                            window.open(validLinks.video, '_blank', 'noopener,noreferrer');
-                          } else if (validLinks.phone) {
-                            window.open(`https://wa.me/${validLinks.phone}?text=Olá!%20Gostaria%20de%20fazer%20uma%20videochamada`, '_blank', 'noopener,noreferrer');
-                          }
+                  )}
+                </div>
+              </OrkutCardHeader>
+              <OrkutCardContent>
+                <div className="space-y-2">
+                  {/* Botão WhatsApp Áudio */}
+                  <Button 
+                    size="sm"
+                    variant="outline" 
+                    className={`w-full transition-all ${
+                      whatsappConfig.hasVoiceLink 
+                        ? 'border-green-300 text-green-700 hover:bg-green-50 bg-green-50' 
+                        : 'border-gray-300 text-gray-500 bg-gray-50 cursor-not-allowed'
+                    }`}
+                    onClick={() => {
+                      if (whatsappConfig.hasVoiceLink) {
+                        const validLinks = whatsappConfig.getValidLinks();
+                        // Usar link específico se disponível, senão usar wa.me com telefone
+                        if (validLinks.voice) {
+                          window.open(validLinks.voice, '_blank', 'noopener,noreferrer');
+                        } else if (validLinks.phone) {
+                          window.open(`https://wa.me/${validLinks.phone}?text=Olá!%20Gostaria%20de%20fazer%20uma%20chamada%20de%20voz`, '_blank', 'noopener,noreferrer');
                         }
-                      }}
-                      disabled={!whatsappConfig.hasVideoLink}
-                      title={whatsappConfig.hasVideoLink ? "Abrir videochamada no WhatsApp" : "WhatsApp Vídeo não configurado"}
-                    >
-                      <Video className="h-4 w-4 mr-2" />
-                      📹 WhatsApp Vídeo
-                    </Button>
-                    
-                    {/* Botão WhatsApp Mensagem */}
-                    <Button 
-                      size="sm"
-                      variant="outline" 
-                      className={`w-full transition-all ${
-                        whatsappConfig.hasPhone 
-                          ? 'border-green-300 text-green-700 hover:bg-green-50 bg-green-50' 
-                          : 'border-gray-300 text-gray-500 bg-gray-50 cursor-not-allowed'
-                      }`}
-                      onClick={() => {
-                        if (whatsappConfig.hasPhone) {
-                          const validLinks = whatsappConfig.getValidLinks();
-                          if (validLinks.phone) {
-                            window.open(`https://wa.me/${validLinks.phone}?text=Vim+do+Orkut,+Tudo+bem+?`, '_blank', 'noopener,noreferrer');
-                          }
+                      }
+                    }}
+                    disabled={!whatsappConfig.hasVoiceLink}
+                    title={whatsappConfig.hasVoiceLink ? "Abrir chamada de voz no WhatsApp" : "WhatsApp Áudio não configurado"}
+                  >
+                    <Phone className="h-4 w-4 mr-2" />
+                    📞 WhatsApp Áudio
+                  </Button>
+                  
+                  {/* Botão WhatsApp Vídeo */}
+                  <Button 
+                    size="sm"
+                    variant="outline" 
+                    className={`w-full transition-all ${
+                      whatsappConfig.hasVideoLink 
+                        ? 'border-green-300 text-green-700 hover:bg-green-50 bg-green-50' 
+                        : 'border-gray-300 text-gray-500 bg-gray-50 cursor-not-allowed'
+                    }`}
+                    onClick={() => {
+                      if (whatsappConfig.hasVideoLink) {
+                        const validLinks = whatsappConfig.getValidLinks();
+                        // Usar link específico se disponível, senão usar wa.me com telefone
+                        if (validLinks.video) {
+                          window.open(validLinks.video, '_blank', 'noopener,noreferrer');
+                        } else if (validLinks.phone) {
+                          window.open(`https://wa.me/${validLinks.phone}?text=Olá!%20Gostaria%20de%20fazer%20uma%20videochamada`, '_blank', 'noopener,noreferrer');
                         }
-                      }}
-                      disabled={!whatsappConfig.hasPhone}
-                      title={whatsappConfig.hasPhone ? "Enviar mensagem pelo WhatsApp" : "WhatsApp não configurado"}
-                    >
-                      <MessageCircle className="h-4 w-4 mr-2" />
-                      💬 WhatsApp Mensagem
-                    </Button>
-                  </div>
-                  {whatsappConfig.loading && (
-                    <p className="text-xs text-gray-500 mt-2 text-center">
-                      Carregando configurações...
-                    </p>
-                  )}
-                  {!whatsappConfig.loading && !whatsappConfig.hasValidConfig() && (
-                    <p className="text-xs text-gray-500 mt-2 text-center">
-                      WhatsApp não configurado pelo usuário
-                    </p>
-                  )}
-                  {!whatsappConfig.loading && whatsappConfig.hasValidConfig() && (
-                    <p className="text-xs text-green-600 mt-2 text-center">
-                      Clique nos botões verdes para contato direto
-                    </p>
-                  )}
-                </OrkutCardContent>
-              </OrkutCard>
-            )}
+                      }
+                    }}
+                    disabled={!whatsappConfig.hasVideoLink}
+                    title={whatsappConfig.hasVideoLink ? "Abrir videochamada no WhatsApp" : "WhatsApp Vídeo não configurado"}
+                  >
+                    <Video className="h-4 w-4 mr-2" />
+                    📹 WhatsApp Vídeo
+                  </Button>
+                  
+                  {/* Botão WhatsApp Mensagem */}
+                  <Button 
+                    size="sm"
+                    variant="outline" 
+                    className={`w-full transition-all ${
+                      whatsappConfig.hasPhone 
+                        ? 'border-green-300 text-green-700 hover:bg-green-50 bg-green-50' 
+                        : 'border-gray-300 text-gray-500 bg-gray-50 cursor-not-allowed'
+                    }`}
+                    onClick={() => {
+                      if (whatsappConfig.hasPhone) {
+                        const validLinks = whatsappConfig.getValidLinks();
+                        if (validLinks.phone) {
+                          window.open(`https://wa.me/${validLinks.phone}?text=Vim+do+Orkut,+Tudo+bem+?`, '_blank', 'noopener,noreferrer');
+                        }
+                      }
+                    }}
+                    disabled={!whatsappConfig.hasPhone}
+                    title={whatsappConfig.hasPhone ? "Enviar mensagem pelo WhatsApp" : "WhatsApp não configurado"}
+                  >
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    💬 WhatsApp Mensagem
+                  </Button>
+                </div>
+                {whatsappConfig.loading && (
+                  <p className="text-xs text-gray-500 mt-2 text-center">
+                    Carregando configurações...
+                  </p>
+                )}
+                {!whatsappConfig.loading && !whatsappConfig.hasValidConfig() && (
+                  <p className="text-xs text-gray-500 mt-2 text-center">
+                    WhatsApp não configurado{!isOwnProfile ? ' pelo usuário' : ''}
+                  </p>
+                )}
+                {!whatsappConfig.loading && whatsappConfig.hasValidConfig() && (
+                  <p className="text-xs text-green-600 mt-2 text-center">
+                    Clique nos botões verdes para contato direto
+                  </p>
+                )}
+              </OrkutCardContent>
+            </OrkutCard>
             
             {/* Histórico de Conversas */}
             <OrkutCard>
@@ -1622,9 +1639,11 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
             
             {/* WhatsApp Configuration Card - apenas para o dono do perfil */}
             {isOwnProfile && (
-              <WhatsAppConfig 
-                isOwnProfile={true}
-              />
+              <div data-whatsapp-config>
+                <WhatsAppConfig 
+                  isOwnProfile={true}
+                />
+              </div>
             )}
             
             {/* Grupos WhatsApp - apenas para visitantes se o usuário tiver grupos configurados */}

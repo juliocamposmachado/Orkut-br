@@ -374,6 +374,9 @@ export default function HomePage() {
           
           {/* Left Sidebar */}
           <div className="hidden lg:block space-y-4 sticky top-4">
+            {/* Regras da Comunidade - PRIMEIRO CARD */}
+            <CommunityRulesCard />
+            
             {/* Navigation Menu */}
             <OrkutCard>
               <OrkutCardHeader>

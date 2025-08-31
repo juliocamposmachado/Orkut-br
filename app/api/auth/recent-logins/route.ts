@@ -2,6 +2,46 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 
+// Interfaces para tipagem
+interface AuthSession {
+  id: string
+  user_id: string
+  created_at: string
+  updated_at?: string
+  refreshed_at?: string
+  user_agent?: string
+  ip?: string
+}
+
+interface AuthUser {
+  id: string
+  email?: string
+  created_at: string
+  last_sign_in_at?: string
+  raw_user_meta_data?: {
+    display_name?: string
+    full_name?: string
+    username?: string
+    photo_url?: string
+    avatar_url?: string
+    [key: string]: any
+  }
+}
+
+interface ProcessedLogin {
+  id: string
+  user_id: string
+  display_name: string
+  username: string
+  photo_url: string
+  login_time: string
+  last_activity?: string
+  user_agent?: string
+  ip?: string
+  status: 'online' | 'away' | 'offline'
+  is_new_user: boolean
+}
+
 export async function GET(request: NextRequest) {
   try {
     // Criar cliente Supabase do servidor
@@ -39,7 +79,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Buscar dados dos usuários correspondentes
-      const userIds = sessionsData?.map(session => session.user_id) || []
+      const userIds = (sessionsData as AuthSession[])?.map(session => session.user_id) || []
       const { data: usersData, error: usersError } = await supabaseServer
         .from('auth.users')
         .select(`
@@ -56,8 +96,8 @@ export async function GET(request: NextRequest) {
       }
 
       // Combinar dados de sessões e usuários
-      const combinedData = sessionsData?.map(session => {
-        const user = usersData?.find(u => u.id === session.user_id)
+      const combinedData = (sessionsData as AuthSession[])?.map((session: AuthSession) => {
+        const user = (usersData as AuthUser[])?.find(u => u.id === session.user_id)
         const displayName = user?.raw_user_meta_data?.display_name || 
                            user?.raw_user_meta_data?.full_name || 
                            user?.email?.split('@')[0] || 
@@ -77,16 +117,16 @@ export async function GET(request: NextRequest) {
           last_activity: session.refreshed_at || session.updated_at,
           user_agent: session.user_agent,
           ip: session.ip,
-          status: determineUserStatus(session.refreshed_at || session.updated_at),
-          is_new_user: checkIfNewUser(user?.created_at)
-        }
+          status: determineUserStatus(session.refreshed_at || session.updated_at || null),
+          is_new_user: checkIfNewUser(user?.created_at || null)
+        } as ProcessedLogin
       }) || []
 
       // Transformar dados para o formato esperado
-      const recentLogins = combinedData
+      const recentLogins: ProcessedLogin[] = combinedData
 
       // Contar estatísticas
-      const onlineCount = recentLogins.filter((login: any) => login.status === 'online').length
+      const onlineCount = recentLogins.filter(login => login.status === 'online').length
       const totalCount = recentLogins.length
 
       return NextResponse.json({
@@ -95,14 +135,14 @@ export async function GET(request: NextRequest) {
         stats: {
           online: onlineCount,
           total: totalCount,
-          new_users: recentLogins.filter((login: any) => login.is_new_user).length
+          new_users: recentLogins.filter(login => login.is_new_user).length
         },
         data_source: 'real_auth_tables'
       })
     }
 
     // Se a função RPC funcionou, processar os dados
-    const recentLogins = loginData?.map((login: any) => ({
+    const recentLogins: ProcessedLogin[] = loginData?.map((login: any) => ({
       id: login.session_id,
       user_id: login.user_id,
       display_name: login.display_name || 'Usuário',
@@ -110,11 +150,14 @@ export async function GET(request: NextRequest) {
       photo_url: login.photo_url || '',
       login_time: login.login_time,
       status: login.status || 'online',
-      is_new_user: checkIfNewUser(login.user_created_at)
+      is_new_user: checkIfNewUser(login.user_created_at),
+      last_activity: login.last_activity,
+      user_agent: login.user_agent,
+      ip: login.ip
     })) || []
 
     // Contar estatísticas
-    const onlineCount = recentLogins.filter((login: any) => login.status === 'online').length
+    const onlineCount = recentLogins.filter(login => login.status === 'online').length
     const totalCount = recentLogins.length
 
     return NextResponse.json({
@@ -123,7 +166,7 @@ export async function GET(request: NextRequest) {
       stats: {
         online: onlineCount,
         total: totalCount,
-        new_users: recentLogins.filter((login: any) => login.is_new_user).length
+        new_users: recentLogins.filter(login => login.is_new_user).length
       },
       data_source: 'rpc_function'
     })
@@ -132,7 +175,7 @@ export async function GET(request: NextRequest) {
     console.error('Erro ao buscar logins recentes:', error)
     
     // Retornar dados demo em caso de erro para manter a funcionalidade
-    const demoLogins = [
+    const demoLogins: ProcessedLogin[] = [
       {
         id: '1',
         user_id: 'demo1',
@@ -140,7 +183,8 @@ export async function GET(request: NextRequest) {
         username: 'carlos_silva',
         photo_url: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=100',
         login_time: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-        status: 'online' as const
+        status: 'online' as const,
+        is_new_user: false
       },
       {
         id: '2',
@@ -159,7 +203,8 @@ export async function GET(request: NextRequest) {
         username: 'roberto_oliveira',
         photo_url: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=100',
         login_time: new Date(Date.now() - 12 * 60 * 1000).toISOString(),
-        status: 'online' as const
+        status: 'online' as const,
+        is_new_user: false
       },
       {
         id: '4',
@@ -168,7 +213,8 @@ export async function GET(request: NextRequest) {
         username: 'mariana_santos',
         photo_url: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=100',
         login_time: new Date(Date.now() - 18 * 60 * 1000).toISOString(),
-        status: 'away' as const
+        status: 'away' as const,
+        is_new_user: false
       }
     ]
 

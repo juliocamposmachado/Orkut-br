@@ -7,42 +7,110 @@ export async function GET(request: NextRequest) {
     // Criar cliente Supabase do servidor
     const supabaseServer = createServerSupabaseClient()
     
-    // Buscar logins recentes (últimos 30 minutos)
-    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString()
+    // Buscar logins recentes (últimas 2 horas) da tabela auth.sessions
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
     
+    // Query SQL personalizada para buscar dados das tabelas auth
     const { data: loginData, error: loginError } = await supabaseServer
-      .from('user_sessions')
-      .select(`
-        id,
-        user_id,
-        created_at,
-        status,
-        profiles:user_id (
-          id,
-          display_name,
-          username,
-          photo_url,
-          created_at
-        )
-      `)
-      .gte('created_at', thirtyMinutesAgo)
-      .order('created_at', { ascending: false })
-      .limit(20)
+      .rpc('get_recent_logins', {
+        since_time: twoHoursAgo
+      })
 
     if (loginError) {
-      throw loginError
+      console.warn('Erro ao buscar logins reais:', loginError)
+      // Fallback: tentar buscar diretamente das tabelas auth
+      const { data: sessionsData, error: sessionsError } = await supabaseServer
+        .from('auth.sessions')
+        .select(`
+          id,
+          user_id,
+          created_at,
+          updated_at,
+          refreshed_at,
+          user_agent,
+          ip
+        `)
+        .gte('created_at', twoHoursAgo)
+        .order('created_at', { ascending: false })
+        .limit(20)
+
+      if (sessionsError) {
+        throw new Error('Não foi possível acessar dados de sessão')
+      }
+
+      // Buscar dados dos usuários correspondentes
+      const userIds = sessionsData?.map(session => session.user_id) || []
+      const { data: usersData, error: usersError } = await supabaseServer
+        .from('auth.users')
+        .select(`
+          id,
+          email,
+          created_at,
+          last_sign_in_at,
+          raw_user_meta_data
+        `)
+        .in('id', userIds)
+
+      if (usersError) {
+        throw new Error('Não foi possível acessar dados de usuários')
+      }
+
+      // Combinar dados de sessões e usuários
+      const combinedData = sessionsData?.map(session => {
+        const user = usersData?.find(u => u.id === session.user_id)
+        const displayName = user?.raw_user_meta_data?.display_name || 
+                           user?.raw_user_meta_data?.full_name || 
+                           user?.email?.split('@')[0] || 
+                           'Usuário'
+        const username = user?.raw_user_meta_data?.username || 
+                        user?.email?.split('@')[0] || 
+                        'usuario'
+        
+        return {
+          id: session.id,
+          user_id: session.user_id,
+          display_name: displayName,
+          username: username,
+          photo_url: user?.raw_user_meta_data?.photo_url || 
+                    user?.raw_user_meta_data?.avatar_url || '',
+          login_time: session.created_at,
+          last_activity: session.refreshed_at || session.updated_at,
+          user_agent: session.user_agent,
+          ip: session.ip,
+          status: determineUserStatus(session.refreshed_at || session.updated_at),
+          is_new_user: checkIfNewUser(user?.created_at)
+        }
+      }) || []
+
+      // Transformar dados para o formato esperado
+      const recentLogins = combinedData
+
+      // Contar estatísticas
+      const onlineCount = recentLogins.filter((login: any) => login.status === 'online').length
+      const totalCount = recentLogins.length
+
+      return NextResponse.json({
+        success: true,
+        logins: recentLogins,
+        stats: {
+          online: onlineCount,
+          total: totalCount,
+          new_users: recentLogins.filter((login: any) => login.is_new_user).length
+        },
+        data_source: 'real_auth_tables'
+      })
     }
 
-    // Transformar dados para o formato esperado
-    const recentLogins = loginData?.map((session: any) => ({
-      id: session.id,
-      user_id: session.user_id,
-      display_name: session.profiles?.display_name || 'Usuário',
-      username: session.profiles?.username || 'usuario',
-      photo_url: session.profiles?.photo_url || '',
-      login_time: session.created_at,
-      status: session.status || 'online',
-      is_new_user: checkIfNewUser(session.profiles?.created_at)
+    // Se a função RPC funcionou, processar os dados
+    const recentLogins = loginData?.map((login: any) => ({
+      id: login.session_id,
+      user_id: login.user_id,
+      display_name: login.display_name || 'Usuário',
+      username: login.username || 'usuario',
+      photo_url: login.photo_url || '',
+      login_time: login.login_time,
+      status: login.status || 'online',
+      is_new_user: checkIfNewUser(login.user_created_at)
     })) || []
 
     // Contar estatísticas
@@ -56,7 +124,8 @@ export async function GET(request: NextRequest) {
         online: onlineCount,
         total: totalCount,
         new_users: recentLogins.filter((login: any) => login.is_new_user).length
-      }
+      },
+      data_source: 'rpc_function'
     })
 
   } catch (error) {
@@ -114,6 +183,23 @@ export async function GET(request: NextRequest) {
       demo: true
     })
   }
+}
+
+// Determinar status do usuário baseado na última atividade
+function determineUserStatus(lastActivity: string | null): 'online' | 'away' | 'offline' {
+  if (!lastActivity) return 'offline'
+  
+  const lastActivityTime = new Date(lastActivity)
+  const now = new Date()
+  const timeDiff = now.getTime() - lastActivityTime.getTime()
+  const minutesDiff = timeDiff / (1000 * 60)
+  
+  // Online: última atividade há menos de 5 minutos
+  if (minutesDiff < 5) return 'online'
+  // Away: última atividade entre 5 e 30 minutos
+  if (minutesDiff < 30) return 'away'
+  // Offline: última atividade há mais de 30 minutos
+  return 'offline'
 }
 
 // Verificar se o usuário é novo (criado nas últimas 24 horas)

@@ -15,7 +15,10 @@ import {
   ChevronDown,
   ChevronUp,
   Users,
-  Bot
+  Bot,
+  Monitor,
+  MapPin,
+  Info
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -28,6 +31,9 @@ interface RecentLogin {
   username: string
   photo_url: string
   login_time: string
+  last_activity?: string
+  user_agent?: string
+  ip?: string
   status: 'online' | 'away' | 'offline'
   is_new_user?: boolean
 }

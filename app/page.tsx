@@ -530,10 +530,7 @@ export default function HomePage() {
 
           {/* Right Sidebar - Nova organização */}
           <div className="space-y-4 lg:space-y-6 lg:sticky lg:top-4 order-3">
-            {/* Espaçamento para alinhamento com card central */}
-            <div className="hidden lg:block h-16"></div>
-
-            {/* 1. Amigos Online - PRIMEIRO CARD */}
+            {/* 1. Amigos Online - PRIMEIRO CARD - Alinhado com o topo */}
             <OnlineFriends 
               onOpenMessage={() => router.push('/mensagens')} 
               onStartAudioCall={(user) => startAudioCall(user)}

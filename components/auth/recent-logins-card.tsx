@@ -14,11 +14,7 @@ import {
   MessageCircle,
   ChevronDown,
   ChevronUp,
-  Users,
-  Bot,
-  Monitor,
-  MapPin,
-  Info
+  Users
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -327,24 +323,6 @@ export function RecentLoginsCard() {
           </div>
         </div>
 
-        {/* Estatísticas em tempo real */}
-        <div className="mt-3 p-2 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
-          <div className="text-center">
-            <div className="text-xs text-green-600 font-medium mb-1">
-              🎯 Atividade do Discord MEE6
-            </div>
-            <div className="flex items-center justify-center space-x-4 text-xs">
-              <div className="flex items-center space-x-1">
-                <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                <span className="text-gray-600">2,340 membros online</span>
-              </div>
-              <div className="flex items-center space-x-1">
-                <Bot className="h-3 w-3 text-indigo-600" />
-                <span className="text-gray-600">MEE6 ativo</span>
-              </div>
-            </div>
-          </div>
-        </div>
       </OrkutCardContent>
     </OrkutCard>
   )

@@ -1,0 +1,131 @@
+{
+  "name": "orkut-desktop",
+  "version": "1.0.0",
+  "description": "Orkut Desktop App - A lenda viva do Orkut agora no seu desktop",
+  "main": "src/main.js",
+  "homepage": "./",
+  "author": {
+    "name": "Dupla Marciana Invencível",
+    "email": "orkut@marcianos.dev"
+  },
+  "scripts": {
+    "start": "electron src/main.js",
+    "dev": "concurrently \"npm run build:watch\" \"npm run electron:dev\"",
+    "electron:dev": "wait-on http://localhost:3000 && electron src/main.js --dev",
+    "build": "npm run build:web && npm run copy:assets",
+    "build:web": "cd .. && npm run build && npm run export",
+    "build:watch": "cd .. && npm run dev",
+    "copy:assets": "xcopy \"..\\out\\*\" \"dist\\\" /E /I /Y 2>nul || cp -r ../out/* dist/ 2>/dev/null || echo 'Arquivos copiados'",
+    "dist": "npm run build && electron-builder",
+    "dist:win": "npm run build && electron-builder --win",
+    "dist:mac": "npm run build && electron-builder --mac",
+    "dist:linux": "npm run build && electron-builder --linux",
+    "dist:all": "npm run build && electron-builder --win --mac --linux",
+    "pack": "electron-builder --dir",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "build": {
+    "appId": "com.orkutbr.desktop",
+    "productName": "Orkut",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "src/main.js",
+      "src/preload.js",
+      "assets/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "assets/",
+        "to": "assets/"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64", "ia32"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64", "ia32"]
+        }
+      ],
+      "icon": "assets/icon.ico",
+      "publisherName": "Dupla Marciana Invencível",
+      "fileAssociations": [
+        {
+          "ext": "orkut",
+          "name": "Orkut File",
+          "description": "Orkut application file"
+        }
+      ]
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.social-networking"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "deb",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "rpm",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "icon": "assets/icon.png",
+      "category": "Network"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "juliocamposmachado",
+      "repo": "Orkut.br"
+    }
+  },
+  "dependencies": {
+    "electron-updater": "^6.1.7",
+    "electron-store": "^8.1.0",
+    "electron-window-state": "^5.0.3"
+  },
+  "devDependencies": {
+    "electron": "^28.1.4",
+    "electron-builder": "^24.9.1",
+    "concurrently": "^8.2.2",
+    "wait-on": "^7.2.0"
+  },
+  "keywords": [
+    "orkut",
+    "social-network",
+    "desktop",
+    "electron",
+    "react",
+    "supabase"
+  ]
+}

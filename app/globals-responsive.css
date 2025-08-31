@@ -1,0 +1,239 @@
+/* Responsive enhancements for Galaxy A01 and similar small devices */
+
+/* Small devices improvements */
+@media (max-width: 360px) {
+  /* Reduce padding and spacing */
+  .orkut-card {
+    padding: 0.5rem !important;
+  }
+  
+  /* Ensure touch targets are at least 44px */
+  .mobile-button {
+    min-height: 44px !important;
+    font-size: 0.875rem !important;
+  }
+  
+  /* Adjust text size for better readability */
+  .mobile-text {
+    font-size: 0.75rem !important;
+  }
+  
+  /* Grid adjustments for friends */
+  .friends-grid-mobile {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  /* Quick actions mobile layout */
+  .quick-actions-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  /* Download apps mobile layout */
+  .download-apps-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  /* Reduce image sizes on very small screens */
+  .avatar-xs {
+    width: 32px;
+    height: 32px;
+  }
+  
+  /* Adjust card spacing */
+  .card-content-xs {
+    padding: 0.75rem;
+  }
+  
+  /* Ensure proper scrolling */
+  .scroll-container-xs {
+    max-height: 200px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Galaxy A01 specific optimizations (360px width) */
+@media (max-width: 360px) and (min-height: 640px) {
+  /* Optimize for Galaxy A01's aspect ratio */
+  .main-grid-xs {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  /* Adjust navbar for small screens */
+  .navbar-xs {
+    padding: 0.5rem 1rem;
+  }
+  
+  /* Optimize story/photo cards */
+  .story-card-xs {
+    width: 16px;
+    height: 24px;
+  }
+}
+
+/* Small phones in landscape */
+@media (max-width: 480px) and (orientation: landscape) {
+  /* Reduce vertical spacing when in landscape */
+  .landscape-compact {
+    padding: 0.25rem 0;
+  }
+  
+  /* Make cards more compact */
+  .card-compact {
+    margin: 0.25rem 0;
+  }
+}
+
+/* Touch device improvements */
+@media (hover: none) and (pointer: coarse) {
+  /* Improve touch targets */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Adjust hover states for touch */
+  .hover-touch:hover {
+    background-color: rgba(168, 85, 247, 0.05);
+  }
+}
+
+/* Ensure no horizontal scrolling */
+@media (max-width: 360px) {
+  * {
+    box-sizing: border-box;
+  }
+  
+  .container-fluid-xs {
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+  
+  /* Prevent text overflow */
+  .text-ellipsis-xs {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  /* Flexible images */
+  .img-responsive-xs {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* Enhanced scrollbar styling for mobile */
+@media (max-width: 768px) {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(168, 85, 247, 0.3) transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgba(168, 85, 247, 0.3);
+    border-radius: 2px;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .card-border-high-contrast {
+    border: 2px solid #000;
+  }
+  
+  .text-high-contrast {
+    color: #000 !important;
+    background-color: #fff !important;
+  }
+}
+
+/* Prevent card overflow on mobile */
+@media (max-width: 480px) {
+  .orkut-card, [class*="orkut-card"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+  
+  /* Ensure form elements don't overflow */
+  .create-post-form {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  
+  /* Flexible button layout */
+  .button-group-mobile {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    align-items: center;
+  }
+  
+  /* Prevent text overflow */
+  .mobile-text-container {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* Samsung Galaxy A730F specific (360px logical width) */
+@media (max-width: 360px) {
+  /* Even tighter constraints */
+  .card-container-mobile {
+    padding: 0.5rem !important;
+    margin: 0 !important;
+  }
+  
+  /* Compact button spacing */
+  .compact-buttons {
+    gap: 0.125rem !important;
+  }
+  
+  /* Smaller text on very small screens */
+  .xs-text {
+    font-size: 0.625rem !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-friendly {
+    color: #000 !important;
+    background: #fff !important;
+  }
+}

@@ -1,0 +1,474 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Orkut-specific styles */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #a855f7;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9333ea;
+}
+
+/* Floating animation for voice indicator */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.float {
+  animation: float 2s ease-in-out infinite;
+}
+
+/* Pulse animation for listening indicator */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.33);
+  }
+  40%, 50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.33);
+  }
+}
+
+.pulse-ring {
+  animation: pulse-ring 1.25s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+/* Gradient text */
+.gradient-text {
+  @apply bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent;
+}
+
+/* Orkut classic button styling */
+.orkut-button {
+  @apply bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium rounded-lg px-4 py-2 transition-all duration-200 shadow-md hover:shadow-lg;
+}
+
+/* Orkut card hover effect */
+.orkut-card-hover {
+  @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-1;
+}
+
+/* Voice mode indicators */
+.voice-listening {
+  @apply bg-red-500 text-white animate-pulse;
+}
+
+.voice-speaking {
+  @apply bg-green-500 text-white;
+}
+
+.voice-idle {
+  @apply bg-blue-500 text-white;
+}
+
+/* Scrollbar hide utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
+/* Logo rainbow animation for new social network launch celebration */
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.bg-300% {
+  background-size: 300% 300%;
+}
+
+.animate-gradient {
+  animation: gradient 3s ease-in-out infinite;
+}
+
+/* Orkut logo special launch animation */
+.orkut-launch-logo {
+  background: linear-gradient(
+    45deg,
+    #ff0000,
+    #ff7f00,
+    #ffff00,
+    #00ff00,
+    #0000ff,
+    #4b0082,
+    #9400d3,
+    #ff1493
+  );
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient 2s ease-in-out infinite;
+}
+
+/* Memorial page specific styles */
+.memorial-card {
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.memorial-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+/* Memorial photo frame animation */
+@keyframes memorial-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(168, 85, 247, 0.7);
+  }
+}
+
+.memorial-photo-frame {
+  animation: memorial-glow 3s ease-in-out infinite;
+}
+
+/* Gentle floating animation for decorative elements */
+@keyframes gentle-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.gentle-float {
+  animation: gentle-float 4s ease-in-out infinite;
+}
+
+/* Memorial text gradient animation */
+@keyframes memorial-gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.memorial-gradient-text {
+  background: linear-gradient(
+    45deg,
+    #8b5cf6,
+    #ec4899,
+    #a855f7,
+    #f97316,
+    #8b5cf6
+  );
+  background-size: 400% 400%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: memorial-gradient 4s ease-in-out infinite;
+}
+
+/* Subtle pulse for heart icons */
+@keyframes heart-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+.heart-pulse {
+  animation: heart-pulse 2s ease-in-out infinite;
+}
+
+/* Memorial backdrop filter enhancement */
+.memorial-backdrop {
+  backdrop-filter: blur(10px) saturate(180%);
+  -webkit-backdrop-filter: blur(10px) saturate(180%);
+}
+
+/* Smooth transitions for memorial elements */
+.memorial-transition {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.memorial-transition:hover {
+  transform: scale(1.02);
+}
+
+/* Special memorial card shadows */
+.memorial-shadow {
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(168, 85, 247, 0.1);
+}
+
+.memorial-shadow-hover:hover {
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1), 
+    0 10px 10px -5px rgba(0, 0, 0, 0.04),
+    0 0 0 1px rgba(168, 85, 247, 0.2);
+}
+
+/* Mobile-first responsive styles */
+@media (max-width: 768px) {
+  /* Reduzir padding e margens no mobile */
+  .mobile-padding {
+    @apply px-3 py-4;
+  }
+  
+  /* Cards menores no mobile */
+  .mobile-card {
+    @apply rounded-lg shadow-sm;
+  }
+  
+  /* Grid adaptativo para mobile */
+  .mobile-grid {
+    @apply grid-cols-1 gap-4;
+  }
+  
+  /* Texto menor em telas pequenas */
+  .mobile-text {
+    @apply text-sm;
+  }
+  
+  /* Botões mais compactos no mobile */
+  .mobile-button {
+    @apply px-3 py-2 text-sm;
+  }
+  
+  /* Avatar menor no mobile */
+  .mobile-avatar {
+    @apply w-8 h-8;
+  }
+  
+  /* Espaçamento reduzido entre elementos */
+  .mobile-space {
+    @apply space-y-3;
+  }
+}
+
+/* Tablet breakpoint */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .tablet-grid {
+    @apply grid-cols-2 gap-4;
+  }
+}
+
+/* Card responsivo específico para Orkut */
+.orkut-card-responsive {
+  @apply w-full rounded-xl bg-white shadow-sm border border-gray-100;
+  transition: all 0.2s ease-in-out;
+}
+
+@media (max-width: 768px) {
+  .orkut-card-responsive {
+    @apply mx-2 rounded-lg shadow-sm;
+  }
+}
+
+.orkut-card-responsive:hover {
+  @apply shadow-md -translate-y-0.5;
+}
+
+/* Quick Actions responsive */
+.quick-actions-mobile {
+  @apply grid grid-cols-2 gap-2;
+}
+
+@media (min-width: 768px) {
+  .quick-actions-mobile {
+    @apply grid-cols-1 gap-2;
+  }
+}
+
+/* Download Apps responsive */
+.download-apps-mobile {
+  @apply grid grid-cols-1 gap-2;
+}
+
+@media (max-width: 480px) {
+  .download-apps-mobile {
+    @apply grid-cols-1 gap-1;
+  }
+}
+
+/* Friends grid responsive */
+.friends-grid-mobile {
+  @apply grid grid-cols-4 gap-3;
+}
+
+@media (max-width: 480px) {
+  .friends-grid-mobile {
+    @apply grid-cols-3 gap-2;
+  }
+}
+
+/* Contact list mobile optimization */
+.contact-item-mobile {
+  @apply flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-purple-50 transition-colors;
+}
+
+@media (max-width: 768px) {
+  .contact-item-mobile {
+    @apply px-2 py-2 space-x-2;
+  }
+}
+
+/* Stories horizontal scroll mobile */
+.stories-mobile {
+  @apply flex items-center space-x-3 overflow-x-auto pb-2 scrollbar-hide;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+  .stories-mobile {
+    @apply space-x-2;
+  }
+}
+
+/* Marquee animation for scrolling text */
+@keyframes marquee {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 15s linear infinite;
+}

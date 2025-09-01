@@ -183,7 +183,6 @@ export type Database = {
           owner?: string | null
           members_count?: number
           photo_url?: string | null
-          created_at?: string
         }
         Update: {
           name?: string
@@ -192,7 +191,6 @@ export type Database = {
           owner?: string | null
           members_count?: number
           photo_url?: string | null
-          created_at?: string
         }
       }
       calls: {

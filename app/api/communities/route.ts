@@ -217,7 +217,7 @@ export async function POST(request: NextRequest) {
       }, { status: 409 })
     }
 
-    // Criar a comunidade
+    // Criar a comunidade (apenas campos que existem no SQL real)
     const { data: newCommunity, error: createError } = await supabase
       .from('communities')
       .insert({
@@ -226,10 +226,7 @@ export async function POST(request: NextRequest) {
         category,
         photo_url: photo_url || `https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=300&fit=crop&q=80&auto=format`,
         owner: user.id,
-        members_count: 1,
-        privacy: privacy || 'public',
-        rules: rules?.trim() || 'Seja respeitoso e mantenha as discussões relevantes ao tema da comunidade.',
-        created_at: new Date().toISOString()
+        members_count: 1
       })
       .select()
       .single()
@@ -249,7 +246,7 @@ export async function POST(request: NextRequest) {
         .insert({
           community_id: newCommunity.id,
           profile_id: user.id,
-          role: 'owner',
+          role: 'admin',
           joined_at: new Date().toISOString()
         })
     } catch (memberError) {

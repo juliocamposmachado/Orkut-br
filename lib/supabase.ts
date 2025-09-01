@@ -421,6 +421,51 @@ export type Database = {
           is_permanent?: boolean
         }
       }
+      community_posts: {
+        Row: {
+          id: number
+          community_id: number
+          author_id: string
+          content: string
+          likes_count: number
+          comments_count: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          community_id: number
+          author_id: string
+          content: string
+          likes_count?: number
+          comments_count?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          likes_count?: number
+          comments_count?: number
+          updated_at?: string
+        }
+      }
+      community_members: {
+        Row: {
+          id: number
+          community_id: number
+          profile_id: string
+          joined_at: string
+          role: 'member' | 'moderator' | 'admin'
+        }
+        Insert: {
+          community_id: number
+          profile_id: string
+          joined_at?: string
+          role?: 'member' | 'moderator' | 'admin'
+        }
+        Update: {
+          role?: 'member' | 'moderator' | 'admin'
+        }
+      }
     }
   }
 }

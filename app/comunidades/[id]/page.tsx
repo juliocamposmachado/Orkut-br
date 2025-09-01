@@ -70,7 +70,7 @@ interface Member {
   username: string
   display_name: string
   photo_url: string | null
-  role: 'owner' | 'moderator' | 'member'
+  role: 'member' | 'moderator' | 'admin'
   joined_at: string
 }
 
@@ -87,7 +87,7 @@ export default function CommunityPage() {
   const [isPosting, setIsPosting] = useState(false)
   const [loadingCommunity, setLoadingCommunity] = useState(true)
   const [isMember, setIsMember] = useState(false)
-  const [memberRole, setMemberRole] = useState<'owner' | 'moderator' | 'member' | null>(null)
+  const [memberRole, setMemberRole] = useState<'member' | 'moderator' | 'admin' | null>(null)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -123,24 +123,14 @@ export default function CommunityPage() {
 
   const loadPosts = async () => {
     try {
-      const { data, error } = await supabase
-        .from('community_posts')
-        .select(`
-          *,
-          profiles:author_id(id, username, display_name, photo_url)
-        `)
-        .eq('community_id', communityId)
-        .order('created_at', { ascending: false })
-        .limit(20)
-
-      if (error) throw error
+      const response = await fetch(`/api/communities/${communityId}/posts`)
+      const result = await response.json()
       
-      const transformedPosts = data?.map(post => ({
-        ...post,
-        author: post.profiles as any
-      })) || []
-      
-      setPosts(transformedPosts)
+      if (result.success) {
+        setPosts(result.posts || [])
+      } else {
+        console.error('Error loading posts:', result.error)
+      }
     } catch (error) {
       console.error('Error loading posts:', error)
     }
@@ -148,25 +138,14 @@ export default function CommunityPage() {
 
   const loadMembers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('community_members')
-        .select(`
-          role,
-          joined_at,
-          profiles:profile_id(id, username, display_name, photo_url)
-        `)
-        .eq('community_id', communityId)
-        .order('joined_at', { ascending: true })
-
-      if (error) throw error
+      const response = await fetch(`/api/communities/${communityId}/members`)
+      const result = await response.json()
       
-      const transformedMembers = data?.map(member => ({
-        ...(member.profiles as any),
-        role: member.role,
-        joined_at: member.joined_at
-      })) || []
-      
-      setMembers(transformedMembers)
+      if (result.success) {
+        setMembers(result.members || [])
+      } else {
+        console.error('Error loading members:', result.error)
+      }
     } catch (error) {
       console.error('Error loading members:', error)
     }
@@ -196,33 +175,38 @@ export default function CommunityPage() {
     if (!user || isMember) return
 
     try {
-      const { error } = await supabase
-        .from('community_members')
-        .insert({
-          community_id: parseInt(communityId),
-          profile_id: user.id,
-          role: 'member',
-          joined_at: new Date().toISOString()
-        })
-
-      if (error) throw error
-
-      // Update community members count
-      await supabase
-        .from('communities')
-        .update({ members_count: (community?.members_count || 0) + 1 })
-        .eq('id', communityId)
-
-      setIsMember(true)
-      setMemberRole('member')
-      toast.success('Você entrou na comunidade!')
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
       
-      // Reload data
-      loadCommunity()
-      loadMembers()
-    } catch (error) {
+      if (!token) {
+        toast.error('Você precisa estar logado para entrar na comunidade')
+        return
+      }
+
+      const response = await fetch(`/api/communities/${communityId}/members`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      
+      const result = await response.json()
+      
+      if (result.success) {
+        setIsMember(true)
+        setMemberRole('member')
+        toast.success(result.message || 'Você entrou na comunidade!')
+        
+        // Reload data
+        loadCommunity()
+        loadMembers()
+      } else {
+        throw new Error(result.error || 'Erro ao entrar na comunidade')
+      }
+    } catch (error: any) {
       console.error('Error joining community:', error)
-      toast.error('Erro ao entrar na comunidade')
+      toast.error(error.message || 'Erro ao entrar na comunidade')
     }
   }
 
@@ -234,38 +218,44 @@ export default function CommunityPage() {
 
     setIsPosting(true)
     try {
-      console.log('Criando post:', {
-        community_id: parseInt(communityId),
-        author_id: user.id,
-        content: newPost.trim(),
-        user: user,
-        communityId: communityId
-      })
-
-      const { data, error } = await supabase
-        .from('community_posts')
-        .insert({
-          community_id: parseInt(communityId),
-          author_id: user.id,
-          content: newPost.trim(),
-          likes_count: 0,
-          comments_count: 0,
-          created_at: new Date().toISOString()
-        })
-        .select()
-
-      if (error) {
-        console.error('Supabase error:', error)
-        throw error
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      
+      if (!token) {
+        toast.error('Você precisa estar logado para criar posts')
+        return
       }
 
-      console.log('Post criado com sucesso:', data)
-      setNewPost('')
-      toast.success('Post criado com sucesso!')
-      loadPosts()
+      console.log('Criando post via API:', {
+        communityId,
+        content: newPost.trim(),
+        author: user.id
+      })
+
+      const response = await fetch(`/api/communities/${communityId}/posts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          content: newPost.trim()
+        })
+      })
+      
+      const result = await response.json()
+      
+      if (result.success) {
+        console.log('Post criado com sucesso:', result.post)
+        setNewPost('')
+        toast.success(result.message || 'Post criado com sucesso!')
+        loadPosts() // Recarregar posts
+      } else {
+        throw new Error(result.error || 'Erro ao criar post')
+      }
     } catch (error: any) {
       console.error('Error creating post:', error)
-      toast.error(`Erro ao criar post: ${error.message || 'Erro desconhecido'}`)
+      toast.error(error.message || 'Erro ao criar post')
     } finally {
       setIsPosting(false)
     }
@@ -354,7 +344,7 @@ export default function CommunityPage() {
                           <UserMinus className="h-4 w-4 mr-2" />
                           Sair
                         </Button>
-                        {(memberRole === 'owner' || memberRole === 'moderator') && (
+                        {(memberRole === 'admin' || memberRole === 'moderator') && (
                           <Button variant="outline" className="border-purple-300 text-purple-700">
                             <Settings className="h-4 w-4 mr-2" />
                             Gerenciar
@@ -420,7 +410,7 @@ export default function CommunityPage() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-800 truncate">
                           {member.display_name}
-                          {member.role === 'owner' && <Crown className="inline h-3 w-3 ml-1 text-yellow-500" />}
+                          {member.role === 'admin' && <Crown className="inline h-3 w-3 ml-1 text-yellow-500" />}
                         </p>
                         <p className="text-xs text-gray-500">@{member.username}</p>
                       </div>
@@ -616,14 +606,14 @@ export default function CommunityPage() {
                         </Avatar>
                         <h4 className="font-medium text-gray-800 mb-1 flex items-center justify-center">
                           {member.display_name}
-                          {member.role === 'owner' && <Crown className="h-3 w-3 ml-1 text-yellow-500" />}
+                          {member.role === 'admin' && <Crown className="h-3 w-3 ml-1 text-yellow-500" />}
                         </h4>
                         <p className="text-sm text-gray-600 mb-2">@{member.username}</p>
                         <Badge 
-                          variant={member.role === 'owner' ? 'default' : 'outline'}
-                          className={member.role === 'owner' ? 'bg-yellow-500 text-white' : ''}
+                          variant={member.role === 'admin' ? 'default' : 'outline'}
+                          className={member.role === 'admin' ? 'bg-yellow-500 text-white' : ''}
                         >
-                          {member.role === 'owner' ? 'Criador' : 
+                          {member.role === 'admin' ? 'Admin' : 
                            member.role === 'moderator' ? 'Moderador' : 'Membro'}
                         </Badge>
                         <p className="text-xs text-gray-500 mt-2">

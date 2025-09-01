@@ -281,16 +281,47 @@ export async function POST(request: NextRequest) {
           console.log('🔓 [API] Usando cliente Supabase não autenticado')
         }
         
-        // CORREÇÃO URGENTE: Inserir diretamente no global_feed para contornar trigger problemático
-        console.log('🔧 [API] Usando estratégia de contorno - inserindo diretamente no global_feed')
+        // CORREÇÃO: Inserir primeiro na tabela posts, depois deixar trigger sincronizar com global_feed
+        console.log('🔧 [API] Inserindo post na tabela posts (método correto)')
         
-        // Gerar ID único para o post
-        const postId = Date.now() + Math.floor(Math.random() * 1000)
+        // Verificar se temos profile_id válido
+        let profileId = newPost.author
         
-        const feedInsertData = {
-          post_id: postId,
+        // Se o author parece ser um user.id (UUID), buscar o profile correspondente
+        if (profileId && profileId.length === 36 && profileId.includes('-')) {
+          console.log('🔍 [API] Verificando se author é user.id, buscando profile...')
+          try {
+            const { data: profileData, error: profileError } = await serverSupabase
+              .from('profiles')
+              .select('id')
+              .eq('id', profileId)
+              .single()
+            
+            if (profileError || !profileData) {
+              console.warn('⚠️ [API] Profile não encontrado para user.id, tentando buscar por auth.users')
+              // Se não encontrou profile com esse ID, pode ser que o author seja realmente um user.id
+              // Vamos buscar o profile relacionado a esse user
+              const { data: userProfile, error: userProfileError } = await serverSupabase
+                .from('profiles')
+                .select('id')
+                .eq('id', profileId)
+                .single()
+              
+              if (userProfileError || !userProfile) {
+                throw new Error(`Profile não encontrado para o usuário: ${profileId}`)
+              }
+              profileId = userProfile.id
+            }
+            console.log('✅ [API] Profile válido encontrado:', profileId)
+          } catch (profileErr) {
+            console.error('❌ [API] Erro ao verificar profile:', profileErr)
+            throw new Error('Perfil do usuário não encontrado')
+          }
+        }
+        
+        const postInsertData = {
           content: newPost.content,
-          author: newPost.author,
+          author: profileId, // Usar profile.id, não user.id
           author_name: newPost.author_name,
           author_photo: newPost.author_photo,
           visibility: newPost.visibility,
@@ -302,11 +333,11 @@ export async function POST(request: NextRequest) {
           updated_at: new Date().toISOString()
         }
         
-        console.log('📤 [API] Inserindo diretamente no global_feed:', feedInsertData)
+        console.log('📤 [API] Inserindo na tabela posts:', postInsertData)
         
         const { data, error } = await serverSupabase
-          .from('global_feed')
-          .insert(feedInsertData)
+          .from('posts')
+          .insert(postInsertData)
           .select()
           .single()
 

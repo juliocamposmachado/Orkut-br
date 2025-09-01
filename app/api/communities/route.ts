@@ -185,6 +185,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { name, description, category, privacy, rules, photo_url } = body
 
+    console.log('📝 Dados recebidos para criação de comunidade:', {
+      name, description, category, privacy, rules, photo_url,
+      user_id: user.id
+    })
+
     // Validações
     if (!name || !description || !category) {
       return NextResponse.json({
@@ -205,11 +210,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar se já existe uma comunidade com o mesmo nome
-    const { data: existingCommunity } = await supabase
+    const { data: existingCommunity, error: checkError } = await supabase
       .from('communities')
       .select('id')
       .ilike('name', name.trim())
-      .single()
+      .maybeSingle()
+
+    console.log('🔍 Verificação de nome existente:', { existingCommunity, checkError })
 
     if (existingCommunity) {
       return NextResponse.json({
@@ -218,39 +225,87 @@ export async function POST(request: NextRequest) {
     }
 
     // Criar a comunidade (apenas campos que existem no SQL real)
+    const communityData = {
+      name: name.trim(),
+      description: description.trim(),
+      category,
+      photo_url: photo_url || `https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=300&fit=crop&q=80&auto=format`,
+      owner: user.id,
+      members_count: 1
+    }
+    
+    // For debugging: try to set owner after creation if it fails
+    console.log('🔐 Using service role key for creation with owner field')
+    
+    console.log('💾 Inserindo comunidade no banco:', communityData)
+    
     const { data: newCommunity, error: createError } = await supabase
       .from('communities')
-      .insert({
-        name: name.trim(),
-        description: description.trim(),
-        category,
-        photo_url: photo_url || `https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=300&fit=crop&q=80&auto=format`,
-        owner: user.id,
-        members_count: 1
-      })
+      .insert(communityData)
       .select()
       .single()
 
     if (createError) {
-      console.error('Erro ao criar comunidade:', createError)
+      console.error('❌ Erro ao criar comunidade:', createError)
+      console.error('❌ Dados que causaram erro:', communityData)
       return NextResponse.json({
         error: 'Erro ao criar comunidade',
         details: createError.message
       }, { status: 500 })
     }
+    
+    console.log('✅ Comunidade criada com sucesso:', newCommunity)
+
+    // Verificar se o usuário tem um perfil na tabela profiles
+    console.log('🔍 Verificando perfil do usuário para adicionar como membro...')
+    
+    let profileId = user.id
+    try {
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single()
+      
+      if (profileError || !profileData) {
+        console.warn('⚠️ Profile não encontrado para user.id, tentando buscar perfil relacionado')
+        // Se não encontrou, talvez precise criar o profile ou usar outro método
+        profileId = user.id // Manter o user.id como fallback
+      } else {
+        profileId = profileData.id
+        console.log('✅ Profile válido encontrado:', profileId)
+      }
+    } catch (profileCheckError) {
+      console.warn('⚠️ Erro ao verificar profile:', profileCheckError)
+      profileId = user.id
+    }
 
     // Adicionar o criador como membro da comunidade
+    const memberData = {
+      community_id: newCommunity.id,
+      profile_id: profileId, // Usar o profile.id correto
+      role: 'admin',
+      joined_at: new Date().toISOString()
+    }
+    
+    console.log('👤 Adicionando criador como membro:', memberData)
+    
     try {
-      await supabase
+      const { data: memberResult, error: memberError } = await supabase
         .from('community_members')
-        .insert({
-          community_id: newCommunity.id,
-          profile_id: user.id,
-          role: 'admin',
-          joined_at: new Date().toISOString()
-        })
+        .insert(memberData)
+        .select()
+        .single()
+        
+      if (memberError) {
+        console.warn('⚠️ Erro ao adicionar criador como membro:', memberError)
+        console.warn('⚠️ Dados que causaram o erro:', memberData)
+        // Não falhar a criação da comunidade por causa disso
+      } else {
+        console.log('✅ Criador adicionado como membro com sucesso:', memberResult)
+      }
     } catch (memberError) {
-      console.warn('Erro ao adicionar criador como membro:', memberError)
+      console.warn('⚠️ Exceção ao adicionar criador como membro:', memberError)
       // Não falhar a criação da comunidade por causa disso
     }
 

@@ -141,7 +141,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       try {
         const apiData = {
           content: content.trim(),
-          author: profile.id || user.id, // Usar profile.id que referencia a tabela profiles
+          author: profile.id, // SEMPRE usar profile.id (que referencia a tabela profiles)
           author_name: profile.display_name || profile.username || 'Usuário',
           author_photo: profile.photo_url,
           visibility: 'public',
@@ -152,6 +152,19 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           avatar_emoji: selectedAvatar?.emoji || null,
           avatar_name: selectedAvatar?.name || null
         }
+        
+        // Validação crítica: garantir que temos um profile.id válido
+        if (!profile.id) {
+          console.error('❌ Profile ID não encontrado!', { profile, user })
+          toast.error('Erro: Perfil de usuário não encontrado')
+          return
+        }
+        
+        console.log('🔍 Dados sendo enviados para API:', {
+          ...apiData,
+          profileId: profile.id,
+          userId: user.id
+        })
 
         // Get current session to obtain access token
         const { data: { session } } = await supabase.auth.getSession()

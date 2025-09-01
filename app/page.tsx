@@ -60,7 +60,6 @@ import { CommunityRulesCard } from '@/components/CommunityRulesCard'
 import OnlineFriends from '@/components/friends/online-friends'
 import GoogleTrends from '@/components/GoogleTrends'
 import { CommunityNotifications } from '@/components/CommunityNotifications'
-import { MEE6DiscordCard } from '@/components/discord/mee6-discord-card'
 import { RecentLoginsCard } from '@/components/auth/recent-logins-card'
 
 // Force dynamic rendering
@@ -418,9 +417,6 @@ export default function HomePage() {
 
             {/* Logins Recentes */}
             <RecentLoginsCard />
-            
-            {/* MEE6 Discord Bot */}
-            <MEE6DiscordCard />
             
             {/* Ações Rápidas */}
             <OrkutCard>

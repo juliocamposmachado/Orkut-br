@@ -42,88 +42,43 @@ interface ProcessedLogin {
   is_new_user: boolean
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     // Criar cliente Supabase do servidor
     const supabaseServer = createServerSupabaseClient()
     
-    // Buscar logins recentes (últimas 2 horas) da tabela auth.sessions
-    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
-    
-    // Query SQL personalizada para buscar dados das tabelas auth
-    const { data: loginData, error: loginError } = await supabaseServer
-      .rpc('get_recent_logins', {
-        since_time: twoHoursAgo
-      })
+    // Buscar usuários reais da tabela profiles com última atividade
+    const { data: profilesData, error: profilesError } = await supabaseServer
+      .from('profiles')
+      .select(`
+        id,
+        username,
+        display_name,
+        photo_url,
+        created_at,
+        updated_at
+      `)
+      .order('updated_at', { ascending: false })
+      .limit(20)
 
-    if (loginError) {
-      console.warn('Erro ao buscar logins reais:', loginError)
-      // Fallback: tentar buscar diretamente das tabelas auth
-      const { data: sessionsData, error: sessionsError } = await supabaseServer
-        .from('auth.sessions')
-        .select(`
-          id,
-          user_id,
-          created_at,
-          updated_at,
-          refreshed_at,
-          user_agent,
-          ip
-        `)
-        .gte('created_at', twoHoursAgo)
-        .order('created_at', { ascending: false })
-        .limit(20)
-
-      if (sessionsError) {
-        throw new Error('Não foi possível acessar dados de sessão')
-      }
-
-      // Buscar dados dos usuários correspondentes
-      const userIds = (sessionsData as AuthSession[])?.map(session => session.user_id) || []
-      const { data: usersData, error: usersError } = await supabaseServer
-        .from('auth.users')
-        .select(`
-          id,
-          email,
-          created_at,
-          last_sign_in_at,
-          raw_user_meta_data
-        `)
-        .in('id', userIds)
-
-      if (usersError) {
-        throw new Error('Não foi possível acessar dados de usuários')
-      }
-
-      // Combinar dados de sessões e usuários
-      const combinedData = (sessionsData as AuthSession[])?.map((session: AuthSession) => {
-        const user = (usersData as AuthUser[])?.find(u => u.id === session.user_id)
-        const displayName = user?.raw_user_meta_data?.display_name || 
-                           user?.raw_user_meta_data?.full_name || 
-                           user?.email?.split('@')[0] || 
-                           'Usuário'
-        const username = user?.raw_user_meta_data?.username || 
-                        user?.email?.split('@')[0] || 
-                        'usuario'
+    if (!profilesError && profilesData && profilesData.length > 0) {
+      // Processar dados reais dos usuários
+      const recentLogins: ProcessedLogin[] = profilesData.map((profile: any) => {
+        const timeSinceUpdate = Date.now() - new Date(profile.updated_at || profile.created_at).getTime()
+        const minutesSinceUpdate = timeSinceUpdate / (1000 * 60)
         
         return {
-          id: session.id,
-          user_id: session.user_id,
-          display_name: displayName,
-          username: username,
-          photo_url: user?.raw_user_meta_data?.photo_url || 
-                    user?.raw_user_meta_data?.avatar_url || '',
-          login_time: session.created_at,
-          last_activity: session.refreshed_at || session.updated_at,
-          user_agent: session.user_agent,
-          ip: session.ip,
-          status: determineUserStatus(session.refreshed_at || session.updated_at || null),
-          is_new_user: checkIfNewUser(user?.created_at || null)
+          id: profile.id,
+          user_id: profile.id,
+          display_name: profile.display_name || 'Usuário',
+          username: profile.username || 'usuario',
+          photo_url: profile.photo_url || '',
+          login_time: profile.updated_at || profile.created_at,
+          last_activity: profile.updated_at,
+          status: determineUserStatus(profile.updated_at),
+          is_new_user: checkIfNewUser(profile.created_at)
         } as ProcessedLogin
-      }) || []
-
-      // Transformar dados para o formato esperado
-      const recentLogins: ProcessedLogin[] = combinedData
+      })
 
       // Contar estatísticas
       const onlineCount = recentLogins.filter(login => login.status === 'online').length
@@ -137,38 +92,54 @@ export async function GET(request: NextRequest) {
           total: totalCount,
           new_users: recentLogins.filter(login => login.is_new_user).length
         },
-        data_source: 'real_auth_tables'
+        data_source: 'profiles_table'
       })
     }
 
-    // Se a função RPC funcionou, processar os dados
-    const recentLogins: ProcessedLogin[] = loginData?.map((login: any) => ({
-      id: login.session_id,
-      user_id: login.user_id,
-      display_name: login.display_name || 'Usuário',
-      username: login.username || 'usuario',
-      photo_url: login.photo_url || '',
-      login_time: login.login_time,
-      status: login.status || 'online',
-      is_new_user: checkIfNewUser(login.user_created_at),
-      last_activity: login.last_activity,
-      user_agent: login.user_agent,
-      ip: login.ip
-    })) || []
+    // Se não conseguiu buscar da tabela profiles, tentar auth diretamente
+    console.warn('Tentando buscar dados de autenticação diretamente...')
+    
+    // Buscar da API de usuários Gmail como fallback
+    const gmailResponse = await fetch(`${request.nextUrl.origin}/api/users/gmail`)
+    if (gmailResponse.ok) {
+      const gmailData = await gmailResponse.json()
+      
+      if (gmailData.users && gmailData.users.length > 0) {
+        const recentLogins: ProcessedLogin[] = gmailData.users.slice(0, 10).map((user: any) => ({
+          id: user.id,
+          user_id: user.id,
+          display_name: user.display_name,
+          username: user.username,
+          photo_url: user.photo_url || '',
+          login_time: user.created_at || new Date().toISOString(),
+          last_activity: user.updated_at,
+          status: user.status || 'online',
+          is_new_user: checkIfNewUser(user.created_at)
+        })) 
 
-    // Contar estatísticas
-    const onlineCount = recentLogins.filter(login => login.status === 'online').length
-    const totalCount = recentLogins.length
+        return NextResponse.json({
+          success: true,
+          logins: recentLogins,
+          stats: {
+            online: recentLogins.filter(login => login.status === 'online').length,
+            total: recentLogins.length,
+            new_users: recentLogins.filter(login => login.is_new_user).length
+          },
+          data_source: 'gmail_users_api'
+        })
+      }
+    }
 
+    // Se chegou até aqui, retornar dados demo
     return NextResponse.json({
       success: true,
-      logins: recentLogins,
+      logins: [],
       stats: {
-        online: onlineCount,
-        total: totalCount,
-        new_users: recentLogins.filter(login => login.is_new_user).length
+        online: 0,
+        total: 0,
+        new_users: 0
       },
-      data_source: 'rpc_function'
+      data_source: 'fallback'
     })
 
   } catch (error) {

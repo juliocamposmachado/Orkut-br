@@ -47,58 +47,33 @@ export function RecentLoginsCard() {
       
       if (response.ok) {
         const data = await response.json()
-        setRecentLogins(data.logins || [])
+        console.log('📊 Dados recebidos:', {
+          source: data.data_source,
+          total: data.logins?.length,
+          demo: data.demo
+        })
+        
+        // Usar apenas dados reais do banco de dados
+        const validDataSources = [
+          'user_presence_with_profiles', 
+          'profiles_only', 
+          'profiles_table', 
+          'gmail_users_api'
+        ]
+        
+        if (validDataSources.includes(data.data_source)) {
+          setRecentLogins(data.logins || [])
+          console.log('✅ Usando dados reais:', {
+            source: data.data_source,
+            count: data.logins?.length
+          })
+        } else {
+          console.warn('⚠️ Fonte de dados não confiável, mantendo lista vazia:', data.data_source)
+          setRecentLogins([])
+        }
       } else {
         console.error('Erro ao carregar logins recentes')
-        // Fallback com dados demo para demonstração
-        setRecentLogins([
-          {
-            id: '1',
-            user_id: 'demo1',
-            display_name: 'Carlos Silva',
-            username: 'carlos_silva',
-            photo_url: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=100',
-            login_time: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
-            status: 'online'
-          },
-          {
-            id: '2',
-            user_id: 'demo2',
-            display_name: 'Ana Costa',
-            username: 'ana_costa',
-            photo_url: 'https://images.pexels.com/photos/1130626/pexels-photo-1130626.jpeg?auto=compress&cs=tinysrgb&w=100',
-            login_time: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-            status: 'online',
-            is_new_user: true
-          },
-          {
-            id: '3',
-            user_id: 'demo3',
-            display_name: 'Roberto Oliveira',
-            username: 'roberto_oliveira',
-            photo_url: 'https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg?auto=compress&cs=tinysrgb&w=100',
-            login_time: new Date(Date.now() - 12 * 60 * 1000).toISOString(),
-            status: 'online'
-          },
-          {
-            id: '4',
-            user_id: 'demo4',
-            display_name: 'Mariana Santos',
-            username: 'mariana_santos',
-            photo_url: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=100',
-            login_time: new Date(Date.now() - 18 * 60 * 1000).toISOString(),
-            status: 'away'
-          },
-          {
-            id: '5',
-            user_id: 'demo5',
-            display_name: 'Fernando Lima',
-            username: 'fernando_lima',
-            photo_url: 'https://images.pexels.com/photos/1043474/pexels-photo-1043474.jpeg?auto=compress&cs=tinysrgb&w=100',
-            login_time: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
-            status: 'online'
-          }
-        ])
+        setRecentLogins([])
       }
     } catch (error) {
       console.error('Erro ao buscar logins recentes:', error)

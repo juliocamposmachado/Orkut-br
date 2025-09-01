@@ -338,6 +338,89 @@ export type Database = {
           updated_at?: string
         }
       }
+      moderation_actions: {
+        Row: {
+          id: string
+          action_type: string
+          reason: string
+          created_at: string
+          moderator_id: string
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Insert: {
+          id?: string
+          action_type: string
+          reason?: string
+          moderator_id: string
+          target_id?: string | null
+          target_type?: string | null
+          created_at?: string
+        }
+        Update: {
+          action_type?: string
+          reason?: string
+          moderator_id?: string
+          target_id?: string | null
+          target_type?: string | null
+        }
+      }
+      post_reports: {
+        Row: {
+          id: string
+          post_id: number
+          reporter_id: string
+          category: string
+          description?: string | null
+          status: 'pending' | 'reviewed' | 'dismissed'
+          created_at: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+        }
+        Insert: {
+          id?: string
+          post_id: number
+          reporter_id: string
+          category: string
+          description?: string | null
+          status?: 'pending' | 'reviewed' | 'dismissed'
+          created_at?: string
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+        }
+        Update: {
+          category?: string
+          description?: string | null
+          status?: 'pending' | 'reviewed' | 'dismissed'
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+        }
+      }
+      banned_users: {
+        Row: {
+          id: string
+          user_id: string
+          ban_reason: string
+          banned_at: string
+          banned_by: string
+          expires_at?: string | null
+          is_permanent: boolean
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          ban_reason: string
+          banned_by: string
+          banned_at?: string
+          expires_at?: string | null
+          is_permanent?: boolean
+        }
+        Update: {
+          ban_reason?: string
+          expires_at?: string | null
+          is_permanent?: boolean
+        }
+      }
     }
   }
 }

@@ -54,7 +54,17 @@ export function CommunityRulesCard({
   const [isExpanded, setIsExpanded] = useState(false)
   const [announcements, setAnnouncements] = useState<CommunityAnnouncement[]>([])
   const [loading, setLoading] = useState(true)
-  const [stats, setStats] = useState({ total: 0, high_priority: 0, moderation_actions: 0, pending_reports: 0 })
+  const [stats, setStats] = useState({ 
+    total: 0, 
+    high_priority: 0, 
+    moderation_actions: 0, 
+    pending_reports: 0,
+    posts_count: 0,
+    profiles_count: 0,
+    communities_count: 0,
+    notifications_count: 0,
+    has_real_data: false
+  })
 
   // Carregar avisos da comunidade
   const loadCommunityAnnouncements = async () => {
@@ -72,7 +82,17 @@ export function CommunityRulesCard({
         
         if (data.success && data.announcements) {
           setAnnouncements(data.announcements)
-          setStats(data.stats || { total: 0, high_priority: 0, moderation_actions: 0, pending_reports: 0 })
+          setStats(data.stats || { 
+            total: 0, 
+            high_priority: 0, 
+            moderation_actions: 0, 
+            pending_reports: 0,
+            posts_count: 0,
+            profiles_count: 0,
+            communities_count: 0,
+            notifications_count: 0,
+            has_real_data: false
+          })
         }
       } else {
         console.error('Erro ao carregar avisos da comunidade')
@@ -266,15 +286,27 @@ export function CommunityRulesCard({
                       <div className="text-sm font-bold text-red-700">{stats.high_priority}</div>
                       <div className="text-xs text-red-600">Prioridade Alta</div>
                     </div>
-                    <div className="bg-blue-50 p-2 rounded text-center">
-                      <div className="text-sm font-bold text-blue-700">{stats.moderation_actions}</div>
-                      <div className="text-xs text-blue-600">Moderacao</div>
+                    <div className="bg-green-50 p-2 rounded text-center">
+                      <div className="text-sm font-bold text-green-700">{stats.posts_count || 0}</div>
+                      <div className="text-xs text-green-600">Posts Recentes</div>
                     </div>
-                    <div className="bg-orange-50 p-2 rounded text-center">
-                      <div className="text-sm font-bold text-orange-700">{stats.pending_reports}</div>
-                      <div className="text-xs text-orange-600">Relatorios</div>
+                    <div className="bg-purple-50 p-2 rounded text-center">
+                      <div className="text-sm font-bold text-purple-700">{stats.profiles_count || 0}</div>
+                      <div className="text-xs text-purple-600">Membros Ativos</div>
                     </div>
                   </div>
+                  
+                  {/* Indicador de dados reais */}
+                  {stats.has_real_data && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-2 mb-3">
+                      <div className="flex items-center space-x-2">
+                        <RefreshCw className="h-3 w-3 text-green-600" />
+                        <span className="text-xs text-green-800 font-medium">
+                          Conectado ao banco de dados - Dados em tempo real!
+                        </span>
+                      </div>
+                    </div>
+                  )}
                   
                   <div className="space-y-2">
                     {announcements.slice(0, 4).map((announcement) => (

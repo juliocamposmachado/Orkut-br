@@ -32,94 +32,163 @@ interface CommunityAnnouncement {
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
-    console.log('Buscando avisos da comunidade com dados reais...')
+    console.log('Buscando avisos da comunidade com dados reais do banco...')
     
-    // ESTRATEGIA 1: Buscar ações de moderação recentes
-    const { data: moderationData, error: moderationError } = await supabase
-      .from('moderation_actions')
-      .select('id, action_type, reason, created_at, moderator_id')
+    // ESTRATEGIA 1: Buscar dados de posts recentes para atividade da comunidade
+    const { data: postsData, error: postsError } = await supabase
+      .from('posts')
+      .select('id, created_at, author, author_name, content, likes_count, comments_count')
+      .order('created_at', { ascending: false })
+      .limit(20)
+      
+    console.log('Dados posts:', { 
+      count: postsData?.length, 
+      error: postsError?.message || 'Nenhum erro',
+      sample: postsData?.slice(0, 2)
+    })
+
+    // ESTRATEGIA 2: Buscar dados de perfis para estatísticas de membros
+    const { data: profilesData, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, username, display_name, created_at, fans_count')
       .order('created_at', { ascending: false })
       .limit(10)
       
-    console.log('Dados moderation_actions:', { 
-      count: moderationData?.length, 
-      error: moderationError 
+    console.log('Dados profiles:', { 
+      count: profilesData?.length, 
+      error: profilesError?.message || 'Nenhum erro'
     })
 
-    // ESTRATEGIA 2: Buscar relatórios de posts pendentes
-    const { data: reportsData, error: reportsError } = await supabase
-      .from('post_reports')
-      .select('id, category, description, status, created_at')
-      .eq('status', 'pending')
+    // ESTRATEGIA 3: Buscar comunidades para estatísticas
+    const { data: communitiesData, error: communitiesError } = await supabase
+      .from('communities')
+      .select('id, name, members_count, created_at')
       .order('created_at', { ascending: false })
       .limit(5)
       
-    console.log('Dados post_reports:', { 
-      count: reportsData?.length, 
-      error: reportsError 
+    console.log('Dados communities:', { 
+      count: communitiesData?.length, 
+      error: communitiesError?.message || 'Nenhum erro'
     })
 
-    // ESTRATEGIA 3: Buscar usuários banidos recentemente
-    const { data: bannedData, error: bannedError } = await supabase
-      .from('banned_users')
-      .select('id, ban_reason, banned_at')
-      .order('banned_at', { ascending: false })
-      .limit(3)
+    // ESTRATEGIA 4: Buscar notificações para estatísticas de atividade
+    const { data: notificationsData, error: notificationsError } = await supabase
+      .from('notifications')
+      .select('id, type, read, created_at')
+      .order('created_at', { ascending: false })
+      .limit(10)
       
-    console.log('Dados banned_users:', { 
-      count: bannedData?.length, 
-      error: bannedError 
+    console.log('Dados notifications:', { 
+      count: notificationsData?.length, 
+      error: notificationsError?.message || 'Nenhum erro'
     })
 
     // Processar dados reais em avisos da comunidade
     const announcements: CommunityAnnouncement[] = []
+    let hasRealData = false
 
-    // Adicionar avisos de moderação
-    if (moderationData && moderationData.length > 0) {
-      moderationData.forEach((action: any) => {
+    // Processar dados de posts para atividade da comunidade
+    if (postsData && postsData.length > 0 && !postsError) {
+      hasRealData = true
+      const today = new Date()
+      const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000)
+      const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
+      
+      const recentPosts = postsData.filter(post => new Date(post.created_at) > yesterday)
+      const weeklyPosts = postsData.filter(post => new Date(post.created_at) > weekAgo)
+      
+      // Aviso de atividade diária
+      if (recentPosts.length > 0) {
         announcements.push({
-          id: `mod_${action.id}`,
-          type: 'moderation',
-          title: getModerationTitle(action.action_type),
-          description: action.reason || 'Acao de moderacao executada',
-          priority: getModerationPriority(action.action_type),
-          icon: getModerationIcon(action.action_type),
-          color: getModerationColor(action.action_type),
-          created_at: action.created_at,
+          id: 'daily_activity',
+          type: 'community',
+          title: `${recentPosts.length} Nova(s) Postagem(ns) Hoje`,
+          description: `Comunidade ativa! ${recentPosts.length} nova(s) postagem(ns) nas ultimas 24h`,
+          priority: recentPosts.length > 5 ? 'medium' : 'low',
+          icon: 'Users',
+          color: 'text-green-600',
+          created_at: recentPosts[0].created_at,
           is_active: true
         })
-      })
+      }
+      
+      // Estatísticas semanais
+      if (weeklyPosts.length > 0) {
+        const totalLikes = weeklyPosts.reduce((sum, post) => sum + (post.likes_count || 0), 0)
+        const totalComments = weeklyPosts.reduce((sum, post) => sum + (post.comments_count || 0), 0)
+        
+        announcements.push({
+          id: 'weekly_stats',
+          type: 'community',
+          title: `Estatisticas Semanais`,
+          description: `${weeklyPosts.length} posts, ${totalLikes} curtidas, ${totalComments} comentarios esta semana`,
+          priority: 'low',
+          icon: 'Heart',
+          color: 'text-blue-600',
+          created_at: weeklyPosts[0].created_at,
+          is_active: true
+        })
+      }
     }
 
-    // Adicionar avisos de relatórios pendentes
-    if (reportsData && reportsData.length > 0) {
-      const pendingReportsCount = reportsData.length
+    // Processar dados de perfis para novos membros
+    if (profilesData && profilesData.length > 0 && !profilesError) {
+      hasRealData = true
+      const today = new Date()
+      const lastWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
+      const newProfiles = profilesData.filter(profile => new Date(profile.created_at) > lastWeek)
+      
+      if (newProfiles.length > 0) {
+        announcements.push({
+          id: 'new_members',
+          type: 'community',
+          title: `${newProfiles.length} Novo(s) Membro(s) esta Semana`,
+          description: `Bem-vindos aos novos amigos que se juntaram a nossa comunidade fraternal!`,
+          priority: 'medium',
+          icon: 'UserCheck',
+          color: 'text-purple-600',
+          created_at: newProfiles[0].created_at,
+          is_active: true
+        })
+      }
+    }
+
+    // Processar dados de comunidades
+    if (communitiesData && communitiesData.length > 0 && !communitiesError) {
+      hasRealData = true
+      const totalMembers = communitiesData.reduce((sum, community) => sum + community.members_count, 0)
+      
       announcements.push({
-        id: 'reports_pending',
-        type: 'warning',
-        title: `${pendingReportsCount} Relatorio(s) Pendente(s)`,
-        description: `Ha ${pendingReportsCount} relatorio(s) de conteudo aguardando revisao`,
-        priority: pendingReportsCount > 3 ? 'high' : 'medium',
-        icon: 'AlertTriangle',
-        color: 'text-orange-600',
-        created_at: reportsData[0].created_at,
+        id: 'communities_stats',
+        type: 'community',
+        title: `${communitiesData.length} Comunidade(s) Ativa(s)`,
+        description: `Total de ${totalMembers} membros em comunidades diversas`,
+        priority: 'low',
+        icon: 'Users',
+        color: 'text-blue-600',
+        created_at: communitiesData[0].created_at,
         is_active: true
       })
     }
 
-    // Adicionar avisos de banimentos recentes
-    if (bannedData && bannedData.length > 0) {
-      announcements.push({
-        id: 'recent_bans',
-        type: 'moderation',
-        title: `${bannedData.length} Usuario(s) Banido(s) Recentemente`,
-        description: `Ultimas acoes de moderacao: ${bannedData.map(b => b.ban_reason).join(', ')}`,
-        priority: 'high',
-        icon: 'Shield',
-        color: 'text-red-600',
-        created_at: bannedData[0].banned_at,
-        is_active: true
-      })
+    // Processar notificações para atividade
+    if (notificationsData && notificationsData.length > 0 && !notificationsError) {
+      hasRealData = true
+      const unreadCount = notificationsData.filter(n => !n.read).length
+      
+      if (unreadCount > 0) {
+        announcements.push({
+          id: 'unread_notifications',
+          type: 'system',
+          title: `${unreadCount} Notificacao(es) Nao Lida(s)`,
+          description: `Ha ${unreadCount} notificacao(es) aguardando atencao dos membros`,
+          priority: unreadCount > 10 ? 'medium' : 'low',
+          icon: 'AlertCircle',
+          color: 'text-orange-600',
+          created_at: notificationsData[0].created_at,
+          is_active: true
+        })
+      }
     }
 
     // Adicionar avisos fixos importantes (baseados nas regras atuais)
@@ -164,7 +233,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       total: allAnnouncements.length,
       high_priority: allAnnouncements.filter(a => a.priority === 'high').length,
       moderation_actions: announcements.filter(a => a.type === 'moderation').length,
-      pending_reports: reportsData?.length || 0
+      pending_reports: 0, // Será atualizado quando as tabelas de moderação existirem
+      posts_count: postsData?.length || 0,
+      profiles_count: profilesData?.length || 0,
+      communities_count: communitiesData?.length || 0,
+      notifications_count: notificationsData?.length || 0,
+      has_real_data: hasRealData
     }
 
     console.log('Avisos processados:', stats)
@@ -173,7 +247,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       success: true,
       announcements: allAnnouncements,
       stats,
-      data_source: 'real_database_community_data'
+      data_source: hasRealData ? 'real_database_with_stats' : 'static_announcements_only'
     })
 
   } catch (error) {

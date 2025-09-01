@@ -153,19 +153,33 @@ export default function CommunityPage() {
 
   const checkMembership = async () => {
     try {
+      if (!profile?.id) {
+        console.warn('Profile ID não encontrado para verificar membership')
+        setIsMember(false)
+        setMemberRole(null)
+        return
+      }
+
+      console.log('🔍 Verificando membership para profile:', profile.id, 'na comunidade:', communityId)
+      
       const { data, error } = await supabase
         .from('community_members')
         .select('role')
         .eq('community_id', communityId)
-        .eq('profile_id', user?.id)
+        .eq('profile_id', profile.id) // Usar profile.id em vez de user.id
         .single()
 
       if (data) {
+        console.log('✅ Usuário é membro da comunidade:', data.role)
         setIsMember(true)
         setMemberRole(data.role)
+      } else {
+        console.log('❌ Usuário não é membro da comunidade')
+        setIsMember(false)
+        setMemberRole(null)
       }
     } catch (error) {
-      // User is not a member
+      console.log('⚠️ Erro ao verificar membership ou usuário não é membro:', error)
       setIsMember(false)
       setMemberRole(null)
     }

@@ -184,12 +184,29 @@ export async function POST(
       )
     }
 
+    // Obter o perfil do usuário
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', user.id)
+      .single()
+
+    if (profileError || !profileData) {
+      return NextResponse.json(
+        { error: 'Perfil de usuário não encontrado' },
+        { status: 404 }
+      )
+    }
+
+    const profileId = profileData.id
+    console.log('🔍 Adicionando membro - Profile ID:', profileId, 'Comunidade:', communityId)
+
     // Verificar se o usuário já é membro
     const { data: existingMembership } = await supabase
       .from('community_members')
       .select('id, role')
       .eq('community_id', communityId)
-      .eq('profile_id', user.id)
+      .eq('profile_id', profileId) // Usar profile.id
       .single()
 
     if (existingMembership) {

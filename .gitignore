@@ -81,3 +81,6 @@ UnGbDaPWA9.jpg
 *.tsbuildinfo
 
 .env*.local
+
+.vercel
+.env*.local

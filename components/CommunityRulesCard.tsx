@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { OrkutCard, OrkutCardContent, OrkutCardHeader } from '@/components/ui/orkut-card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -16,9 +16,31 @@ import {
   ChevronUp,
   ExternalLink,
   Info,
-  BookOpen
+  BookOpen,
+  AlertTriangle,
+  Eye,
+  EyeOff,
+  UserX,
+  UserCheck,
+  ShieldOff,
+  AlertCircle,
+  RefreshCw
 } from 'lucide-react'
 import Link from 'next/link'
+import { formatDistanceToNow } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
+
+interface CommunityAnnouncement {
+  id: string
+  type: 'moderation' | 'system' | 'community' | 'warning'
+  title: string
+  description: string
+  priority: 'high' | 'medium' | 'low'
+  icon: string
+  color: string
+  created_at: string
+  is_active: boolean
+}
 
 interface CommunityRulesCardProps {
   className?: string
@@ -30,6 +52,62 @@ export function CommunityRulesCard({
   isCollapsible = true 
 }: CommunityRulesCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
+  const [announcements, setAnnouncements] = useState<CommunityAnnouncement[]>([])
+  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState({ total: 0, high_priority: 0, moderation_actions: 0, pending_reports: 0 })
+
+  // Carregar avisos da comunidade
+  const loadCommunityAnnouncements = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/community/announcements')
+      
+      if (response.ok) {
+        const data = await response.json()
+        console.log('Avisos da comunidade:', {
+          source: data.data_source,
+          total: data.announcements?.length,
+          stats: data.stats
+        })
+        
+        if (data.success && data.announcements) {
+          setAnnouncements(data.announcements)
+          setStats(data.stats || { total: 0, high_priority: 0, moderation_actions: 0, pending_reports: 0 })
+        }
+      } else {
+        console.error('Erro ao carregar avisos da comunidade')
+      }
+    } catch (error) {
+      console.error('Erro ao buscar avisos:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    loadCommunityAnnouncements()
+    // Atualizar a cada 5 minutos
+    const interval = setInterval(loadCommunityAnnouncements, 5 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Função para renderizar ícone baseado na string
+  const renderIcon = (iconName: string) => {
+    const iconProps = { className: "h-4 w-4" }
+    switch (iconName) {
+      case 'Heart': return <Heart {...iconProps} />
+      case 'Shield': return <Shield {...iconProps} />
+      case 'Users': return <Users {...iconProps} />
+      case 'AlertTriangle': return <AlertTriangle {...iconProps} />
+      case 'Eye': return <Eye {...iconProps} />
+      case 'EyeOff': return <EyeOff {...iconProps} />
+      case 'UserX': return <UserX {...iconProps} />
+      case 'UserCheck': return <UserCheck {...iconProps} />
+      case 'ShieldOff': return <ShieldOff {...iconProps} />
+      case 'AlertCircle': return <AlertCircle {...iconProps} />
+      default: return <AlertCircle {...iconProps} />
+    }
+  }
 
   const rulesData = [
     {
@@ -163,6 +241,82 @@ export function CommunityRulesCard({
           {/* Conteúdo expandido */}
           {isExpanded && (
             <div className="space-y-4">
+              {/* Avisos da Comunidade (dados reais) */}
+              {announcements.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-orange-600" />
+                      Avisos da Comunidade
+                    </h3>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={loadCommunityAnnouncements}
+                      disabled={loading}
+                      className="h-6 w-6 p-0 text-gray-600 hover:bg-gray-100"
+                    >
+                      <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
+                    </Button>
+                  </div>
+                  
+                  {/* Estatísticas dos avisos */}
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    <div className="bg-red-50 p-2 rounded text-center">
+                      <div className="text-sm font-bold text-red-700">{stats.high_priority}</div>
+                      <div className="text-xs text-red-600">Prioridade Alta</div>
+                    </div>
+                    <div className="bg-blue-50 p-2 rounded text-center">
+                      <div className="text-sm font-bold text-blue-700">{stats.moderation_actions}</div>
+                      <div className="text-xs text-blue-600">Moderacao</div>
+                    </div>
+                    <div className="bg-orange-50 p-2 rounded text-center">
+                      <div className="text-sm font-bold text-orange-700">{stats.pending_reports}</div>
+                      <div className="text-xs text-orange-600">Relatorios</div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    {announcements.slice(0, 4).map((announcement) => (
+                      <div key={announcement.id} className="border border-gray-200 rounded-lg p-2 hover:bg-gray-50 transition-colors">
+                        <div className="flex items-start space-x-2">
+                          <div className={`${announcement.color} mt-0.5`}>
+                            {renderIcon(announcement.icon)}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="text-xs font-medium text-gray-800">
+                                {announcement.title}
+                              </h4>
+                              <Badge 
+                                variant="secondary" 
+                                className={`text-xs h-4 px-1 ${
+                                  announcement.priority === 'high' ? 'bg-red-100 text-red-700' :
+                                  announcement.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                                  'bg-gray-100 text-gray-700'
+                                }`}
+                              >
+                                {announcement.priority === 'high' ? 'Alta' : 
+                                 announcement.priority === 'medium' ? 'Média' : 'Baixa'}
+                              </Badge>
+                            </div>
+                            <p className="text-xs text-gray-600 leading-relaxed mb-1">
+                              {announcement.description}
+                            </p>
+                            <div className="text-xs text-gray-400">
+                              {formatDistanceToNow(new Date(announcement.created_at), { 
+                                addSuffix: true, 
+                                locale: ptBR 
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               <div className="grid grid-cols-1 gap-3">
                 {rulesData.map((rule) => (
                   <div key={rule.id} className="border border-gray-200 rounded-lg p-3 hover:bg-gray-50 transition-colors">

@@ -108,7 +108,7 @@ export async function GET(request: NextRequest) {
 
           if (!postsError && recentPosts) {
             // Buscar dados dos autores dos posts
-            const authorIds = [...new Set(recentPosts.map(post => post.author))]
+            const authorIds = Array.from(new Set(recentPosts.map(post => post.author)))
             const { data: authors } = await serverSupabase
               .from('profiles')
               .select('id, display_name, username, photo_url')
@@ -154,32 +154,50 @@ export async function GET(request: NextRequest) {
               id,
               status,
               created_at,
-              requester:profiles!requester_id(id, display_name, username, photo_url),
-              addressee:profiles!addressee_id(id, display_name, username, photo_url)
+              requester_id,
+              addressee_id
             `)
             .eq('status', 'accepted')
             .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Últimas 24h
             .order('created_at', { ascending: false })
             .limit(5)
 
-          if (!friendshipsError && recentFriendships) {
+          if (!friendshipsError && recentFriendships && recentFriendships.length > 0) {
+            // Buscar dados dos perfis envolvidos
+            const profileIds = Array.from(new Set([
+              ...recentFriendships.map(f => f.requester_id),
+              ...recentFriendships.map(f => f.addressee_id)
+            ]))
+            
+            const { data: friendshipProfiles } = await serverSupabase
+              .from('profiles')
+              .select('id, display_name, username, photo_url')
+              .in('id', profileIds)
+            
+            const profilesMap = new Map(friendshipProfiles?.map(profile => [profile.id, profile]) || [])
+            
             recentFriendships.forEach(friendship => {
-              realActivities.push({
-                id: `friendship_${friendship.id}`,
-                profile_id: friendship.requester.id,
-                activity_type: 'friend_accepted',
-                activity_data: {
-                  friend_id: friendship.addressee.id,
-                  friend_name: friendship.addressee.display_name
-                },
-                created_at: friendship.created_at,
-                profile: {
-                  id: friendship.requester.id,
-                  display_name: friendship.requester.display_name,
-                  username: friendship.requester.username,
-                  photo_url: friendship.requester.photo_url
-                }
-              })
+              const requester = profilesMap.get(friendship.requester_id)
+              const addressee = profilesMap.get(friendship.addressee_id)
+              
+              if (requester && addressee) {
+                realActivities.push({
+                  id: `friendship_${friendship.id}`,
+                  profile_id: friendship.requester_id,
+                  activity_type: 'friend_accepted',
+                  activity_data: {
+                    friend_id: friendship.addressee_id,
+                    friend_name: addressee.display_name
+                  },
+                  created_at: friendship.created_at,
+                  profile: {
+                    id: requester.id,
+                    display_name: requester.display_name,
+                    username: requester.username,
+                    photo_url: requester.photo_url
+                  }
+                })
+              }
             })
             console.log(`✅ ${recentFriendships.length} amizades recentes encontradas`)
           }
@@ -187,40 +205,55 @@ export async function GET(request: NextRequest) {
           console.warn('⚠️ Erro ao buscar amizades recentes:', friendshipsError)
         }
 
-        // 4. Buscar memberships recentes de comunidades (dados reais)
+        // 4. Buscar memberships recentes de comunidades (dados reais) - Simplificado
         try {
           const { data: recentMemberships, error: membershipsError } = await serverSupabase
             .from('community_members')
-            .select(`
-              id,
-              created_at,
-              profile_id,
-              community_id,
-              communities!inner(id, name),
-              profiles!inner(id, display_name, username, photo_url)
-            `)
+            .select('id, created_at, profile_id, community_id')
             .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Últimas 24h
             .order('created_at', { ascending: false })
             .limit(5)
 
-          if (!membershipsError && recentMemberships) {
+          if (!membershipsError && recentMemberships && recentMemberships.length > 0) {
+            // Buscar dados dos perfis e comunidades separadamente
+            const memberProfileIds = Array.from(new Set(recentMemberships.map(m => m.profile_id)))
+            const communityIds = Array.from(new Set(recentMemberships.map(m => m.community_id)))
+            
+            const { data: memberProfiles } = await serverSupabase
+              .from('profiles')
+              .select('id, display_name, username, photo_url')
+              .in('id', memberProfileIds)
+            
+            const { data: communities } = await serverSupabase
+              .from('communities')
+              .select('id, name')
+              .in('id', communityIds)
+            
+            const membersMap = new Map(memberProfiles?.map(profile => [profile.id, profile]) || [])
+            const communitiesMap = new Map(communities?.map(community => [community.id, community]) || [])
+            
             recentMemberships.forEach(membership => {
-              realActivities.push({
-                id: `community_joined_${membership.id}`,
-                profile_id: membership.profile_id,
-                activity_type: 'community_joined',
-                activity_data: {
-                  community_id: membership.community_id,
-                  community_name: membership.communities?.name || 'Comunidade'
-                },
-                created_at: membership.created_at,
-                profile: {
-                  id: membership.profiles.id,
-                  display_name: membership.profiles.display_name,
-                  username: membership.profiles.username,
-                  photo_url: membership.profiles.photo_url
-                }
-              })
+              const member = membersMap.get(membership.profile_id)
+              const community = communitiesMap.get(membership.community_id)
+              
+              if (member && community) {
+                realActivities.push({
+                  id: `community_joined_${membership.id}`,
+                  profile_id: membership.profile_id,
+                  activity_type: 'community_joined',
+                  activity_data: {
+                    community_id: membership.community_id,
+                    community_name: community.name || 'Comunidade'
+                  },
+                  created_at: membership.created_at,
+                  profile: {
+                    id: member.id,
+                    display_name: member.display_name,
+                    username: member.username,
+                    photo_url: member.photo_url
+                  }
+                })
+              }
             })
             console.log(`✅ ${recentMemberships.length} entradas em comunidades encontradas`)
           }

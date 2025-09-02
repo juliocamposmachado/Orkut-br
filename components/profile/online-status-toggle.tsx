@@ -12,10 +12,11 @@ import { WhatsAppStatus } from '@/components/whatsapp-status'
 
 interface OnlineStatusToggleProps {
   isOwnProfile: boolean
+  profileId?: string
   className?: string
 }
 
-export function OnlineStatusToggle({ isOwnProfile, className }: OnlineStatusToggleProps) {
+export function OnlineStatusToggle({ isOwnProfile, profileId, className }: OnlineStatusToggleProps) {
   const { user } = useAuth()
   const [isOnline, setIsOnline] = useState(true)
   const [isUpdating, setIsUpdating] = useState(false)
@@ -153,19 +154,29 @@ export function OnlineStatusToggle({ isOwnProfile, className }: OnlineStatusTogg
   if (!isOwnProfile) {
     return (
       <div className={className}>
-        <Badge variant="secondary" className={`${isOnline ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-          {isOnline ? (
-            <>
-              <div className="w-2 h-2 bg-green-500 rounded-full mr-1.5 animate-pulse" />
-              Online
-            </>
-          ) : (
-            <>
-              <div className="w-2 h-2 bg-gray-400 rounded-full mr-1.5" />
-              Offline
-            </>
-          )}
-        </Badge>
+        <div className="flex items-center justify-center gap-2">
+          <Badge variant="secondary" className={`${isOnline ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+            {isOnline ? (
+              <>
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-1.5 animate-pulse" />
+                Online
+              </>
+            ) : (
+              <>
+                <div className="w-2 h-2 bg-gray-400 rounded-full mr-1.5" />
+                Offline
+              </>
+            )}
+          </Badge>
+          
+          {/* Indicador compacto WhatsApp para visitantes */}
+          <WhatsAppStatus 
+            userId={profileId}
+            isOwnProfile={false}
+            showControls={false}
+            compact={true}
+          />
+        </div>
       </div>
     )
   }
@@ -192,14 +203,13 @@ export function OnlineStatusToggle({ isOwnProfile, className }: OnlineStatusTogg
           )}
         </Badge>
         
-        {/* Indicador compacto WhatsApp - apenas para próprio perfil */}
-        {isOwnProfile && (
-          <WhatsAppStatus 
-            isOwnProfile={true}
-            showControls={false}
-            compact={true}
-          />
-        )}
+        {/* Indicador compacto WhatsApp - para próprio perfil e visitantes */}
+        <WhatsAppStatus 
+          userId={isOwnProfile ? undefined : profileId}
+          isOwnProfile={isOwnProfile}
+          showControls={false}
+          compact={true}
+        />
       </div>
 
       {/* Controle de visibilidade */}

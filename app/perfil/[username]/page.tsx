@@ -1207,7 +1207,11 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                   <p className="text-sm text-gray-600 mb-3">@{profile.username}</p>
                   
                   {/* Status Online/Offline Toggle */}
-                  <OnlineStatusToggle isOwnProfile={isOwnProfile} className="mb-4" />
+                  <OnlineStatusToggle 
+                    isOwnProfile={isOwnProfile} 
+                    profileId={profile.id}
+                    className="mb-4" 
+                  />
                   
                   <p className="text-sm text-gray-700 mb-4">{profile.relationship || 'Solteiro(a)'}</p>
                   

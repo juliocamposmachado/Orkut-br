@@ -61,6 +61,7 @@ import OnlineFriends from '@/components/friends/online-friends'
 import GoogleTrends from '@/components/GoogleTrends'
 import { CommunityNotifications } from '@/components/CommunityNotifications'
 import { RecentLoginsCard } from '@/components/auth/recent-logins-card'
+import { CallCenterCard } from '@/components/call/call-center-card'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -532,10 +533,13 @@ export default function HomePage() {
               onStartAudioCall={(user) => startAudioCall(user)}
             />
 
-            {/* 2. Avisos da Comunidade - NOVO CARD */}
+            {/* 2. Central de Chamadas - NOVO CARD */}
+            <CallCenterCard />
+
+            {/* 3. Avisos da Comunidade - CARD */}
             <CommunityNotifications className="shadow-md" />
 
-            {/* 3. Widget de Rádio - de volta à sidebar direita */}
+            {/* 4. Widget de Rádio - de volta à sidebar direita */}
             <RadioTatuapeWidget className="shadow-md" />
 
             {/* 2. Site Users - Gmail Users compacto */}

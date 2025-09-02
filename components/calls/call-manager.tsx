@@ -74,9 +74,6 @@ export function CallManager() {
         </>
       )}
       
-      {/* Central de Chamadas - painel oficial para gerenciar chamadas */}
-      <CallPanel />
-      
       {/* Histórico de chamadas perdidas */}
       <MissedCallsHistory />
     </>

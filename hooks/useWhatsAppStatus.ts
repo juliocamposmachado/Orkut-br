@@ -123,7 +123,8 @@ export function useWhatsAppStatus(): WhatsAppDetector {
 
     } catch (error) {
       console.error('❌ Erro ao atualizar status WhatsApp:', error)
-      setError(error instanceof Error ? error.message : 'Erro desconhecido')
+      // Não definir error para não quebrar a UI, apenas logar
+      console.log('ℹ️ Continuando sem status WhatsApp ativo')
     }
   }, [user, getAuthToken])
 
@@ -153,7 +154,8 @@ export function useWhatsAppStatus(): WhatsAppDetector {
       }
     } catch (error) {
       console.error('❌ Erro ao buscar status WhatsApp:', error)
-      setError(error instanceof Error ? error.message : 'Erro desconhecido')
+      // Não definir error, apenas manter status desabilitado
+      console.log('ℹ️ Status WhatsApp não disponível - campos podem não existir ainda')
     } finally {
       setLoading(false)
     }
@@ -199,11 +201,17 @@ Autorizar monitoramento?
         })
 
         if (response.ok) {
+          const result = await response.json()
+          if (result.needsSQLSetup) {
+            alert('⚙️ Para ativar o status WhatsApp, é necessário executar o script SQL primeiro.\n\nVocê encontrará o arquivo em: sql/add_whatsapp_status_fields.sql')
+            return
+          }
           setStatus(prev => ({ ...prev, consentGiven: true, enabled: true }))
           startMonitoring()
         }
       } catch (error) {
         console.error('❌ Erro ao salvar consentimento:', error)
+        alert('Erro ao ativar status WhatsApp. Verifique se os campos foram criados na tabela profiles.')
       }
     }
   }, [user, getAuthToken])

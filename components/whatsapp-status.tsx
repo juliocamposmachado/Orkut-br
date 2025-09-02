@@ -39,6 +39,10 @@ export function WhatsAppStatus({
   const isLoading = isOwnProfile ? loading : externalLoading
 
   if (isLoading) {
+    // No modo compacto, não mostrar loading
+    if (compact) {
+      return null
+    }
     return (
       <div className="flex items-center gap-2 text-sm text-gray-500">
         <FaWhatsapp className="w-4 h-4 animate-pulse" />
@@ -48,6 +52,10 @@ export function WhatsAppStatus({
   }
 
   if (error && isOwnProfile) {
+    // No modo compacto, não mostrar erro
+    if (compact) {
+      return null
+    }
     return (
       <div className="flex items-center gap-2 text-sm text-red-500">
         <FaWhatsapp className="w-4 h-4" />

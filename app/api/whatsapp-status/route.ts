@@ -75,19 +75,23 @@ export async function POST(request: NextRequest) {
       updateData.whatsapp_detection_method = detectionMethod
     }
 
+    // Tentar atualizar status no perfil
     const { data: profile, error: updateError } = await supabase
       .from('profiles')
       .update(updateData)
       .eq('id', user.id)
-      .select('id, whatsapp_online, whatsapp_last_activity')
+      .select('id')
       .single()
 
     if (updateError) {
-      console.error('Erro ao atualizar status WhatsApp:', updateError)
+      console.error('Erro ao atualizar status WhatsApp (campos podem não existir):', updateError)
+      // Retornar sucesso mesmo se os campos não existem ainda
       return NextResponse.json({ 
-        error: 'Erro ao atualizar status',
-        details: updateError.message 
-      }, { status: 500 })
+        success: true,
+        message: 'Campos WhatsApp não encontrados na tabela profiles. Execute o script SQL primeiro.',
+        needsSQLSetup: true,
+        timestamp: new Date().toISOString()
+      })
     }
 
     return NextResponse.json({
@@ -132,11 +136,7 @@ export async function GET(request: NextRequest) {
       .select(`
         id,
         username,
-        display_name,
-        whatsapp_online,
-        whatsapp_last_activity,
-        whatsapp_monitoring_consent,
-        whatsapp_updated_at
+        display_name
       `)
       .eq('id', userId)
       .single()
@@ -147,8 +147,31 @@ export async function GET(request: NextRequest) {
       }, { status: 404 })
     }
 
+    // Tentar buscar campos WhatsApp se existirem
+    const { data: whatsappData } = await supabase
+      .from('profiles')
+      .select(`
+        whatsapp_online,
+        whatsapp_last_activity,
+        whatsapp_monitoring_consent,
+        whatsapp_updated_at
+      `)
+      .eq('id', userId)
+      .single()
+
+    // Se os campos WhatsApp não existem, retornar status desabilitado
+    if (!whatsappData || whatsappData.whatsapp_monitoring_consent === null) {
+      return NextResponse.json({
+        success: true,
+        whatsapp_status: {
+          enabled: false,
+          reason: 'Campos WhatsApp não configurados na tabela profiles'
+        }
+      })
+    }
+
     // Verificar se o usuário deu consentimento
-    if (!profile.whatsapp_monitoring_consent) {
+    if (!whatsappData.whatsapp_monitoring_consent) {
       return NextResponse.json({
         success: true,
         whatsapp_status: {
@@ -159,7 +182,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Verificar se o status não está muito desatualizado (15 minutos)
-    const lastUpdate = new Date(profile.whatsapp_updated_at || 0)
+    const lastUpdate = new Date(whatsappData.whatsapp_updated_at || 0)
     const now = new Date()
     const diffMinutes = (now.getTime() - lastUpdate.getTime()) / (1000 * 60)
 
@@ -169,9 +192,9 @@ export async function GET(request: NextRequest) {
       success: true,
       whatsapp_status: {
         enabled: true,
-        online: profile.whatsapp_online && isRecentlyUpdated,
-        lastActivity: profile.whatsapp_last_activity,
-        lastUpdate: profile.whatsapp_updated_at,
+        online: whatsappData.whatsapp_online && isRecentlyUpdated,
+        lastActivity: whatsappData.whatsapp_last_activity,
+        lastUpdate: whatsappData.whatsapp_updated_at,
         isStale: !isRecentlyUpdated
       },
       user: {

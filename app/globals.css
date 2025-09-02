@@ -485,9 +485,10 @@
   --orkut-content-bg-opacity: 0.95;
 }
 
-/* Main background application - DISABLED FOR DEBUG */
-/* body {
+/* Main background application */
+body {
   position: relative;
+  transition: background-color 0.3s ease;
 }
 
 body::before {
@@ -504,7 +505,8 @@ body::before {
   background-repeat: no-repeat;
   background-attachment: fixed;
   opacity: var(--orkut-wallpaper-opacity);
-} */
+  transition: all 0.3s ease;
+}
 
 /* Page container overlays */
 .orkut-page-container {

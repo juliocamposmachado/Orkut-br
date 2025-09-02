@@ -139,6 +139,66 @@ interface ThemeProviderProps {
   children: ReactNode
 }
 
+// Funções para integração com API
+const saveThemeToDatabase = async (themeData: {
+  color_theme: Theme
+  visual_theme: VisualTheme
+  wallpaper: WallpaperConfig
+  is_dark_mode: boolean
+}) => {
+  try {
+    const response = await fetch('/api/theme-preferences', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(themeData),
+    })
+    
+    if (response.ok) {
+      console.log('💾 Tema salvo no banco de dados')
+    } else {
+      console.warn('Erro ao salvar tema no banco:', await response.text())
+    }
+  } catch (error) {
+    console.warn('Erro na API de tema:', error)
+  }
+}
+
+const loadThemeFromDatabase = async () => {
+  try {
+    const response = await fetch('/api/theme-preferences')
+    if (response.ok) {
+      const data = await response.json()
+      return {
+        colorTheme: data.color_theme,
+        visualTheme: data.visual_theme,
+        wallpaper: data.wallpaper,
+        isDarkMode: data.is_dark_mode
+      }
+    }
+  } catch (error) {
+    console.warn('Erro ao carregar tema do banco:', error)
+  }
+  return null
+}
+
+const resetThemeInDatabase = async () => {
+  try {
+    const response = await fetch('/api/theme-preferences', {
+      method: 'DELETE',
+    })
+    
+    if (response.ok) {
+      console.log('🔄 Tema resetado no banco de dados')
+    } else {
+      console.warn('Erro ao resetar tema no banco:', await response.text())
+    }
+  } catch (error) {
+    console.warn('Erro na API de reset de tema:', error)
+  }
+}
+
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const [theme, setThemeState] = useState<Theme>('light')
   const [mounted, setMounted] = useState(false)
@@ -230,21 +290,21 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
   const applyWallpaper = (wallpaperConfig: WallpaperConfig) => {
     if (typeof window !== 'undefined') {
-      // Temporariamente desabilitado para debug
-      console.log(`🖼️ Wallpaper aplicado (DEBUG): ${wallpaperConfig.name} (${wallpaperConfig.type})`)
-      // const root = window.document.documentElement
+      const root = window.document.documentElement
       
-      // // Aplicar wallpaper como CSS custom property
-      // if (wallpaperConfig.type === 'image') {
-      //   root.style.setProperty('--orkut-wallpaper', `url(${wallpaperConfig.value})`)
-      //   root.style.setProperty('--orkut-wallpaper-type', 'image')
-      // } else {
-      //   root.style.setProperty('--orkut-wallpaper', wallpaperConfig.value)
-      //   root.style.setProperty('--orkut-wallpaper-type', wallpaperConfig.type)
-      // }
+      // Aplicar wallpaper como CSS custom property
+      if (wallpaperConfig.type === 'image') {
+        root.style.setProperty('--orkut-wallpaper', `url(${wallpaperConfig.value})`)
+        root.style.setProperty('--orkut-wallpaper-type', 'image')
+      } else {
+        root.style.setProperty('--orkut-wallpaper', wallpaperConfig.value)
+        root.style.setProperty('--orkut-wallpaper-type', wallpaperConfig.type)
+      }
       
-      // // Aplicar data attribute para CSS específico do tipo
-      // root.setAttribute('data-wallpaper-type', wallpaperConfig.type)
+      // Aplicar data attribute para CSS específico do tipo
+      root.setAttribute('data-wallpaper-type', wallpaperConfig.type)
+      
+      console.log(`🖼️ Wallpaper aplicado: ${wallpaperConfig.name} (${wallpaperConfig.type})`)
     }
   }
 
@@ -278,6 +338,14 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       localStorage.setItem('orkut_wallpaper', JSON.stringify(newVisualTheme.wallpaper))
       console.log(`💾 Tema visual salvo: ${newVisualTheme.name}`)
     }
+    
+    // Salvar no banco de dados via API
+    saveThemeToDatabase({
+      color_theme: newVisualTheme.colorTheme,
+      visual_theme: newVisualTheme,
+      wallpaper: newVisualTheme.wallpaper,
+      is_dark_mode: newVisualTheme.isDark || false
+    })
   }
 
   const setWallpaper = (newWallpaper: WallpaperConfig) => {
@@ -289,6 +357,20 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       localStorage.setItem('orkut_wallpaper', JSON.stringify(newWallpaper))
       console.log(`💾 Wallpaper salvo: ${newWallpaper.name}`)
     }
+    
+    // Atualizar tema atual com novo wallpaper
+    const updatedVisualTheme = {
+      ...currentVisualTheme,
+      wallpaper: newWallpaper
+    }
+    
+    // Salvar no banco de dados via API
+    saveThemeToDatabase({
+      color_theme: theme,
+      visual_theme: updatedVisualTheme,
+      wallpaper: newWallpaper,
+      is_dark_mode: currentVisualTheme.isDark || false
+    })
   }
 
   const resetToDefault = () => {
@@ -301,6 +383,9 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
       localStorage.removeItem('orkut_wallpaper')
       console.log('🔄 Configurações resetadas para o padrão')
     }
+    
+    // Resetar no banco de dados via API
+    resetThemeInDatabase()
   }
 
   const toggleTheme = () => {

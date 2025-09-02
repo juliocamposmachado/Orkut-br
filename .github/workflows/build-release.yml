@@ -1,0 +1,226 @@
+name: 🚀 Build Cross-Platform Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      build_web:
+        description: 'Build Web'
+        required: true
+        default: true
+        type: boolean
+      build_desktop:
+        description: 'Build Desktop'
+        required: true
+        default: true
+        type: boolean
+      build_mobile:
+        description: 'Build Mobile'
+        required: true
+        default: true
+        type: boolean
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # Build Web
+  build-web:
+    if: github.event.inputs.build_web == 'true' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    name: 🌐 Build Web
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 🔧 Install dependencies
+        run: npm ci
+
+      - name: 🏗️ Build Next.js
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+      - name: 📤 Upload web build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: out/
+
+  # Build Desktop
+  build-desktop:
+    if: github.event.inputs.build_desktop == 'true' || github.event_name == 'push'
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    name: 🖥️ Build Desktop (${{ matrix.os }})
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 🔧 Install dependencies (root)
+        run: npm ci
+
+      - name: 🏗️ Build Next.js
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+      - name: 🔧 Install desktop dependencies
+        run: npm ci
+        working-directory: desktop
+
+      - name: 📦 Build desktop app (Windows)
+        if: matrix.os == 'windows-latest'
+        run: npm run dist:win
+        working-directory: desktop
+
+      - name: 📦 Build desktop app (macOS)
+        if: matrix.os == 'macos-latest'
+        run: npm run dist:mac
+        working-directory: desktop
+
+      - name: 📦 Build desktop app (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: npm run dist:linux
+        working-directory: desktop
+
+      - name: 📤 Upload desktop artifacts (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-windows
+          path: desktop/release/*.exe
+
+      - name: 📤 Upload desktop artifacts (macOS)
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-macos
+          path: |
+            desktop/release/*.dmg
+            desktop/release/*.zip
+
+      - name: 📤 Upload desktop artifacts (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-linux
+          path: |
+            desktop/release/*.AppImage
+            desktop/release/*.deb
+            desktop/release/*.rpm
+
+  # Build Mobile
+  build-mobile:
+    if: github.event.inputs.build_mobile == 'true' || github.event_name == 'push'
+    runs-on: ubuntu-latest
+    name: 📱 Build Mobile
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📱 Setup Expo
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 🔧 Install mobile dependencies
+        run: npm ci
+        working-directory: mobile
+
+      - name: 📦 Build Android APK
+        run: eas build --platform android --profile preview --non-interactive
+        working-directory: mobile
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+      # Comentado até configurar Apple Developer Account
+      # - name: 📦 Build iOS IPA
+      #   run: eas build --platform ios --profile preview --non-interactive
+      #   working-directory: mobile
+      #   env:
+      #     EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      #     EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+  # Create Release
+  create-release:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    needs: [build-web, build-desktop, build-mobile]
+    runs-on: ubuntu-latest
+    name: 🎉 Create Release
+    
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 📤 Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: 🎁 Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Orkut ${{ github.ref_name }}
+          body: |
+            # 🛸 Orkut ${{ github.ref_name }} - A Lenda Viva Continua! 🌟
+            
+            ## 🚀 Downloads Disponíveis:
+            
+            ### 🌐 **Web**
+            - Deploy automático no Vercel: [orkut-br-oficial.vercel.app](https://orkut-br-oficial.vercel.app)
+            
+            ### 🖥️ **Desktop**
+            - **Windows:** `Orkut-Setup-${{ github.ref_name }}.exe`
+            - **macOS:** `Orkut-${{ github.ref_name }}.dmg`
+            - **Linux:** `Orkut-${{ github.ref_name }}.AppImage`
+            
+            ### 📱 **Mobile**
+            - **Android:** `orkut-${{ github.ref_name }}.apk`
+            - **iOS:** Disponível via TestFlight (em breve na App Store)
+            
+            ## ✨ Novidades desta versão:
+            - 🎉 Versões instaláveis para todas as plataformas
+            - 🔥 Performance otimizada para cada ambiente
+            - 📱 Interface nativa para mobile
+            - 🖥️ App desktop completo com auto-update
+            
+            ---
+            
+            **Criado pela Dupla Marciana Invencível** 🛸👽🚀
+          files: |
+            desktop-windows/*
+            desktop-macos/*
+            desktop-linux/*
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

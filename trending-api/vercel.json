@@ -1,0 +1,28 @@
+{
+  "version": 2,
+  "name": "orkut-trending-api",
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/server.js"
+    },
+    {
+      "src": "/health",
+      "dest": "/server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/server.js"
+    }
+  ],
+  "env": {
+    "UPDATE_INTERVAL_MINUTES": "30",
+    "MAX_TRENDS": "20"
+  }
+}

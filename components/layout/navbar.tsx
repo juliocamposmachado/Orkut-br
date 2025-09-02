@@ -41,7 +41,6 @@ import { useSubscription } from '@/hooks/use-subscription'
 import { NotificationsDropdown } from '@/components/notifications/notifications-dropdown'
 import BugReporter from '@/components/bug-reporter'
 import { AnimatediFoodButton } from '@/components/ui/animated-ifood-button'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 export function Navbar() {
   const router = useRouter()
@@ -207,9 +206,6 @@ export function Navbar() {
                 </Link>
               )
             )}
-            
-            {/* Theme Toggle */}
-            <ThemeToggle />
             
             {/* Notifications */}
             <NotificationsDropdown />

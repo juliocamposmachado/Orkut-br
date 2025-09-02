@@ -1,3 +1,5 @@
+'use client'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -22,22 +24,7 @@ import {
 } from 'lucide-react'
 import { FaAmazon } from 'react-icons/fa'
 
-export const metadata = {
-  title: 'Sobre o Desenvolvedor - Julio Campos Machado | Orkut BR',
-  description: 'Conheça Julio Campos Machado, desenvolvedor full-stack e fundador da Like Look Solutions, criador do Orkut BR 2025. Expert em React, Next.js e IA.',
-  keywords: 'Julio Campos Machado, desenvolvedor full-stack, Like Look Solutions, Orkut BR, React, Next.js, TypeScript, IA, São Paulo',
-  openGraph: {
-    title: 'Julio Campos Machado - Desenvolvedor Full-Stack',
-    description: 'Fundador da Like Look Solutions e criador do Orkut BR 2025. Expert em desenvolvimento web moderno e IA.',
-    type: 'profile',
-    url: 'https://orkut-br.vercel.app/sobre-desenvolvedor',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Julio Campos Machado - Desenvolvedor Full-Stack',
-    description: 'Fundador da Like Look Solutions e criador do Orkut BR 2025.',
-  },
-}
+// Metadata será aplicada via Head component no client side
 
 const jsonLd = {
   '@context': 'https://schema.org',

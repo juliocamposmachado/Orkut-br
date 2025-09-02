@@ -657,7 +657,7 @@ body {
   }
 }
 
-/* Universal button compatibility for all browsers */
+/* Universal button compatibility for all browsers including Edge */
 button {
   cursor: pointer;
   touch-action: manipulation;
@@ -665,11 +665,20 @@ button {
   -webkit-tap-highlight-color: transparent;
   border: none;
   outline: none;
+  /* Edge specific fixes */
+  -ms-touch-action: manipulation;
+  -ms-user-select: none;
+  background-color: transparent;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 button:disabled {
   cursor: not-allowed;
   pointer-events: none;
+  opacity: 0.5;
 }
 
 button:focus-visible {
@@ -677,7 +686,21 @@ button:focus-visible {
   outline-offset: 2px;
 }
 
-/* Universal interactive elements */
+/* Edge Legacy button fix */
+button::-ms-expand {
+  display: none;
+}
+
+/* Ensure button clicks work in Edge */
+button:hover {
+  z-index: 1;
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+/* Universal interactive elements - Edge compatible */
 [role="button"],
 .cursor-pointer,
 [onclick],
@@ -685,6 +708,102 @@ a[href] {
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  /* Edge specific properties */
+  -ms-touch-action: manipulation;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Edge specific button pointer events fix */
+@supports (-ms-ime-align: auto) {
+  button, [role="button"] {
+    pointer-events: auto !important;
+    position: relative;
+    z-index: 1;
+  }
+}
+
+/* Microsoft Edge Legacy compatibility */
+@supports (-ms-accelerator: true) {
+  button {
+    position: relative;
+    z-index: 1;
+    pointer-events: auto;
+  }
+  
+  button:hover {
+    background-color: var(--hover-bg, rgba(168, 85, 247, 0.1));
+  }
+}
+
+/* Ensure buttons work in all Edge versions */
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+  button {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    position: relative;
+    z-index: 1;
+  }
+}
+
+/* Edge browser specific fixes */
+.is-edge button {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.is-edge-legacy button {
+  background-color: transparent;
+  border: none;
+  outline: none;
+}
+
+.is-edge-legacy button:hover {
+  background-color: var(--hover-bg, rgba(168, 85, 247, 0.1)) !important;
+}
+
+.is-edge [role="button"] {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Force button interactivity in Edge */
+@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
+  .is-edge button,
+  .is-edge [role="button"],
+  .is-edge .cursor-pointer {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    position: relative;
+    z-index: 1;
+    touch-action: manipulation;
+    -ms-touch-action: manipulation;
+    user-select: none;
+    -ms-user-select: none;
+  }
+  
+  .is-edge button:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+  }
+  
+  .is-edge button:active {
+    transform: translateY(1px);
+  }
+}
+
+/* Ensure Radix UI buttons work in Edge */
+.is-edge .radix-button {
+  pointer-events: auto !important;
+}
+
+/* Fix for shadcn/ui buttons in Edge */
+.is-edge .inline-flex {
+  pointer-events: auto !important;
 }
 
 /* Color theme variations */

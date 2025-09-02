@@ -217,9 +217,8 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
         setThemeState(savedTheme)
         applyTheme(savedTheme)
       } else {
-        // Detectar preferência do sistema
-        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-        const defaultTheme: Theme = systemPrefersDark ? 'dark' : 'light'
+        // Usar tema padrão light (não detectar mais o tema do navegador)
+        const defaultTheme: Theme = 'light'
         setThemeState(defaultTheme)
         applyTheme(defaultTheme)
       }
@@ -250,25 +249,8 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     }
   }, [])
 
-  // Listener para mudanças na preferência do sistema
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-      
-      const handleChange = (e: MediaQueryListEvent) => {
-        // Só aplicar tema do sistema se o usuário não tiver escolhido manualmente
-        const savedTheme = localStorage.getItem('orkut_theme')
-        if (!savedTheme) {
-          const systemTheme: Theme = e.matches ? 'dark' : 'light'
-          setThemeState(systemTheme)
-          applyTheme(systemTheme)
-        }
-      }
-
-      mediaQuery.addEventListener('change', handleChange)
-      return () => mediaQuery.removeEventListener('change', handleChange)
-    }
-  }, [])
+  // Removido: listener para mudanças na preferência do sistema
+  // O tema agora é controlado exclusivamente pelo usuário nas configurações
 
   const applyTheme = (newTheme: Theme) => {
     if (typeof window !== 'undefined') {

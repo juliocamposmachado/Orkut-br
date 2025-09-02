@@ -13,6 +13,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { StructuredData } from '@/components/seo/structured-data';
 import { IdleOverlay } from '@/components/idle-overlay';
 import { CallManager } from '@/components/calls/call-manager';
+import { EdgeCompatibility } from '@/components/edge-compatibility';
 // Import polyfills to fix runtime errors
 import '@/lib/polyfills';
 // WebRTC diagnostics moved to developer dashboard
@@ -165,6 +166,7 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <StructuredData />
+        <EdgeCompatibility />
         <ThemeProvider>
           <AuthProvider>
             <RadioProvider>

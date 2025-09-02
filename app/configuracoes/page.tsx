@@ -12,6 +12,7 @@ import { WhatsAppConfig } from '@/components/profile/whatsapp-config';
 import { SocialConfig } from '@/components/profile/social-config';
 import { SoundSettings } from '@/components/profile/sound-settings';
 import { AppearanceCustomizer } from '@/components/ui/appearance-customizer';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Settings, ArrowLeft, User, Bell, MessageSquare, Globe, Volume2, Palette } from 'lucide-react';
 import Link from 'next/link';
 
@@ -130,6 +131,18 @@ const ConfiguracoesPage: React.FC = () => {
                   </p>
                 </div>
 
+                <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-1">Seletor de Tema</h3>
+                      <p className="text-sm text-gray-600">Escolha o tema de cores do seu Orkut</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <ThemeToggle />
+                    </div>
+                  </div>
+                </div>
+                
                 <div className="bg-white rounded-xl shadow-lg">
                   <AppearanceCustomizer className="p-6" />
                 </div>

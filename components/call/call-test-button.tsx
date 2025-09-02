@@ -51,7 +51,31 @@ export function CallTestButton() {
         throw new Error('Token de autenticação não encontrado')
       }
 
-      // Criar uma notificação de teste diretamente no banco
+      // Buscar dados reais do usuário atual
+      const { data: userProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, username, display_name, photo_url')
+        .eq('id', user.id)
+        .single()
+
+      if (profileError || !userProfile) {
+        throw new Error('Erro ao buscar perfil do usuário')
+      }
+
+      // Criar uma oferta WebRTC real (simplificada para teste)
+      const offer = {
+        type: 'offer',
+        sdp: 'v=0\r\no=- 123456789 2 IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\n', // SDP mínimo para teste
+        timestamp: new Date().toISOString(),
+        caller_info: {
+          id: userProfile.id,
+          username: userProfile.username,
+          display_name: userProfile.display_name,
+          photo_url: userProfile.photo_url
+        }
+      }
+
+      // Criar uma notificação de teste com dados reais
       const response = await fetch('/api/call-notification', {
         method: 'POST',
         headers: { 
@@ -59,20 +83,21 @@ export function CallTestButton() {
           'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
-          targetUserId: user.id, // Enviar para si mesmo
+          targetUserId: user.id, // Enviar para si mesmo para teste
           callType: 'video',
-          offer: { test: true }
+          offer: offer
         })
       })
 
       if (response.ok) {
-        toast.success('Notificação de teste enviada!')
+        toast.success('Notificação de teste enviada com dados reais!')
       } else {
-        throw new Error('Falha na API')
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(`Falha na API: ${response.status} - ${errorData.error || 'Erro desconhecido'}`)
       }
     } catch (error) {
       console.error('Erro no teste:', error)
-      toast.error('Erro ao enviar notificação de teste')
+      toast.error('Erro ao enviar notificação de teste: ' + (error as Error).message)
     } finally {
       setIsTestingCall(false)
     }

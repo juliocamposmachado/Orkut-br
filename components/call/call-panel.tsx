@@ -73,9 +73,65 @@ export function CallPanel() {
         throw new Error('Token de autenticação não encontrado')
       }
 
-      console.log('🧪 Enviando auto-notificação de teste...')
+      // Buscar dados reais do usuário atual
+      const { data: userProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, username, display_name, photo_url')
+        .eq('id', user.id)
+        .single()
+
+      if (profileError || !userProfile) {
+        throw new Error('Erro ao buscar perfil do usuário')
+      }
+
+      console.log('🧪 Enviando auto-notificação com dados reais...', userProfile.display_name)
       
-      // Criar uma notificação de teste diretamente no banco
+      // Criar uma oferta WebRTC real usando WebRTC API
+      let realOffer
+      try {
+        const peerConnection = new RTCPeerConnection({
+          iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+        })
+        
+        // Adicionar track de áudio para gerar oferta real
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+        stream.getTracks().forEach(track => peerConnection.addTrack(track, stream))
+        
+        const offer = await peerConnection.createOffer()
+        await peerConnection.setLocalDescription(offer)
+        
+        realOffer = {
+          type: offer.type,
+          sdp: offer.sdp,
+          timestamp: new Date().toISOString(),
+          caller_info: {
+            id: userProfile.id,
+            username: userProfile.username,
+            display_name: userProfile.display_name,
+            photo_url: userProfile.photo_url
+          }
+        }
+        
+        // Limpar recursos temporários
+        stream.getTracks().forEach(track => track.stop())
+        peerConnection.close()
+        
+      } catch (webrtcError) {
+        console.warn('⚠️ Erro ao criar oferta WebRTC real, usando fallback:', webrtcError)
+        realOffer = {
+          type: 'offer',
+          sdp: `v=0\r\no=- ${Date.now()} 1 IN IP4 127.0.0.1\r\ns=Orkut Audio Call\r\nt=0 0\r\n`,
+          timestamp: new Date().toISOString(),
+          caller_info: {
+            id: userProfile.id,
+            username: userProfile.username,
+            display_name: userProfile.display_name,
+            photo_url: userProfile.photo_url
+          }
+        }
+      }
+      
+      // Criar uma notificação de teste com dados reais
       const response = await fetch('/api/call-notification', {
         method: 'POST',
         headers: { 
@@ -83,24 +139,24 @@ export function CallPanel() {
           'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
-          targetUserId: user.id, // Enviar para si mesmo
+          targetUserId: user.id, // Enviar para si mesmo para teste
           callType: 'video',
-          offer: { test: true, timestamp: Date.now() }
+          offer: realOffer
         })
       })
 
       if (response.ok) {
         const result = await response.json()
-        console.log('✅ Auto-notificação enviada:', result)
-        toast.success('Notificação de teste enviada com sucesso!')
+        console.log('✅ Auto-notificação enviada com dados reais:', result)
+        toast.success('Notificação de teste enviada com dados reais!')
       } else {
         const errorData = await response.json().catch(() => ({}))
         console.error('❌ Erro na resposta da API:', response.status, errorData)
-        throw new Error(`Falha na API: ${response.status}`)
+        throw new Error(`Falha na API: ${response.status} - ${errorData.error || 'Erro desconhecido'}`)
       }
     } catch (error) {
       console.error('❌ Erro no teste de auto-notificação:', error)
-      toast.error('Erro ao enviar notificação de teste')
+      toast.error('Erro ao enviar notificação de teste: ' + (error as Error).message)
     } finally {
       setIsProcessingCall(false)
     }

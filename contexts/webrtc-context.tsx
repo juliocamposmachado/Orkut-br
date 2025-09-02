@@ -296,20 +296,8 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
       
       console.log('✅ Usuários online carregados:', users)
       
-      // Se não há usuários online, adicionar um usuário de teste para desenvolvimento
-      if (users.length === 0 && process.env.NODE_ENV === 'development') {
-        console.log('🧪 Adicionando usuário de teste para desenvolvimento...')
-        const testUser: WebRTCUser = {
-          id: 'test-user-123',
-          username: 'teste',
-          display_name: 'Usuário de Teste',
-          photo_url: undefined,
-          isOnline: true
-        }
-        setOnlineUsers([testUser])
-      } else {
-        setOnlineUsers(users)
-      }
+      // Sempre usar apenas dados reais do banco
+      setOnlineUsers(users)
     } catch (error) {
       console.error('❌ Erro geral ao carregar usuários online:', error)
       setOnlineUsers([])

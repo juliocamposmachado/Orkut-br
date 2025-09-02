@@ -83,7 +83,7 @@ export async function GET(
       )
     }
 
-    // Buscar posts da comunidade com informações do autor
+    // Buscar posts da comunidade
     const { data: posts, error: postsError } = await supabase
       .from('community_posts')
       .select(`
@@ -94,8 +94,7 @@ export async function GET(
         likes_count,
         comments_count,
         created_at,
-        updated_at,
-        profiles:author_id(id, username, display_name, photo_url)
+        updated_at
       `)
       .eq('community_id', communityId)
       .order('created_at', { ascending: false })
@@ -109,11 +108,31 @@ export async function GET(
       )
     }
 
-    // Transformar dados para incluir informações do autor
-    const transformedPosts = posts?.map(post => ({
-      ...post,
-      author: post.profiles
-    })) || []
+    // Buscar informações dos autores
+    let transformedPosts = []
+    if (posts && posts.length > 0) {
+      const authorIds = [...new Set(posts.map(post => post.author_id))]
+      
+      const { data: authors } = await supabase
+        .from('profiles')
+        .select('id, username, display_name, photo_url')
+        .in('id', authorIds)
+      
+      const authorsMap = new Map()
+      authors?.forEach(author => {
+        authorsMap.set(author.id, author)
+      })
+      
+      transformedPosts = posts.map(post => ({
+        ...post,
+        author: authorsMap.get(post.author_id) || {
+          id: post.author_id,
+          username: 'usuario',
+          display_name: 'Usuário',
+          photo_url: null
+        }
+      }))
+    }
 
     return NextResponse.json({
       success: true,
@@ -267,8 +286,7 @@ export async function POST(
         likes_count,
         comments_count,
         created_at,
-        updated_at,
-        profiles:author_id(id, username, display_name, photo_url)
+        updated_at
       `)
       .single()
 
@@ -280,10 +298,22 @@ export async function POST(
       )
     }
 
+    // Buscar informações do autor
+    const { data: authorData } = await supabase
+      .from('profiles')
+      .select('id, username, display_name, photo_url')
+      .eq('id', user.id)
+      .single()
+
     // Transformar dados para incluir informações do autor
     const transformedPost = {
       ...newPost,
-      author: newPost.profiles
+      author: authorData || {
+        id: user.id,
+        username: 'usuario',
+        display_name: 'Usuário',
+        photo_url: null
+      }
     }
 
     return NextResponse.json({

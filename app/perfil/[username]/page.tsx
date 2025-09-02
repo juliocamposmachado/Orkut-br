@@ -42,6 +42,7 @@ import { BioEditor } from '@/components/profile/bio-editor';
 import { MessageModal } from '@/components/messages/message-modal';
 import { OnlineFriends } from '@/components/friends/online-friends'
 import { RecentActivities } from '@/components/profile/recent-activities'
+import { SocialNetworksDisplay } from '@/components/profile/social-networks-display'
 import Gallery from '@/components/Gallery'
 import UpdateGalleries from '@/components/UpdateGalleries'
 import { useSmartWhatsApp } from '@/hooks/useSmartWhatsApp'
@@ -122,6 +123,7 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
   const [friends, setFriends] = useState<FriendItem[]>([]);
   const [recentConversations, setRecentConversations] = useState<any[]>([]);
   const [loadingConversations, setLoadingConversations] = useState(false);
+  const [socialData, setSocialData] = useState<any>({});
   
   // Exemplo estático de galerias para demo
   const [demoGalleries, setDemoGalleries] = useState<GalleryItem[]>([
@@ -530,6 +532,13 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
     }
   }, [profile?.id, currentUser?.id]);
   
+  // Carregar dados das redes sociais quando o perfil for carregado
+  useEffect(() => {
+    if (profile?.id) {
+      loadSocialData();
+    }
+  }, [profile?.id]);
+  
   // Listener para novos posts (atualizar perfil quando posts são criados)
   useEffect(() => {
     const handleNewPost = (event: Event) => {
@@ -739,6 +748,41 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
     }
   };
 
+  // Função para carregar dados das redes sociais
+  const loadSocialData = async () => {
+    if (!profile?.id) return;
+    
+    try {
+      console.log('🌐 Carregando dados das redes sociais...');
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select(`
+          social_instagram,
+          social_facebook,
+          social_twitter,
+          social_linkedin,
+          social_youtube,
+          social_tiktok,
+          social_github,
+          social_website
+        `)
+        .eq('id', profile.id)
+        .single();
+
+      if (!error && data) {
+        console.log('✅ Dados das redes sociais carregados:', data);
+        setSocialData(data);
+      } else {
+        console.log('⚠️ Nenhum dado de redes sociais encontrado ou erro:', error?.message);
+        setSocialData({});
+      }
+    } catch (error) {
+      console.error('❌ Erro ao carregar redes sociais:', error);
+      setSocialData({});
+    }
+  };
+  
   // Função para carregar posts do usuário
   const loadUserPosts = async () => {
     const targetUserId = profile?.id || currentUser?.id;
@@ -1749,6 +1793,9 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
               onOpenMessage={handleOpenMessage}
               onStartAudioCall={startAudioCall}
             />
+            
+            {/* Redes Sociais - Component */}
+            <SocialNetworksDisplay socialData={socialData} />
             
             {/* Minhas Comunidades */}
             <OrkutCard>

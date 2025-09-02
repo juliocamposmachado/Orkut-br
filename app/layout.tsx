@@ -8,6 +8,7 @@ import { OnlineStatusProvider } from '@/contexts/OnlineStatusContext';
 import { WebRTCProvider } from '@/contexts/webrtc-context';
 import { RadioProvider } from '@/contexts/RadioContext';
 import { FriendsProvider } from '@/contexts/FriendsContext';
+import { ThemeProvider } from '@/contexts/theme-context';
 import { Toaster } from '@/components/ui/sonner';
 import { StructuredData } from '@/components/seo/structured-data';
 import { IdleOverlay } from '@/components/idle-overlay';
@@ -164,24 +165,26 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <StructuredData />
-        <AuthProvider>
-          <RadioProvider>
-            <OnlineStatusProvider>
-              <WebRTCProvider>
-                <VoiceProvider>
-                  <FriendsProvider>
-                    {children}
-                    {/* Sistema de chamadas - notificações, modais e controles */}
-                    <CallManager />
-                    {/* WebRTC diagnostics moved to developer dashboard */}
-                    {/* <EventListenerMonitor /> */}
-                    <Toaster />
-                  </FriendsProvider>
-                </VoiceProvider>
-              </WebRTCProvider>
-            </OnlineStatusProvider>
-          </RadioProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <RadioProvider>
+              <OnlineStatusProvider>
+                <WebRTCProvider>
+                  <VoiceProvider>
+                    <FriendsProvider>
+                      {children}
+                      {/* Sistema de chamadas - notificações, modais e controles */}
+                      <CallManager />
+                      {/* WebRTC diagnostics moved to developer dashboard */}
+                      {/* <EventListenerMonitor /> */}
+                      <Toaster />
+                    </FriendsProvider>
+                  </VoiceProvider>
+                </WebRTCProvider>
+              </OnlineStatusProvider>
+            </RadioProvider>
+          </AuthProvider>
+        </ThemeProvider>
         {/* Overlay de pausa por inatividade */}
         <IdleOverlay timeout={60000} />
       </body>

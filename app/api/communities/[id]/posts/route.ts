@@ -209,7 +209,10 @@ export async function POST(
 
     // Verificar autenticação
     const authHeader = request.headers.get('authorization')
+    console.log('🔐 Auth header presente:', !!authHeader)
+    
     if (!authHeader) {
+      console.log('❌ Header de autorização ausente')
       return NextResponse.json({ 
         error: 'Autenticação necessária para criar posts' 
       }, { status: 401 })
@@ -218,10 +221,19 @@ export async function POST(
     const { data: { user }, error: authError } = await supabase.auth.getUser(
       authHeader.replace('Bearer ', '')
     )
+    
+    console.log('👤 User obtido:', !!user, 'Error:', !!authError)
+    if (user) {
+      console.log('📋 User ID:', user.id)
+    }
+    if (authError) {
+      console.log('❌ Erro de autenticação:', authError)
+    }
 
     if (authError || !user) {
       return NextResponse.json({ 
-        error: 'Token de autenticação inválido' 
+        error: 'Token de autenticação inválido',
+        debug: { authError: authError?.message }
       }, { status: 401 })
     }
 
@@ -263,13 +275,31 @@ export async function POST(
       .eq('community_id', communityId)
       .eq('profile_id', profileId) // Usar profile.id
       .single()
+    
+    console.log('🎯 Resultado da verificação de membership:')
+    console.log('   - Community ID:', communityId)
+    console.log('   - Profile ID:', profileId)
+    console.log('   - Membership found:', !!membership)
+    console.log('   - Membership data:', membership)
+    console.log('   - Error:', membershipError)
 
     if (membershipError || !membership) {
+      console.log('❌ Usuário não é membro da comunidade')
       return NextResponse.json(
-        { error: 'Você precisa ser membro desta comunidade para criar posts' },
+        { 
+          error: 'Você precisa ser membro desta comunidade para criar posts',
+          debug: {
+            communityId,
+            profileId,
+            membershipError: membershipError?.message,
+            membership
+          }
+        },
         { status: 403 }
       )
     }
+    
+    console.log('✅ Usuário é membro da comunidade com role:', membership.role)
 
     const body = await request.json()
     const { content } = body

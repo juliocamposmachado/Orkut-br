@@ -674,6 +674,38 @@ body::before {
   }
 }
 
+/* Microsoft Edge specific fixes for button interactivity */
+button:not([disabled]) {
+  cursor: pointer !important;
+  -ms-touch-action: manipulation;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+button[disabled] {
+  cursor: not-allowed !important;
+  pointer-events: none;
+}
+
+/* Edge-specific button hover states */
+@supports (-ms-ime-align: auto) {
+  button:hover:not([disabled]) {
+    transform: translateY(-1px);
+    transition: transform 0.1s ease;
+  }
+}
+
+/* Ensure all interactive elements are clickable in Edge */
+[role="button"],
+.cursor-pointer {
+  cursor: pointer !important;
+  -ms-touch-action: manipulation;
+  touch-action: manipulation;
+}
+
 /* Color theme variations */
 .purple {
   --orkut-primary: #8b5cf6;

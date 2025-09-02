@@ -35,6 +35,7 @@ import {
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import Link from 'next/link'
+import { SocialNetworksDisplay } from '@/components/profile/social-networks-display'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -88,6 +89,7 @@ export default function ProfilePage() {
   const [loadingProfile, setLoadingProfile] = useState(true)
   const [isOwnProfile, setIsOwnProfile] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
+  const [socialData, setSocialData] = useState<any>({})
 
   useEffect(() => {
     if (!loading && !user) {
@@ -107,6 +109,7 @@ export default function ProfilePage() {
       loadScraps()
       loadPhotos()
       updateProfileViews()
+      loadSocialData()
     }
   }, [user, loading, router, profileId, currentUserProfile?.username])
 
@@ -202,6 +205,40 @@ export default function ProfilePage() {
         .eq('id', profileId)
     } catch (error) {
       console.error('Error updating profile views:', error)
+    }
+  }
+
+  const loadSocialData = async () => {
+    if (!profileId) return
+    
+    try {
+      console.log('🌐 Carregando dados das redes sociais...')
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select(`
+          social_instagram,
+          social_facebook,
+          social_twitter,
+          social_linkedin,
+          social_youtube,
+          social_tiktok,
+          social_github,
+          social_website
+        `)
+        .eq('id', profileId)
+        .single()
+
+      if (!error && data) {
+        console.log('✅ Dados das redes sociais carregados:', data)
+        setSocialData(data)
+      } else {
+        console.log('⚠️ Nenhum dado de redes sociais encontrado ou erro:', error?.message)
+        setSocialData({})
+      }
+    } catch (error) {
+      console.error('❌ Erro ao carregar redes sociais:', error)
+      setSocialData({})
     }
   }
 
@@ -380,7 +417,7 @@ export default function ProfilePage() {
           </div>
         </OrkutCard>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr_300px] xl:grid-cols-[320px_1fr_320px] gap-6">
           
           {/* Left Sidebar */}
           <div className="space-y-6">
@@ -472,7 +509,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-2">
+          <div className="space-y-6">
             
             <Tabs defaultValue="scraps" className="space-y-6">
               <TabsList className="grid w-full grid-cols-3 gap-2">
@@ -680,6 +717,72 @@ export default function ProfilePage() {
                 </OrkutCard>
               </TabsContent>
             </Tabs>
+          </div>
+
+          {/* Right Sidebar */}
+          <div className="space-y-6">
+            
+            {/* Redes Sociais */}
+            <SocialNetworksDisplay socialData={socialData} />
+            
+            {/* Minhas Comunidades */}
+            <OrkutCard>
+              <OrkutCardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Users className="h-4 w-4" />
+                    <span>Minhas Comunidades</span>
+                  </div>
+                  {isOwnProfile && (
+                    <Button size="sm" variant="ghost" className="text-purple-600 hover:bg-purple-50">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </OrkutCardHeader>
+              <OrkutCardContent>
+                <div className="space-y-3">
+                  {Array.from({ length: 5 }).map((_, idx) => (
+                    <div key={idx} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
+                      <img 
+                        src={`https://images.pexels.com/photos/${300000 + idx}/pexels-photo-${300000 + idx}.jpeg?auto=compress&cs=tinysrgb&w=40`}
+                        alt={`Comunidade ${idx + 1}`}
+                        className="w-10 h-10 rounded object-cover"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">
+                          Comunidade {idx + 1}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {Math.floor(Math.random() * 1000) + 100} membros
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <Button variant="outline" size="sm" className="w-full mt-3 border-purple-300 text-purple-700">
+                  Ver todas (23)
+                </Button>
+              </OrkutCardContent>
+            </OrkutCard>
+
+            {/* Card adicional com informações */}
+            <OrkutCard>
+              <OrkutCardHeader>
+                <div className="flex items-center space-x-2">
+                  <Star className="h-4 w-4" />
+                  <span>Informações</span>
+                </div>
+              </OrkutCardHeader>
+              <OrkutCardContent>
+                <div className="space-y-2 text-sm text-gray-600">
+                  <p>• Perfil criado em {new Date(profile.created_at).toLocaleDateString('pt-BR')}</p>
+                  <p>• {profile.profile_views || 0} visualizações</p>
+                  <p>• {scraps.length} recados recebidos</p>
+                  {profile.location && <p>• Localização: {profile.location}</p>}
+                </div>
+              </OrkutCardContent>
+            </OrkutCard>
           </div>
         </div>
       </div>

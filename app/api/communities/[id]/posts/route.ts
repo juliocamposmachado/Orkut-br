@@ -1,6 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
+// Tipos para os dados
+interface Profile {
+  id: string
+  username: string
+  display_name: string
+  photo_url: string | null
+}
+
+interface CommunityPost {
+  id: number
+  community_id: number
+  author_id: string
+  content: string
+  likes_count: number
+  comments_count: number
+  created_at: string
+  updated_at: string
+}
+
+interface PostWithAuthor extends CommunityPost {
+  author: Profile
+}
+
 // Cliente Supabase para servidor
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -109,17 +132,17 @@ export async function GET(
     }
 
     // Buscar informações dos autores
-    let transformedPosts = []
+    let transformedPosts: PostWithAuthor[] = []
     if (posts && posts.length > 0) {
-      const authorIds = [...new Set(posts.map(post => post.author_id))]
+      const authorIds = Array.from(new Set(posts.map(post => post.author_id)))
       
       const { data: authors } = await supabase
         .from('profiles')
         .select('id, username, display_name, photo_url')
         .in('id', authorIds)
       
-      const authorsMap = new Map()
-      authors?.forEach(author => {
+      const authorsMap = new Map<string, Profile>()
+      authors?.forEach((author: Profile) => {
         authorsMap.set(author.id, author)
       })
       

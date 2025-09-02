@@ -154,21 +154,35 @@ export default function CommunityPage() {
 
   const checkMembership = async () => {
     try {
-      if (!profile?.id) {
-        console.warn('Profile ID não encontrado para verificar membership')
+      if (!user?.id) {
+        console.warn('User ID não encontrado para verificar membership')
         setIsMember(false)
         setMemberRole(null)
         return
       }
 
-      console.log('🔍 Verificando membership para profile:', profile.id, 'na comunidade:', communityId)
+      console.log('🔍 Verificando membership para user:', user.id, 'na comunidade:', communityId)
       
-      const { data, error } = await supabase
+      // Primeiro tentar com user.id diretamente
+      let { data, error } = await supabase
         .from('community_members')
         .select('role')
         .eq('community_id', communityId)
-        .eq('profile_id', profile.id) // Usar profile.id em vez de user.id
+        .eq('profile_id', user.id)
         .single()
+
+      // Se não encontrar e profile.id for diferente, tentar com profile.id
+      if (!data && profile?.id && profile.id !== user.id) {
+        console.log('🔄 Tentando com profile.id:', profile.id)
+        const result = await supabase
+          .from('community_members')
+          .select('role')
+          .eq('community_id', communityId)
+          .eq('profile_id', profile.id)
+          .single()
+        data = result.data
+        error = result.error
+      }
 
       if (data) {
         console.log('✅ Usuário é membro da comunidade:', data.role)
@@ -304,6 +318,23 @@ export default function CommunityPage() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Voltar às Comunidades
         </Button>
+
+        {/* Debug Info - remover depois */}
+        {process.env.NODE_ENV === 'development' && (
+          <OrkutCard className="mb-4 bg-yellow-50 border-yellow-200">
+            <OrkutCardContent className="p-3">
+              <div className="text-xs space-y-1">
+                <p><strong>🐛 Debug Info:</strong></p>
+                <p>User ID: {user?.id || 'N/A'}</p>
+                <p>Profile ID: {profile?.id || 'N/A'}</p>
+                <p>Community ID: {communityId}</p>
+                <p>Is Member: {isMember ? '✅ Sim' : '❌ Não'}</p>
+                <p>Member Role: {memberRole || 'N/A'}</p>
+                <p>Loading: {loading ? 'Sim' : 'Não'}</p>
+              </div>
+            </OrkutCardContent>
+          </OrkutCard>
+        )}
 
         {/* Community Header */}
         <OrkutCard variant="gradient" className="mb-6">

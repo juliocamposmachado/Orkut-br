@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
 import { Wifi, WifiOff, Eye, EyeOff } from 'lucide-react'
 import { toast } from 'sonner'
+import { WhatsAppStatus } from '@/components/whatsapp-status'
 
 interface OnlineStatusToggleProps {
   isOwnProfile: boolean
@@ -173,7 +174,7 @@ export function OnlineStatusToggle({ isOwnProfile, className }: OnlineStatusTogg
   return (
     <div className={`space-y-3 ${className}`}>
       {/* Status atual */}
-      <div className="flex items-center justify-center">
+      <div className="flex items-center justify-center gap-2">
         <Badge 
           variant="secondary" 
           className={`${isOnline ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'} transition-all`}
@@ -190,6 +191,15 @@ export function OnlineStatusToggle({ isOwnProfile, className }: OnlineStatusTogg
             </>
           )}
         </Badge>
+        
+        {/* Indicador compacto WhatsApp - apenas para próprio perfil */}
+        {isOwnProfile && (
+          <WhatsAppStatus 
+            isOwnProfile={true}
+            showControls={false}
+            compact={true}
+          />
+        )}
       </div>
 
       {/* Controle de visibilidade */}
@@ -239,6 +249,12 @@ export function OnlineStatusToggle({ isOwnProfile, className }: OnlineStatusTogg
         )}
         {isUpdating ? 'Atualizando...' : (isOnline ? 'Ficar Invisível' : 'Ficar Visível')}
       </Button>
+
+      {/* Status WhatsApp */}
+      <WhatsAppStatus 
+        isOwnProfile={isOwnProfile}
+        showControls={true}
+      />
     </div>
   )
 }

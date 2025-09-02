@@ -169,6 +169,12 @@ export function usePhotos(initialFilters: PhotoFilters = {}): UsePhotosResult {
       }
 
       const data = await response.json()
+      
+      // Verificar se está em modo demo e mostrar aviso
+      if (data.demo && typeof window !== 'undefined') {
+        console.warn('🔄 [DEMO MODE] Sistema de fotos em modo demonstração')
+        console.info('💡 Para funcionalidade completa, configure o Supabase')
+      }
 
       if (append && currentFilters.offset! > 0) {
         // Adicionar fotos à lista existente (loadMore)

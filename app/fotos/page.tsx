@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useMemo, useCallback } from 'react'
+import React, { useState, useMemo, useCallback, useEffect } from 'react'
 import { useAuth } from '@/contexts/enhanced-auth-context'
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
@@ -61,6 +61,9 @@ export default function PhotosPage() {
     setFilters,
     clearFilters
   } = usePhotos()
+  
+  // Estado para verificar se está em modo demo
+  const [isDemoMode, setIsDemoMode] = useState(false)
 
   // Aplicar filtros quando mudarem
   const handleSearchChange = useCallback((value: string) => {
@@ -124,6 +127,21 @@ export default function PhotosPage() {
   const handleLikePhoto = useCallback(async (photoId: string) => {
     await likePhoto(photoId)
   }, [likePhoto])
+  
+  // Detectar modo demo
+  useEffect(() => {
+    const checkDemoMode = async () => {
+      try {
+        const response = await fetch('/api/photos?limit=1')
+        const data = await response.json()
+        setIsDemoMode(!!data.demo)
+      } catch (err) {
+        console.warn('Erro ao verificar modo demo:', err)
+      }
+    }
+    
+    checkDemoMode()
+  }, [])
 
   if (!user) {
     return (
@@ -183,6 +201,20 @@ export default function PhotosPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Banner Demo Mode */}
+        {isDemoMode && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center space-x-2 mb-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+              <h3 className="font-medium text-blue-800">Modo Demonstração Ativo</h3>
+            </div>
+            <p className="text-blue-700 text-sm">
+              Você está visualizando fotos de exemplo. Para upload e funcionalidade completa, 
+              configure o banco de dados Supabase.
+            </p>
+          </div>
+        )}
+        
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
           
           {/* Sidebar Filtros */}

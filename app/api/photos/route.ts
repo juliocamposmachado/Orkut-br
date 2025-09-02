@@ -58,31 +58,6 @@ interface PhotoFilters {
  */
 export async function GET(request: NextRequest) {
   try {
-    // Se Supabase não estiver configurado, retornar dados demo
-    if (!supabase) {
-      return NextResponse.json({
-        photos: [],
-        pagination: {
-          limit: 20,
-          offset: 0,
-          total: 0,
-          hasMore: false
-        },
-        stats: {
-          total: 0,
-          categories: {},
-          public: 0,
-          private: 0
-        },
-        popularCategories: [],
-        filters: {
-          applied: false
-        },
-        demo: true,
-        timestamp: new Date().toISOString()
-      })
-    }
-
     const { searchParams } = new URL(request.url)
     
     // Extrair parâmetros de filtro
@@ -94,6 +69,135 @@ export async function GET(request: NextRequest) {
       offset: parseInt(searchParams.get('offset') || '0'),
       publicOnly: searchParams.get('publicOnly') !== 'false'
     }
+
+    // Se Supabase não estiver configurado, retornar dados demo realistas
+    if (!supabase) {
+      const demoPhotos = [
+        {
+          id: '1',
+          user_id: 'demo-user-1',
+          url: 'https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg?auto=compress&cs=tinysrgb&w=800',
+          thumbnail_url: 'https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg?auto=compress&cs=tinysrgb&w=300&h=300',
+          preview_url: 'https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg?auto=compress&cs=tinysrgb&w=800&h=600',
+          title: 'Pôr do Sol na Praia',
+          description: 'Uma linda vista do pôr do sol na praia durante o verão',
+          category: 'natureza',
+          likes_count: 42,
+          comments_count: 8,
+          views_count: 156,
+          created_at: new Date(Date.now() - 3600000).toISOString(),
+          user_name: 'Ana Silva',
+          user_avatar: 'https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?auto=compress&cs=tinysrgb&w=150'
+        },
+        {
+          id: '2', 
+          user_id: 'demo-user-2',
+          url: 'https://images.pexels.com/photos/1640772/pexels-photo-1640772.jpeg?auto=compress&cs=tinysrgb&w=800',
+          thumbnail_url: 'https://images.pexels.com/photos/1640772/pexels-photo-1640772.jpeg?auto=compress&cs=tinysrgb&w=300&h=300',
+          preview_url: 'https://images.pexels.com/photos/1640772/pexels-photo-1640772.jpeg?auto=compress&cs=tinysrgb&w=800&h=600',
+          title: 'Café da Manhã Saudável',
+          description: 'Delicioso café da manhã com frutas e aveia',
+          category: 'culinaria',
+          likes_count: 28,
+          comments_count: 5,
+          views_count: 89,
+          created_at: new Date(Date.now() - 7200000).toISOString(),
+          user_name: 'Carlos Santos',
+          user_avatar: 'https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=150'
+        },
+        {
+          id: '3',
+          user_id: 'demo-user-3', 
+          url: 'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=800',
+          thumbnail_url: 'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=300&h=300',
+          preview_url: 'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=800&h=600',
+          title: 'Paisagem Urbana',
+          description: 'Vista incrível da cidade ao anoitecer',
+          category: 'lifestyle',
+          likes_count: 67,
+          comments_count: 12,
+          views_count: 234,
+          created_at: new Date(Date.now() - 10800000).toISOString(),
+          user_name: 'Marina Costa',
+          user_avatar: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=150'
+        },
+        {
+          id: '4',
+          user_id: 'demo-user-4',
+          url: 'https://images.pexels.com/photos/1375849/pexels-photo-1375849.jpeg?auto=compress&cs=tinysrgb&w=800',
+          thumbnail_url: 'https://images.pexels.com/photos/1375849/pexels-photo-1375849.jpeg?auto=compress&cs=tinysrgb&w=300&h=300',
+          preview_url: 'https://images.pexels.com/photos/1375849/pexels-photo-1375849.jpeg?auto=compress&cs=tinysrgb&w=800&h=600',
+          title: 'Arte Digital',
+          description: 'Criação artística usando técnicas digitais',
+          category: 'arte',
+          likes_count: 35,
+          comments_count: 7,
+          views_count: 127,
+          created_at: new Date(Date.now() - 14400000).toISOString(),
+          user_name: 'Pedro Lima',
+          user_avatar: 'https://images.pexels.com/photos/91227/pexels-photo-91227.jpeg?auto=compress&cs=tinysrgb&w=150'
+        }
+      ]
+
+      // Aplicar filtros básicos nos dados demo
+      let filteredPhotos = demoPhotos
+      
+      if (filters.search) {
+        const searchTerm = filters.search.toLowerCase()
+        filteredPhotos = demoPhotos.filter(photo => 
+          photo.title.toLowerCase().includes(searchTerm) ||
+          photo.description?.toLowerCase().includes(searchTerm) ||
+          photo.category?.toLowerCase().includes(searchTerm) ||
+          photo.user_name.toLowerCase().includes(searchTerm)
+        )
+      }
+      
+      if (filters.category) {
+        filteredPhotos = filteredPhotos.filter(photo => photo.category === filters.category)
+      }
+      
+      // Aplicar paginação
+      const startIndex = filters.offset || 0
+      const endIndex = startIndex + (filters.limit || 20)
+      const paginatedPhotos = filteredPhotos.slice(startIndex, endIndex)
+      
+      return NextResponse.json({
+        photos: paginatedPhotos,
+        pagination: {
+          limit: filters.limit || 20,
+          offset: startIndex,
+          total: filteredPhotos.length,
+          hasMore: endIndex < filteredPhotos.length
+        },
+        stats: {
+          total: demoPhotos.length,
+          categories: {
+            natureza: 1,
+            culinaria: 1, 
+            lifestyle: 1,
+            arte: 1
+          },
+          public: demoPhotos.length,
+          private: 0
+        },
+        popularCategories: [
+          { category: 'natureza', count: 1 },
+          { category: 'culinaria', count: 1 },
+          { category: 'lifestyle', count: 1 },
+          { category: 'arte', count: 1 }
+        ],
+        filters: {
+          ...filters,
+          applied: Object.entries(filters).filter(([key, value]) => 
+            value !== undefined && value !== null && value !== ''
+          ).length > 2
+        },
+        demo: true,
+        message: 'Dados de demonstração - Configure o Supabase para funcionalidade completa',
+        timestamp: new Date().toISOString()
+      })
+    }
+
 
     // Verificar limites
     if (filters.limit! > 100) {

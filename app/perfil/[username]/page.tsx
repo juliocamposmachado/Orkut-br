@@ -1475,76 +1475,78 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
               </OrkutCardContent>
             </OrkutCard>
             
-            {/* Histórico de Conversas */}
-            <OrkutCard>
-              <OrkutCardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <MessageCircle className="h-4 w-4" />
-                    <span>Conversas Recentes</span>
+            {/* Histórico de Conversas - Apenas para o próprio perfil */}
+            {isOwnProfile && (
+              <OrkutCard>
+                <OrkutCardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <MessageCircle className="h-4 w-4" />
+                      <span>Conversas Recentes</span>
+                    </div>
+                    <Link href="/mensagens">
+                      <Button size="sm" variant="ghost" className="text-xs text-purple-600 hover:bg-purple-50">
+                        Ver todas
+                      </Button>
+                    </Link>
                   </div>
-                  <Link href="/mensagens">
-                    <Button size="sm" variant="ghost" className="text-xs text-purple-600 hover:bg-purple-50">
-                      Ver todas
-                    </Button>
-                  </Link>
-                </div>
-              </OrkutCardHeader>
-              <OrkutCardContent>
-                {recentConversations.length === 0 ? (
-                  <div className="text-center py-4">
-                    <MessageCircle className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500 mb-2">
-                      Nenhuma conversa recente
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      Inicie uma conversa enviando uma mensagem
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {recentConversations.slice(0, 3).map((conversation) => (
-                      <div key={conversation.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                           onClick={() => handleOpenMessage({
-                             id: conversation.userId,
-                             name: conversation.userName,
-                             username: conversation.userUsername || '',
-                             photo: conversation.userPhoto,
-                             isOnline: conversation.isOnline || false
-                           })}>
-                        <div className="relative">
-                          <Avatar className="h-10 w-10">
-                            <AvatarImage src={conversation.userPhoto} alt={conversation.userName} />
-                            <AvatarFallback className="text-sm bg-purple-500 text-white">
-                              {conversation.userName.substring(0, 2).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          {conversation.isOnline && (
-                            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <p className="text-sm font-medium text-gray-900 truncate">{conversation.userName}</p>
-                            <p className="text-xs text-gray-500">{conversation.timeAgo}</p>
+                </OrkutCardHeader>
+                <OrkutCardContent>
+                  {recentConversations.length === 0 ? (
+                    <div className="text-center py-4">
+                      <MessageCircle className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-500 mb-2">
+                        Nenhuma conversa recente
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        Inicie uma conversa enviando uma mensagem
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {recentConversations.slice(0, 3).map((conversation) => (
+                        <div key={conversation.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                             onClick={() => handleOpenMessage({
+                               id: conversation.userId,
+                               name: conversation.userName,
+                               username: conversation.userUsername || '',
+                               photo: conversation.userPhoto,
+                               isOnline: conversation.isOnline || false
+                             })}>
+                          <div className="relative">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={conversation.userPhoto} alt={conversation.userName} />
+                              <AvatarFallback className="text-sm bg-purple-500 text-white">
+                                {conversation.userName.substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            {conversation.isOnline && (
+                              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                            )}
                           </div>
-                          <p className="text-xs text-gray-600 truncate">
-                            {conversation.lastMessage}
-                          </p>
-                          {conversation.unreadCount > 0 && (
-                            <div className="mt-1">
-                              <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                {conversation.unreadCount} nova{conversation.unreadCount > 1 ? 's' : ''}
-                              </span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between">
+                              <p className="text-sm font-medium text-gray-900 truncate">{conversation.userName}</p>
+                              <p className="text-xs text-gray-500">{conversation.timeAgo}</p>
                             </div>
-                          )}
+                            <p className="text-xs text-gray-600 truncate">
+                              {conversation.lastMessage}
+                            </p>
+                            {conversation.unreadCount > 0 && (
+                              <div className="mt-1">
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                  {conversation.unreadCount} nova{conversation.unreadCount > 1 ? 's' : ''}
+                                </span>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </OrkutCardContent>
-            </OrkutCard>
+                      ))}
+                    </div>
+                  )}
+                </OrkutCardContent>
+              </OrkutCard>
+            )}
             
             {/* Fotos Recentes */}
             <OrkutCard>

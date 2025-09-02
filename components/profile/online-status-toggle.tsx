@@ -205,7 +205,7 @@ export function OnlineStatusToggle({ isOwnProfile, profileId, className }: Onlin
         
         {/* Indicador compacto WhatsApp - para próprio perfil e visitantes */}
         <WhatsAppStatus 
-          userId={isOwnProfile ? undefined : profileId}
+          userId={profileId}
           isOwnProfile={isOwnProfile}
           showControls={false}
           compact={true}
@@ -262,6 +262,7 @@ export function OnlineStatusToggle({ isOwnProfile, profileId, className }: Onlin
 
       {/* Status WhatsApp */}
       <WhatsAppStatus 
+        userId={profileId}
         isOwnProfile={isOwnProfile}
         showControls={true}
       />

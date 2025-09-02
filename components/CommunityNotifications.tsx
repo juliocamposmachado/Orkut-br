@@ -56,6 +56,7 @@ export function CommunityNotifications({ className }: CommunityNotificationsProp
   const [activities, setActivities] = useState<RecentActivity[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [dataSource, setDataSource] = useState<string>('demo')
 
   // Demo activities para não deixar vazio
   const demoActivities: RecentActivity[] = [
@@ -148,9 +149,12 @@ export function CommunityNotifications({ className }: CommunityNotificationsProp
       
       if (data.success) {
         // Se não há atividades no banco, usar demo
-        setActivities(data.activities.length > 0 ? data.activities : demoActivities)
+        const hasRealData = data.activities.length > 0
+        setActivities(hasRealData ? data.activities : demoActivities)
+        setDataSource(hasRealData ? data.source || 'database' : 'demo')
       } else {
         setActivities(demoActivities)
+        setDataSource('demo')
       }
     } catch (err) {
       console.error('Erro ao carregar atividades:', err)
@@ -197,19 +201,22 @@ export function CommunityNotifications({ className }: CommunityNotificationsProp
     
     switch (activity_type) {
       case 'user_joined':
-        return `${name} acabou de entrar no Orkut! Já conhece?`
+        return `${name} acabou de se cadastrar no site! 🎉 Que tal dar as boas-vindas?`
       case 'post':
-        return `${name} acabou de publicar: "${activity_data.content?.substring(0, 50)}${activity_data.content && activity_data.content.length > 50 ? '...' : ''}"`
+        return `${name} criou um novo post: "${activity_data.content?.substring(0, 60)}${activity_data.content && activity_data.content.length > 60 ? '...' : ''}"`
       case 'like':
         return `${name} curtiu uma publicação`
       case 'comment':
         return `${name} comentou em uma publicação`
+      case 'friend_accepted':
+        const friendName = activity_data.friend_name
+        return friendName ? `${name} se tornou amigo(a) de ${friendName}! 🤝` : `${name} fez uma nova amizade!`
       case 'community_joined':
-        return `${name} entrou na comunidade "${activity_data.community_name}"`
+        return `${name} entrou na comunidade "${activity_data.community_name}" 👥`
       case 'photo_added':
-        return `${name} adicionou uma nova foto`
+        return `${name} adicionou uma nova foto 📸`
       case 'profile_updated':
-        return `${name} atualizou o perfil`
+        return `${name} atualizou o perfil ✨`
       default:
         return `${name} teve uma atividade recente`
     }

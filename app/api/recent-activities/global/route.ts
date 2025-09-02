@@ -61,37 +61,219 @@ export async function GET(request: NextRequest) {
           console.log('🔑 Usando service_role_key para atividades globais')
         }
 
-        const { data, error } = await serverSupabase
-          .from('recent_activities')
-          .select(`
-            *,
-            profiles:profile_id (
-              id,
-              display_name,
-              username,
-              photo_url
-            )
-          `)
-          .order('created_at', { ascending: false })
-          .limit(limit)
+        // Buscar atividades reais a partir de diferentes fontes
+        const realActivities: RecentActivity[] = []
 
-        if (!error && data) {
-          console.log(`✅ ${data.length} atividades globais carregadas do Supabase`)
+        // 1. Buscar novos usuários (recém-cadastrados)
+        try {
+          const { data: newUsers, error: usersError } = await serverSupabase
+            .from('profiles')
+            .select('id, display_name, username, photo_url, created_at')
+            .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Últimas 24h
+            .order('created_at', { ascending: false })
+            .limit(10)
+
+          if (!usersError && newUsers) {
+            newUsers.forEach(user => {
+              realActivities.push({
+                id: `user_joined_${user.id}`,
+                profile_id: user.id,
+                activity_type: 'user_joined',
+                activity_data: {},
+                created_at: user.created_at,
+                profile: {
+                  id: user.id,
+                  display_name: user.display_name,
+                  username: user.username,
+                  photo_url: user.photo_url
+                }
+              })
+            })
+            console.log(`✅ ${newUsers.length} novos usuários encontrados`)
+          }
+        } catch (userError) {
+          console.warn('⚠️ Erro ao buscar novos usuários:', userError)
+        }
+
+        // 2. Buscar posts recentes (posts reais do sistema)
+        try {
+          const { data: recentPosts, error: postsError } = await serverSupabase
+            .from('posts')
+            .select('id, content, author, author_name, author_photo, created_at')
+            .eq('visibility', 'public')
+            .eq('is_hidden', false)
+            .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Últimas 24h
+            .order('created_at', { ascending: false })
+            .limit(15)
+
+          if (!postsError && recentPosts) {
+            // Buscar dados dos autores dos posts
+            const authorIds = [...new Set(recentPosts.map(post => post.author))]
+            const { data: authors } = await serverSupabase
+              .from('profiles')
+              .select('id, display_name, username, photo_url')
+              .in('id', authorIds)
+
+            const authorsMap = new Map(authors?.map(author => [author.id, author]) || [])
+
+            recentPosts.forEach(post => {
+              const author = authorsMap.get(post.author)
+              realActivities.push({
+                id: `post_${post.id}`,
+                profile_id: post.author,
+                activity_type: 'post',
+                activity_data: {
+                  post_id: post.id,
+                  content: post.content
+                },
+                created_at: post.created_at,
+                profile: author ? {
+                  id: author.id,
+                  display_name: author.display_name,
+                  username: author.username,
+                  photo_url: author.photo_url
+                } : {
+                  id: post.author,
+                  display_name: post.author_name || 'Usuário',
+                  username: post.author,
+                  photo_url: post.author_photo || ''
+                }
+              })
+            })
+            console.log(`✅ ${recentPosts.length} posts recentes encontrados`)
+          }
+        } catch (postsError) {
+          console.warn('⚠️ Erro ao buscar posts recentes:', postsError)
+        }
+
+        // 3. Buscar amizades recentes (dados reais)
+        try {
+          const { data: recentFriendships, error: friendshipsError } = await serverSupabase
+            .from('friendships')
+            .select(`
+              id,
+              status,
+              created_at,
+              requester:profiles!requester_id(id, display_name, username, photo_url),
+              addressee:profiles!addressee_id(id, display_name, username, photo_url)
+            `)
+            .eq('status', 'accepted')
+            .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Últimas 24h
+            .order('created_at', { ascending: false })
+            .limit(5)
+
+          if (!friendshipsError && recentFriendships) {
+            recentFriendships.forEach(friendship => {
+              realActivities.push({
+                id: `friendship_${friendship.id}`,
+                profile_id: friendship.requester.id,
+                activity_type: 'friend_accepted',
+                activity_data: {
+                  friend_id: friendship.addressee.id,
+                  friend_name: friendship.addressee.display_name
+                },
+                created_at: friendship.created_at,
+                profile: {
+                  id: friendship.requester.id,
+                  display_name: friendship.requester.display_name,
+                  username: friendship.requester.username,
+                  photo_url: friendship.requester.photo_url
+                }
+              })
+            })
+            console.log(`✅ ${recentFriendships.length} amizades recentes encontradas`)
+          }
+        } catch (friendshipsError) {
+          console.warn('⚠️ Erro ao buscar amizades recentes:', friendshipsError)
+        }
+
+        // 4. Buscar memberships recentes de comunidades (dados reais)
+        try {
+          const { data: recentMemberships, error: membershipsError } = await serverSupabase
+            .from('community_members')
+            .select(`
+              id,
+              created_at,
+              profile_id,
+              community_id,
+              communities!inner(id, name),
+              profiles!inner(id, display_name, username, photo_url)
+            `)
+            .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()) // Últimas 24h
+            .order('created_at', { ascending: false })
+            .limit(5)
+
+          if (!membershipsError && recentMemberships) {
+            recentMemberships.forEach(membership => {
+              realActivities.push({
+                id: `community_joined_${membership.id}`,
+                profile_id: membership.profile_id,
+                activity_type: 'community_joined',
+                activity_data: {
+                  community_id: membership.community_id,
+                  community_name: membership.communities?.name || 'Comunidade'
+                },
+                created_at: membership.created_at,
+                profile: {
+                  id: membership.profiles.id,
+                  display_name: membership.profiles.display_name,
+                  username: membership.profiles.username,
+                  photo_url: membership.profiles.photo_url
+                }
+              })
+            })
+            console.log(`✅ ${recentMemberships.length} entradas em comunidades encontradas`)
+          }
+        } catch (membershipsError) {
+          console.warn('⚠️ Erro ao buscar memberships de comunidades:', membershipsError)
+        }
+
+        // 5. Buscar atividades da tabela recent_activities se existir
+        try {
+          const { data: storedActivities, error: activitiesError } = await serverSupabase
+            .from('recent_activities')
+            .select(`
+              *,
+              profiles:profile_id (
+                id,
+                display_name,
+                username,
+                photo_url
+              )
+            `)
+            .order('created_at', { ascending: false })
+            .limit(10)
+
+          if (!activitiesError && storedActivities) {
+            storedActivities.forEach(activity => {
+              realActivities.push({
+                ...activity,
+                profile: activity.profiles
+              })
+            })
+            console.log(`✅ ${storedActivities.length} atividades armazenadas encontradas`)
+          }
+        } catch (activitiesError) {
+          console.warn('⚠️ Erro ao buscar atividades armazenadas:', activitiesError)
+        }
+
+        // Se temos atividades reais, usá-las
+        if (realActivities.length > 0) {
+          // Ordenar por data mais recente e remover duplicatas
+          const uniqueActivities = realActivities
+            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+            .slice(0, limit)
           
-          // Transformar os dados para incluir o perfil
-          const transformedActivities = data.map(activity => ({
-            ...activity,
-            profile: activity.profiles
-          }))
+          console.log(`✅ ${uniqueActivities.length} atividades reais carregadas`)
           
           return NextResponse.json({
             success: true,
-            activities: transformedActivities,
-            total: data.length,
-            source: 'database'
+            activities: uniqueActivities,
+            total: uniqueActivities.length,
+            source: 'real_data'
           })
         } else {
-          console.warn('⚠️ Erro no Supabase ao buscar atividades globais:', error?.message)
+          console.log('📭 Nenhuma atividade real encontrada, usando demo')
         }
       } catch (supabaseError) {
         console.warn('⚠️ Supabase falhou:', supabaseError)

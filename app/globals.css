@@ -488,24 +488,13 @@
 /* Main background application */
 body {
   position: relative;
-  transition: background-color 0.3s ease;
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: -1;
   background: var(--orkut-wallpaper);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
-  opacity: var(--orkut-wallpaper-opacity);
   transition: all 0.3s ease;
+  min-height: 100vh;
 }
 
 /* Page container overlays */
@@ -529,31 +518,25 @@ body::before {
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Special handling for gradient backgrounds */
-[data-wallpaper-type="gradient"] body::before {
-  background: var(--orkut-wallpaper);
+/* Special handling for different wallpaper types */
+[data-wallpaper-type="gradient"] body {
   background-size: 100% 100%;
 }
 
-/* Special handling for image backgrounds */
-[data-wallpaper-type="image"] body::before {
-  background: var(--orkut-wallpaper);
+[data-wallpaper-type="image"] body {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
 }
 
-/* Special handling for pattern backgrounds */
-[data-wallpaper-type="pattern"] body::before {
-  background: var(--orkut-wallpaper);
+[data-wallpaper-type="pattern"] body {
   background-size: 50px 50px;
   background-repeat: repeat;
 }
 
-/* Special handling for solid backgrounds */
-[data-wallpaper-type="solid"] body::before {
-  background: var(--orkut-wallpaper);
+[data-wallpaper-type="solid"] body {
   background-size: auto;
+  background-repeat: no-repeat;
 }
 
 /* Adaptive navigation bar */
@@ -624,7 +607,7 @@ body::before {
     --orkut-content-bg-opacity: 0.98;
   }
   
-  body::before {
+  body {
     background-attachment: scroll;
   }
   
@@ -636,8 +619,8 @@ body::before {
 
 /* Print styles - disable wallpaper */
 @media print {
-  body::before {
-    display: none !important;
+  body {
+    background: white !important;
   }
   
   .orkut-content-card,
@@ -669,41 +652,39 @@ body::before {
 
 /* Reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
-  body::before {
+  body {
     background-attachment: scroll;
   }
 }
 
-/* Microsoft Edge specific fixes for button interactivity */
-button:not([disabled]) {
-  cursor: pointer !important;
-  -ms-touch-action: manipulation;
+/* Universal button compatibility for all browsers */
+button {
+  cursor: pointer;
   touch-action: manipulation;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  border: none;
+  outline: none;
 }
 
-button[disabled] {
-  cursor: not-allowed !important;
+button:disabled {
+  cursor: not-allowed;
   pointer-events: none;
 }
 
-/* Edge-specific button hover states */
-@supports (-ms-ime-align: auto) {
-  button:hover:not([disabled]) {
-    transform: translateY(-1px);
-    transition: transform 0.1s ease;
-  }
+button:focus-visible {
+  outline: 2px solid #a855f7;
+  outline-offset: 2px;
 }
 
-/* Ensure all interactive elements are clickable in Edge */
+/* Universal interactive elements */
 [role="button"],
-.cursor-pointer {
-  cursor: pointer !important;
-  -ms-touch-action: manipulation;
+.cursor-pointer,
+[onclick],
+a[href] {
+  cursor: pointer;
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Color theme variations */

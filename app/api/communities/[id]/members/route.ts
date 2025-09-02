@@ -77,12 +77,12 @@ export async function GET(
     }
 
     // Buscar membros da comunidade
-    const { data: members, error: membersError } = await supabase
+    const { data: memberships, error: membersError } = await supabase
       .from('community_members')
       .select(`
+        profile_id,
         role,
-        joined_at,
-        profiles:profile_id(id, username, display_name, photo_url)
+        joined_at
       `)
       .eq('community_id', communityId)
       .order('joined_at', { ascending: true })
@@ -95,12 +95,32 @@ export async function GET(
       )
     }
 
-    // Transformar dados
-    const transformedMembers = members?.map(member => ({
-      ...(member.profiles as any),
-      role: member.role,
-      joined_at: member.joined_at
-    })) || []
+    // Buscar informações dos perfis dos membros
+    let transformedMembers = []
+    if (memberships && memberships.length > 0) {
+      const profileIds = memberships.map(membership => membership.profile_id)
+      
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, username, display_name, photo_url')
+        .in('id', profileIds)
+      
+      const profilesMap = new Map()
+      profiles?.forEach(profile => {
+        profilesMap.set(profile.id, profile)
+      })
+      
+      transformedMembers = memberships.map(membership => ({
+        ...(profilesMap.get(membership.profile_id) || {
+          id: membership.profile_id,
+          username: 'usuario',
+          display_name: 'Usuário',
+          photo_url: null
+        }),
+        role: membership.role,
+        joined_at: membership.joined_at
+      }))
+    }
 
     return NextResponse.json({
       success: true,
@@ -221,7 +241,7 @@ export async function POST(
       .from('community_members')
       .insert({
         community_id: communityId,
-        profile_id: user.id,
+        profile_id: profileId, // Usar profileId em vez de user.id
         role: 'member',
         joined_at: new Date().toISOString()
       })
@@ -333,12 +353,28 @@ export async function DELETE(
       )
     }
 
+    // Obter o perfil do usuário
+    const { data: profileData, error: profileError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', user.id)
+      .single()
+
+    if (profileError || !profileData) {
+      return NextResponse.json(
+        { error: 'Perfil de usuário não encontrado' },
+        { status: 404 }
+      )
+    }
+
+    const profileId = profileData.id
+
     // Verificar se o usuário é membro
     const { data: membership, error: membershipError } = await supabase
       .from('community_members')
       .select('id, role')
       .eq('community_id', communityId)
-      .eq('profile_id', user.id)
+      .eq('profile_id', profileId) // Usar profileId
       .single()
 
     if (membershipError || !membership) {
@@ -353,7 +389,7 @@ export async function DELETE(
       .from('community_members')
       .delete()
       .eq('community_id', communityId)
-      .eq('profile_id', user.id)
+      .eq('profile_id', profileId) // Usar profileId em vez de user.id
 
     if (leaveError) {
       console.error('Erro ao sair da comunidade:', leaveError)

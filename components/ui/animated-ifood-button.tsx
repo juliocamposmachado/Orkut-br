@@ -50,7 +50,7 @@ export function AnimatediFoodButton({
   }, [currentState, currentTextIndex, texts.length])
   
   return (
-    <div className={`flex items-center space-x-2 h-10 min-w-max ${className}`}>
+    <div className={`flex items-center space-x-2 h-10 ${className}`} style={{ width: '100px' }}>
       {currentState === 'logo' ? (
         <>
           <Image 
@@ -60,12 +60,12 @@ export function AnimatediFoodButton({
             height={20} 
             className="transition-all duration-300 animate-pulse flex-shrink-0 rounded"
           />
-          <span className="text-sm font-bold whitespace-nowrap">Adega</span>
+          <span className="text-sm font-bold whitespace-nowrap truncate flex-1 text-center">Adega</span>
         </>
       ) : (
         <>
           <Crown className="h-4 w-4 flex-shrink-0 animate-bounce text-yellow-300" />
-          <span className="text-sm font-bold whitespace-nowrap animate-pulse">
+          <span className="text-sm font-bold whitespace-nowrap animate-pulse truncate flex-1 text-center">
             {texts[currentTextIndex]}
           </span>
         </>

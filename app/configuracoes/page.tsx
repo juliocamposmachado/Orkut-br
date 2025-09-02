@@ -11,13 +11,14 @@ import { NotificationSettings } from '@/components/notifications/notification-se
 import { WhatsAppConfig } from '@/components/profile/whatsapp-config';
 import { SocialConfig } from '@/components/profile/social-config';
 import { SoundSettings } from '@/components/profile/sound-settings';
-import { Settings, ArrowLeft, User, Bell, MessageSquare, Globe, Volume2 } from 'lucide-react';
+import { AppearanceCustomizer } from '@/components/ui/appearance-customizer';
+import { Settings, ArrowLeft, User, Bell, MessageSquare, Globe, Volume2, Palette } from 'lucide-react';
 import Link from 'next/link';
 
 const ConfiguracoesPage: React.FC = () => {
   const router = useRouter();
   const { user, profile } = useAuth();
-  const [activeTab, setActiveTab] = useState<'perfil' | 'privacidade' | 'notificacoes' | 'sons' | 'whatsapp' | 'social'>('perfil');
+  const [activeTab, setActiveTab] = useState<'perfil' | 'aparencia' | 'privacidade' | 'notificacoes' | 'sons' | 'whatsapp' | 'social'>('perfil');
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -41,6 +42,7 @@ const ConfiguracoesPage: React.FC = () => {
 
   const tabs = [
     { id: 'perfil' as const, label: 'Perfil', icon: User },
+    { id: 'aparencia' as const, label: 'Aparência', icon: Palette },
     { id: 'privacidade' as const, label: 'Privacidade', icon: Settings },
     { id: 'notificacoes' as const, label: 'Notificações', icon: Bell },
     { id: 'sons' as const, label: 'Sons', icon: Volume2 },
@@ -114,6 +116,23 @@ const ConfiguracoesPage: React.FC = () => {
                   onSuccess={handleProfileUpdateSuccess}
                   onCancel={() => router.back()}
                 />
+              </div>
+            )}
+
+            {activeTab === 'aparencia' && (
+              <div>
+                <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+                  <h2 className="text-xl font-bold text-gray-800 mb-2">
+                    Personalizar Aparência
+                  </h2>
+                  <p className="text-gray-600 mb-6">
+                    Customize o visual do seu Orkut com temas, papéis de parede e cores personalizadas - igual ao Google Chrome!
+                  </p>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-lg">
+                  <AppearanceCustomizer className="p-6" />
+                </div>
               </div>
             )}
 

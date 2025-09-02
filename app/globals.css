@@ -472,3 +472,253 @@
 .animate-marquee {
   animation: marquee 15s linear infinite;
 }
+
+/* ==============================================
+   ORKUT THEME SYSTEM - GOOGLE CHROME STYLE
+   ============================================== */
+
+/* CSS Custom Properties for wallpaper system */
+:root {
+  --orkut-wallpaper: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+  --orkut-wallpaper-type: gradient;
+  --orkut-wallpaper-opacity: 1;
+  --orkut-content-bg-opacity: 0.95;
+}
+
+/* Main background application - DISABLED FOR DEBUG */
+/* body {
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: -1;
+  background: var(--orkut-wallpaper);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  opacity: var(--orkut-wallpaper-opacity);
+} */
+
+/* Page container overlays */
+.orkut-page-container {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+
+/* Content cards with adaptive background */
+.orkut-content-card {
+  background: rgba(255, 255, 255, var(--orkut-content-bg-opacity));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Dark theme content cards */
+.dark .orkut-content-card {
+  background: rgba(31, 41, 55, var(--orkut-content-bg-opacity));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Special handling for gradient backgrounds */
+[data-wallpaper-type="gradient"] body::before {
+  background: var(--orkut-wallpaper);
+  background-size: 100% 100%;
+}
+
+/* Special handling for image backgrounds */
+[data-wallpaper-type="image"] body::before {
+  background: var(--orkut-wallpaper);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Special handling for pattern backgrounds */
+[data-wallpaper-type="pattern"] body::before {
+  background: var(--orkut-wallpaper);
+  background-size: 50px 50px;
+  background-repeat: repeat;
+}
+
+/* Special handling for solid backgrounds */
+[data-wallpaper-type="solid"] body::before {
+  background: var(--orkut-wallpaper);
+  background-size: auto;
+}
+
+/* Adaptive navigation bar */
+.orkut-nav {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .orkut-nav {
+  background: rgba(31, 41, 55, 0.9);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Adaptive sidebar */
+.orkut-sidebar {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .orkut-sidebar {
+  background: rgba(31, 41, 55, 0.8);
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Modal and dropdown backgrounds */
+.orkut-modal {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .orkut-modal {
+  background: rgba(31, 41, 55, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Enhanced glassmorphism effects */
+.orkut-glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+.dark .orkut-glass {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Theme-aware shadows */
+.orkut-shadow {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.dark .orkut-shadow {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive wallpaper adjustments */
+@media (max-width: 768px) {
+  :root {
+    --orkut-content-bg-opacity: 0.98;
+  }
+  
+  body::before {
+    background-attachment: scroll;
+  }
+  
+  .orkut-content-card {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+}
+
+/* Print styles - disable wallpaper */
+@media print {
+  body::before {
+    display: none !important;
+  }
+  
+  .orkut-content-card,
+  .orkut-nav,
+  .orkut-sidebar,
+  .orkut-modal {
+    background: white !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
+/* High contrast mode adjustments */
+@media (prefers-contrast: high) {
+  :root {
+    --orkut-content-bg-opacity: 1;
+  }
+  
+  .orkut-content-card {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: white;
+  }
+  
+  .dark .orkut-content-card {
+    background: #1f2937;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  body::before {
+    background-attachment: scroll;
+  }
+}
+
+/* Color theme variations */
+.purple {
+  --orkut-primary: #8b5cf6;
+  --orkut-primary-light: #a78bfa;
+}
+
+.blue {
+  --orkut-primary: #3b82f6;
+  --orkut-primary-light: #60a5fa;
+}
+
+.green {
+  --orkut-primary: #10b981;
+  --orkut-primary-light: #34d399;
+}
+
+.pink {
+  --orkut-primary: #ec4899;
+  --orkut-primary-light: #f472b6;
+}
+
+.orange {
+  --orkut-primary: #f97316;
+  --orkut-primary-light: #fb923c;
+}
+
+.red {
+  --orkut-primary: #ef4444;
+  --orkut-primary-light: #f87171;
+}
+
+.teal {
+  --orkut-primary: #14b8a6;
+  --orkut-primary-light: #5eead4;
+}
+
+.indigo {
+  --orkut-primary: #6366f1;
+  --orkut-primary-light: #818cf8;
+}
+
+.yellow {
+  --orkut-primary: #eab308;
+  --orkut-primary-light: #facc15;
+}
+
+.slate {
+  --orkut-primary: #64748b;
+  --orkut-primary-light: #94a3b8;
+}

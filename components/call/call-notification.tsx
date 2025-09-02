@@ -14,10 +14,16 @@ export function CallNotification() {
   const [isResponding, setIsResponding] = useState(false)
 
   // Logging detalhado para debug
-  console.log('🎬 CallNotification renderizando. incomingCall:', incomingCall)
-  console.log('🎬 CallNotification renderizando. isRinging:', isRinging)
-  console.log('🎬 CallNotification renderizando. callDuration:', callDuration)
-  console.log('🎬 CallNotification renderizando. isResponding:', isResponding)
+  console.log('🎦 [CallNotification] Renderizando:', {
+    incomingCall: incomingCall ? {
+      callId: incomingCall.callId,
+      callType: incomingCall.callType,
+      fromUser: incomingCall.fromUser.display_name
+    } : null,
+    isRinging,
+    callDuration,
+    isResponding
+  })
 
   // Timer para contagem de tempo da chamada
   useEffect(() => {

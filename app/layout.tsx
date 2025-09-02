@@ -11,6 +11,7 @@ import { FriendsProvider } from '@/contexts/FriendsContext';
 import { Toaster } from '@/components/ui/sonner';
 import { StructuredData } from '@/components/seo/structured-data';
 import { IdleOverlay } from '@/components/idle-overlay';
+import { CallManager } from '@/components/calls/call-manager';
 // Import polyfills to fix runtime errors
 import '@/lib/polyfills';
 // WebRTC diagnostics moved to developer dashboard
@@ -170,7 +171,8 @@ export default function RootLayout({
                 <VoiceProvider>
                   <FriendsProvider>
                     {children}
-                    {/* CallManager removido - funcionalidades integradas nas páginas específicas */}
+                    {/* Sistema de chamadas - notificações, modais e controles */}
+                    <CallManager />
                     {/* WebRTC diagnostics moved to developer dashboard */}
                     {/* <EventListenerMonitor /> */}
                     <Toaster />

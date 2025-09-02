@@ -184,18 +184,49 @@ export const SocialConfig: React.FC<SocialConfigProps> = ({
     
     setSaving(true);
     try {
-      // Preparar dados para salvamento offline
-      const socialData = {
-        user_id: user.id,
-        ...settings
-      };
+      console.log('🌐 Salvando redes sociais no banco de dados...');
+      console.log('📊 Dados para salvar:', settings);
       
-      // Salvar localmente primeiro
-      await saveLocally('social', socialData);
+      // Salvar diretamente no Supabase
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({
+          social_instagram: settings.social_instagram || null,
+          social_facebook: settings.social_facebook || null,
+          social_twitter: settings.social_twitter || null,
+          social_linkedin: settings.social_linkedin || null,
+          social_youtube: settings.social_youtube || null,
+          social_tiktok: settings.social_tiktok || null,
+          social_github: settings.social_github || null,
+          social_website: settings.social_website || null
+        })
+        .eq('id', user.id)
+        .select();
+      
+      if (error) {
+        console.error('❌ Erro do Supabase:', error);
+        throw new Error(`Erro do banco: ${error.message}`);
+      }
+      
+      console.log('✅ Redes sociais salvas com sucesso no banco!');
+      console.log('📊 Resposta do banco:', data);
+      
+      toast.success('✅ Redes sociais salvas com sucesso!');
+      
+      // Opcional: também salvar localmente como backup
+      try {
+        const socialData = {
+          user_id: user.id,
+          ...settings
+        };
+        await saveLocally('social', socialData);
+      } catch (localError) {
+        console.warn('⚠️ Erro ao salvar backup local (não crítico):', localError);
+      }
       
     } catch (error) {
-      console.error('Erro ao salvar redes sociais:', error);
-      toast.error('❌ Erro ao salvar redes sociais.');
+      console.error('❌ Erro ao salvar redes sociais:', error);
+      toast.error(`❌ Erro ao salvar redes sociais: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
     } finally {
       setSaving(false);
     }

@@ -118,8 +118,7 @@ export async function GET(request: NextRequest) {
         tags,
         is_active,
         created_at,
-        updated_at,
-        profiles:owner(display_name, username, photo_url)
+        updated_at
       `, { count: 'exact' })
       .eq('is_active', true)
       .order('members_count', { ascending: false })

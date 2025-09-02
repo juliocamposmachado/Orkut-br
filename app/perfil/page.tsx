@@ -475,7 +475,7 @@ export default function ProfilePage() {
           <div className="lg:col-span-2">
             
             <Tabs defaultValue="scraps" className="space-y-6">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-3 gap-2">
                 <TabsTrigger value="scraps">Recados ({scraps.length})</TabsTrigger>
                 <TabsTrigger value="photos">Fotos ({photos.length})</TabsTrigger>
                 <TabsTrigger value="about">Sobre</TabsTrigger>

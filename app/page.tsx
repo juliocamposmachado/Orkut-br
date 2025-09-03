@@ -58,7 +58,6 @@ import { CallModal } from '@/components/call/call-modal'
 import { useCall } from '@/hooks/use-call'
 import { CommunityRulesCard } from '@/components/CommunityRulesCard'
 import OnlineFriends from '@/components/friends/online-friends'
-import GoogleTrends from '@/components/GoogleTrends'
 import { CommunityNotifications } from '@/components/CommunityNotifications'
 import { RecentLoginsCard } from '@/components/auth/recent-logins-card'
 import { CallCenterCard } from '@/components/call/call-center-card'
@@ -501,10 +500,6 @@ export default function HomePage() {
               console.log('🎉 Post criado, GlobalFeed será atualizado automaticamente via evento')
             }} />
             
-            {/* DESKTOP: Assuntos em Alta - Google Trends */}
-            <div className="hidden lg:block">
-              <GoogleTrends />
-            </div>
             
             {/* FEED GLOBAL - PRINCIPAL CONTEÚDO NO CENTRO */}
             <GlobalFeed />

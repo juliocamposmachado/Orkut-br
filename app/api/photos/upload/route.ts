@@ -3,24 +3,40 @@ import { createClient } from '@supabase/supabase-js'
 import { v4 as uuidv4 } from 'uuid'
 import sharp from 'sharp'
 
-// Cliente Supabase para servidor
+// Cliente Supabase para servidor - Configuração para Vercel
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-// Verificar se as variáveis estão configuradas
-if (!supabaseUrl || !supabaseServiceKey || 
-    supabaseUrl.includes('placeholder') || 
-    supabaseUrl.includes('your_') ||
-    !supabaseUrl.startsWith('https://')) {
-  console.warn('Supabase não configurado completamente para upload')
+// Log para debug em desenvolvimento (não em produção)
+if (process.env.NODE_ENV !== 'production') {
+  console.log('🔧 Debug Supabase Config:')
+  console.log('- URL:', supabaseUrl ? '✅ Configurada' : '❌ Não encontrada')
+  console.log('- Service Key:', supabaseServiceKey ? '✅ Configurada' : '❌ Não encontrada')
+  console.log('- Environment:', process.env.NODE_ENV)
 }
 
-// Criar cliente apenas se configurado corretamente
-const supabase = (supabaseUrl && supabaseServiceKey &&
-                 !supabaseUrl.includes('placeholder') &&
-                 !supabaseUrl.includes('your_') &&
-                 supabaseUrl.startsWith('https://'))
-  ? createClient(supabaseUrl, supabaseServiceKey)
+// Verificar se as variáveis estão configuradas (melhorada para Vercel)
+const isSupabaseConfigured = !!(supabaseUrl && 
+  supabaseServiceKey && 
+  supabaseUrl.startsWith('https://') &&
+  !supabaseUrl.includes('placeholder') &&
+  !supabaseUrl.includes('your_'))
+
+if (!isSupabaseConfigured && process.env.NODE_ENV !== 'production') {
+  console.warn('⚠️ Supabase não configurado completamente para upload')
+  console.warn('Verifique as variáveis de ambiente no Vercel:')
+  console.warn('- NEXT_PUBLIC_SUPABASE_URL')
+  console.warn('- SUPABASE_SERVICE_ROLE_KEY')
+}
+
+// Criar cliente Supabase
+const supabase = isSupabaseConfigured 
+  ? createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        persistSession: false, // Importante para APIs
+        autoRefreshToken: false
+      }
+    })
   : null
 
 interface UploadResult {
@@ -83,13 +99,17 @@ export async function POST(request: NextRequest) {
   try {
     // Se Supabase não estiver configurado, retornar erro informativo
     if (!supabase) {
+      console.error('Supabase não configurado para upload de fotos')
       return NextResponse.json({ 
         success: false,
         error: 'Funcionalidade de upload de fotos não disponível no momento',
         message: 'O servidor não está configurado para upload de fotos. Entre em contato com o administrador.',
-        demo: true 
+        demo: true,
+        details: 'Supabase URL ou Service Key não configurados corretamente'
       }, { status: 503 })
     }
+
+    console.log('Iniciando upload de fotos...')
 
     // Verificar autenticação
     const authHeader = request.headers.get('authorization')
@@ -166,7 +186,14 @@ export async function POST(request: NextRequest) {
 
         // Verificar erros de upload
         if (originalUpload.error || previewUpload.error || thumbnailUpload.error) {
-          throw new Error('Erro no upload para storage')
+          const errors = [
+            originalUpload.error && `Original: ${originalUpload.error.message}`,
+            previewUpload.error && `Preview: ${previewUpload.error.message}`,
+            thumbnailUpload.error && `Thumbnail: ${thumbnailUpload.error.message}`
+          ].filter(Boolean).join(', ')
+          
+          console.error('Erro no upload para storage:', errors)
+          throw new Error(`Erro no upload para storage: ${errors}`)
         }
 
         // Gerar URLs públicas

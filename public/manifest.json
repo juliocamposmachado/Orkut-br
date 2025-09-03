@@ -1,0 +1,115 @@
+{
+  "name": "Orkut BR - Rede Social Brasileira",
+  "short_name": "Orkut BR",
+  "description": "A rede social mais querida do Brasil está de volta! Conecte-se com amigos, compartilhe momentos e reviva a nostalgia do Orkut.",
+  "start_url": "/?utm_source=pwa",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#E91E63",
+  "background_color": "#ffffff",
+  "categories": ["social", "entertainment", "lifestyle"],
+  "lang": "pt-BR",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/Orkutredes.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/og-image.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/og-image.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Homepage do Orkut BR"
+    }
+  ],
+  "features": [
+    "Cross Platform",
+    "fast",
+    "simple"
+  ],
+  "shortcuts": [
+    {
+      "name": "Feed Principal",
+      "short_name": "Feed",
+      "description": "Veja as últimas novidades dos seus amigos",
+      "url": "/?utm_source=pwa_shortcut",
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Mensagens",
+      "short_name": "Mensagens",
+      "description": "Converse com seus amigos",
+      "url": "/mensagens?utm_source=pwa_shortcut",
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Comunidades",
+      "short_name": "Comunidades",
+      "description": "Participe de comunidades incríveis",
+      "url": "/comunidades?utm_source=pwa_shortcut",
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Meu Perfil",
+      "short_name": "Perfil",
+      "description": "Acesse e edite seu perfil",
+      "url": "/perfil?utm_source=pwa_shortcut",
+      "icons": [
+        {
+          "src": "/favicon.svg",
+          "sizes": "96x96",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "edge_side_panel": {
+    "preferred_width": 480
+  },
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  }
+}

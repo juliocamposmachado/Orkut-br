@@ -14,6 +14,7 @@ import { StructuredData } from '@/components/seo/structured-data';
 import { IdleOverlay } from '@/components/idle-overlay';
 import { CallManager } from '@/components/calls/call-manager';
 import { EdgeCompatibility } from '@/components/edge-compatibility';
+import { PWAInstaller } from '@/components/PWAInstaller';
 // Import polyfills to fix runtime errors
 import '@/lib/polyfills';
 // WebRTC diagnostics moved to developer dashboard
@@ -189,6 +190,8 @@ export default function RootLayout({
         </ThemeProvider>
         {/* Overlay de pausa por inatividade */}
         <IdleOverlay timeout={60000} />
+        {/* PWA Install Prompt */}
+        <PWAInstaller />
       </body>
     </html>
   );

@@ -185,26 +185,12 @@ export function Navbar() {
               </Link>
             )}
             
-            {/* Seja Pro Button ou Badge Pro - Hidden on mobile devices */}
-            {!subscriptionLoading && (
-              hasActiveSubscription ? (
-                <div className="hidden md:flex items-center space-x-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 xs:px-4 py-1.5 xs:py-2 rounded-full border-2 border-yellow-300 shadow-lg animate-pulse whitespace-nowrap">
-                  <Crown className="h-3 w-3 xs:h-4 xs:w-4 flex-shrink-0" />
-                  <span className="text-xs xs:text-sm font-bold">Orkut BR Pro</span>
-                </div>
-              ) : (
-                <Link 
-                  href="/subscription"
-                  onClick={(e) => handleNavClick('/subscription', 'seja pro', e)}
-                  className="hidden md:flex group bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white px-2 xs:px-4 py-1.5 xs:py-2 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg border-2 border-yellow-300 whitespace-nowrap flex-shrink-0"
-                  title="Assine o Orkut BR Pro"
-                >
-                  <div className="flex items-center space-x-1">
-                    <Crown className="h-3 w-3 xs:h-4 xs:w-4 flex-shrink-0 group-hover:scale-110 transition-transform duration-200" />
-                    <span className="text-xs xs:text-sm font-bold">Seja Pro</span>
-                  </div>
-                </Link>
-              )
+            {/* Badge Pro - Only show if user has active subscription */}
+            {!subscriptionLoading && hasActiveSubscription && (
+              <div className="hidden md:flex items-center space-x-1 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-2 xs:px-4 py-1.5 xs:py-2 rounded-full border-2 border-yellow-300 shadow-lg animate-pulse whitespace-nowrap">
+                <Crown className="h-3 w-3 xs:h-4 xs:w-4 flex-shrink-0" />
+                <span className="text-xs xs:text-sm font-bold">Orkut BR Pro</span>
+              </div>
             )}
             
             {/* Notifications */}

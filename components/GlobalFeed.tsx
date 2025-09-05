@@ -391,7 +391,7 @@ export function GlobalFeed({ className = '' }: GlobalFeedProps) {
             </div>
           </OrkutCardContent>
         </OrkutCard>
-      ))}}
+      ))}
       
       {/* Botão Leia Mais - Mostrar apenas se há mais de 5 posts e não está mostrando todos */}
       {!showAllPosts && posts.length > 5 && (

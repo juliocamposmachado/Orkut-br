@@ -373,12 +373,12 @@ export default function HomePage() {
         {/* Layout com 3 colunas: Sidebar Esquerda | Feed Central | Sidebar Direita */}
         <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr_300px] xl:grid-cols-[320px_1fr_320px] gap-4 lg:gap-6 items-start max-w-7xl mx-auto">
           
-          {/* Left Sidebar */}
+          {/* Left Sidebar - 7 Cards Equilibrados */}
           <div className="hidden lg:block space-y-4 sticky top-4">
-            {/* Regras da Comunidade - PRIMEIRO CARD */}
+            {/* 1. Regras da Comunidade */}
             <CommunityRulesCard />
             
-            {/* Navigation Menu */}
+            {/* 2. Navigation Menu */}
             <OrkutCard>
               <OrkutCardHeader>
                 <div className="flex items-center space-x-2">
@@ -417,10 +417,7 @@ export default function HomePage() {
               </OrkutCardContent>
             </OrkutCard>
 
-            {/* Logins Recentes */}
-            <RecentLoginsCard />
-            
-            {/* Ações Rápidas */}
+            {/* 3. Ações Rápidas */}
             <OrkutCard>
               <OrkutCardHeader>
                 <span className="text-gray-600 text-sm font-medium">Ações rápidas</span>
@@ -449,7 +446,46 @@ export default function HomePage() {
               </OrkutCardContent>
             </OrkutCard>
 
-            {/* Card Escrito */}
+            {/* 4. Comunidades em Alta - Movido para esquerda */}
+            <OrkutCard>
+              <OrkutCardHeader>
+                <div className="flex items-center space-x-2">
+                  <TrendingUp className="h-4 w-4" />
+                  <span>Comunidades em Alta</span>
+                </div>
+              </OrkutCardHeader>
+              <OrkutCardContent>
+                <div className="space-y-3">
+                  {communities.slice(0, 5).map((community) => (
+                    <div key={community.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer">
+                      <img 
+                        src={community.photo_url} 
+                        alt={community.name}
+                        className="w-10 h-10 rounded-lg object-cover"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-sm text-gray-800 truncate">
+                          {community.name}
+                        </h4>
+                        <p className="text-xs text-gray-600">
+                          {community.members_count.toLocaleString('pt-BR')} membros
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full mt-3 border-purple-300 text-purple-700 hover:bg-purple-50"
+                  onClick={() => router.push('/comunidades')}
+                >
+                  Ver Todas
+                </Button>
+              </OrkutCardContent>
+            </OrkutCard>
+
+            {/* 5. Card Escrito */}
             <OrkutCard>
               <OrkutCardHeader>
                 <div className="flex items-center justify-between">
@@ -502,7 +538,31 @@ export default function HomePage() {
               </OrkutCardContent>
             </OrkutCard>
 
-            {/* Anúncios Patrocinados - Sidebar Esquerda */}
+            {/* 6. Top Friends - Movido para esquerda */}
+            <OrkutCard>
+              <OrkutCardHeader>
+                <div className="flex items-center space-x-2">
+                  <Star className="h-4 w-4" />
+                  <span>Top 10 Amigos</span>
+                </div>
+              </OrkutCardHeader>
+              <OrkutCardContent>
+                <div className="grid grid-cols-2 gap-3">
+                  {Array.from({ length: 4 }).map((_, idx) => (
+                    <div key={idx} className="text-center">
+                      <img 
+                        src={`https://images.pexels.com/photos/${220000 + idx}/pexels-photo-${220000 + idx}.jpeg?auto=compress&cs=tinysrgb&w=100`}
+                        alt={`Amigo ${idx + 1}`}
+                        className="w-12 h-12 rounded-full mx-auto mb-1 object-cover hover:opacity-80 transition-opacity cursor-pointer"
+                      />
+                      <p className="text-xs text-gray-600">Amigo {idx + 1}</p>
+                    </div>
+                  ))}
+                </div>
+              </OrkutCardContent>
+            </OrkutCard>
+
+            {/* 7. Anúncios Patrocinados */}
             <OrkutCard>
               <OrkutCardHeader>
                 <div className="flex items-center justify-between">
@@ -588,24 +648,24 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Right Sidebar - Nova organização */}
+          {/* Right Sidebar - 7 Cards Equilibrados */}
           <div className="space-y-4 lg:space-y-6 lg:sticky lg:top-4 order-3">
-            {/* 1. Amigos Online - PRIMEIRO CARD - Alinhado com o topo */}
+            {/* 1. Amigos Online */}
             <OnlineFriends 
               onOpenMessage={() => router.push('/mensagens')} 
               onStartAudioCall={(user) => startAudioCall(user)}
             />
 
-            {/* 2. Central de Chamadas - NOVO CARD */}
+            {/* 2. Central de Chamadas */}
             <CallCenterCard />
 
-            {/* 3. Avisos da Comunidade - CARD */}
+            {/* 3. Avisos da Comunidade */}
             <CommunityNotifications className="shadow-md" />
 
-            {/* 4. Widget de Rádio - de volta à sidebar direita */}
+            {/* 4. Widget de Rádio */}
             <RadioTatuapeWidget className="shadow-md" />
 
-            {/* 2. Site Users - Gmail Users compacto */}
+            {/* 5. Site Users - Gmail Users */}
             <OrkutCard className="flex flex-col">
               <OrkutCardHeader>
                 <div className="flex items-center justify-between">
@@ -768,166 +828,10 @@ export default function HomePage() {
               </OrkutCardContent>
             </OrkutCard>
 
+            {/* 6. Logins Recentes - Movido para direita */}
+            <RecentLoginsCard />
 
-            {/* 4. Card Escrito - sidebar direita */}
-            <OrkutCard>
-              <OrkutCardHeader>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600">Escrito</span>
-                  <span className="text-xs text-gray-400">Conteúdo</span>
-                </div>
-              </OrkutCardHeader>
-              <OrkutCardContent>
-                <div className="space-y-3">
-                  <div className="p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                      <span className="text-sm font-medium text-purple-700">Tutorial</span>
-                    </div>
-                    <h4 className="font-medium text-sm text-gray-800 mb-1">
-                      Guia Completo do Novo Orkut
-                    </h4>
-                    <p className="text-xs text-gray-600 mb-2">
-                      Aprenda a usar todos os recursos desta versão moderna do Orkut...
-                    </p>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="w-full border-purple-300 text-purple-700 hover:bg-purple-50 text-xs"
-                    >
-                      Começar
-                    </Button>
-                  </div>
-                  
-                  <div className="p-3 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg border border-orange-200">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                      <span className="text-sm font-medium text-orange-700">Dica</span>
-                    </div>
-                    <h4 className="font-medium text-sm text-gray-800 mb-1">
-                      Personalize seu Perfil
-                    </h4>
-                    <p className="text-xs text-gray-600 mb-2">
-                      Dicas para deixar seu perfil mais atrativo e encontrar mais amigos...
-                    </p>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="w-full border-orange-300 text-orange-700 hover:bg-orange-50 text-xs"
-                    >
-                      Ver dicas
-                    </Button>
-                  </div>
-                </div>
-              </OrkutCardContent>
-            </OrkutCard>
-
-            {/* 5. Anúncios Patrocinados - sidebar direita */}
-            <OrkutCard>
-              <OrkutCardHeader>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600">Patrocinado</span>
-                  <span className="text-xs text-gray-400">Anúncio</span>
-                </div>
-              </OrkutCardHeader>
-              <OrkutCardContent className="p-0">
-                <SponsoredCarousel />
-              </OrkutCardContent>
-            </OrkutCard>
-
-            {/* 5. Comunidades em Alta - de volta à sidebar */}
-            <OrkutCard>
-              <OrkutCardHeader>
-                <div className="flex items-center space-x-2">
-                  <TrendingUp className="h-4 w-4" />
-                  <span>Comunidades em Alta</span>
-                </div>
-              </OrkutCardHeader>
-              <OrkutCardContent>
-                <div className="space-y-3">
-                  {communities.slice(0, 5).map((community) => (
-                    <div key={community.id} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-purple-50 transition-colors cursor-pointer">
-                      <img 
-                        src={community.photo_url} 
-                        alt={community.name}
-                        className="w-10 h-10 rounded-lg object-cover"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm text-gray-800 truncate">
-                          {community.name}
-                        </h4>
-                        <p className="text-xs text-gray-600">
-                          {community.members_count.toLocaleString('pt-BR')} membros
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full mt-3 border-purple-300 text-purple-700 hover:bg-purple-50"
-                  onClick={() => router.push('/comunidades')}
-                >
-                  Ver Todas
-                </Button>
-              </OrkutCardContent>
-            </OrkutCard>
-
-            {/* 6. Ações Rápidas - sidebar direita */}
-            <OrkutCard>
-              <OrkutCardHeader>
-                <span className="text-gray-600 text-sm font-medium">Ações rápidas</span>
-              </OrkutCardHeader>
-              <OrkutCardContent>
-                <div className="space-y-2">
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="w-full justify-start border-purple-300 text-purple-700 hover:bg-purple-50"
-                    onClick={() => router.push('/buscar')}
-                  >
-                    <Search className="h-4 w-4 mr-2" />
-                    Buscar pessoas
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline" 
-                    className="w-full justify-start border-purple-300 text-purple-700 hover:bg-purple-50"
-                    onClick={() => router.push('/comunidades/criar')}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Criar comunidade
-                  </Button>
-                </div>
-              </OrkutCardContent>
-            </OrkutCard>
-
-            {/* 7. Top Friends - sidebar direita */}
-            <OrkutCard>
-              <OrkutCardHeader>
-                <div className="flex items-center space-x-2">
-                  <Star className="h-4 w-4" />
-                  <span>Top 10 Amigos</span>
-                </div>
-              </OrkutCardHeader>
-              <OrkutCardContent>
-                <div className="grid grid-cols-2 gap-3">
-                  {Array.from({ length: 4 }).map((_, idx) => (
-                    <div key={idx} className="text-center">
-                      <img 
-                        src={`https://images.pexels.com/photos/${220000 + idx}/pexels-photo-${220000 + idx}.jpeg?auto=compress&cs=tinysrgb&w=100`}
-                        alt={`Amigo ${idx + 1}`}
-                        className="w-12 h-12 rounded-full mx-auto mb-1 object-cover hover:opacity-80 transition-opacity cursor-pointer"
-                      />
-                      <p className="text-xs text-gray-600">Amigo {idx + 1}</p>
-                    </div>
-                  ))}
-                </div>
-              </OrkutCardContent>
-            </OrkutCard>
-
-            {/* 8. Install App - sidebar direita */}
+            {/* 7. Install App */}
             <OrkutCard>
               <OrkutCardHeader>
                 <div className="flex items-center space-x-2">

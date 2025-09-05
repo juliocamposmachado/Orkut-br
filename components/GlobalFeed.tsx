@@ -61,6 +61,7 @@ export function GlobalFeed({ className = '' }: GlobalFeedProps) {
   const [hasMore, setHasMore] = useState(true)
   const [offset, setOffset] = useState(0)
   const [error, setError] = useState<string | null>(null)
+  const [showAllPosts, setShowAllPosts] = useState(false)
   
   // Estados para moderação
   const [reportModalOpen, setReportModalOpen] = useState(false)
@@ -83,6 +84,7 @@ export function GlobalFeed({ className = '' }: GlobalFeedProps) {
         if (isRefresh || currentOffset === 0) {
           setPosts(result.posts)
           setOffset(20)
+          setShowAllPosts(false) // Reset para mostrar apenas 5 posts após refresh
         } else {
           setPosts(prev => [...prev, ...result.posts])
           setOffset(prev => prev + result.posts.length)
@@ -286,7 +288,7 @@ export function GlobalFeed({ className = '' }: GlobalFeedProps) {
       </OrkutCard>
 
       {/* Posts */}
-      {posts.map((post) => (
+      {(showAllPosts ? posts : posts.slice(0, 5)).map((post) => (
         <OrkutCard key={post.id}>
           <OrkutCardContent className="p-4">
             <div className="space-y-4">
@@ -389,10 +391,24 @@ export function GlobalFeed({ className = '' }: GlobalFeedProps) {
             </div>
           </OrkutCardContent>
         </OrkutCard>
-      ))}
+      ))}}
+      
+      {/* Botão Leia Mais - Mostrar apenas se há mais de 5 posts e não está mostrando todos */}
+      {!showAllPosts && posts.length > 5 && (
+        <div className="flex justify-center py-4">
+          <Button
+            onClick={() => setShowAllPosts(true)}
+            variant="outline"
+            className="border-purple-300 text-purple-700 hover:bg-purple-50 bg-white shadow-sm"
+          >
+            <ChevronDown className="h-4 w-4 mr-2" />
+            Leia mais ({posts.length - 5} posts restantes)
+          </Button>
+        </div>
+      )}
 
-      {/* Load More */}
-      {hasMore && (
+      {/* Load More - Só mostrar se estiver vendo todos os posts e houver mais posts */}
+      {showAllPosts && hasMore && (
         <div className="flex justify-center py-4">
           <Button
             onClick={handleLoadMore}

@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { PhotoCard } from '@/components/photos/photo-card'
 import { PhotoModal } from '@/components/photos/photo-modal'
 import { PhotoUpload } from '@/components/photos/photo-upload'
+import { DirectUpload } from '@/components/photos/direct-upload'
 import { usePhotos, type Photo } from '@/hooks/use-photos'
 import { 
   Camera, 
@@ -194,6 +195,11 @@ export default function PhotosPage() {
               <PhotoUpload 
                 onUploadComplete={handleUploadComplete}
                 categories={popularCategories.map(c => c.category)}
+              />
+              <DirectUpload 
+                onUploadComplete={handleUploadComplete}
+                bucket="user-photos"
+                folder="direct-uploads"
               />
             </div>
           </div>

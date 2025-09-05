@@ -14,7 +14,11 @@ const nextConfig = {
   swcMinify: true,
   experimental: {
     // Fix potential hydration issues
-    optimizePackageImports: ['lucide-react', '@radix-ui/react-avatar', '@radix-ui/react-dialog']
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-avatar', '@radix-ui/react-dialog'],
+    // Enable server actions
+    serverActions: true,
+    // Configure server actions body size limit (Next.js 14+)
+    serverActionsBodySizeLimit: '10mb'
   },
   webpack: (config, { isServer }) => {
     // Fix potential performance.now() issues

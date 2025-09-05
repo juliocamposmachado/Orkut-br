@@ -19,6 +19,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { supabase } from '@/lib/supabase'
+import { toast } from 'sonner'
 import { 
   Heart, 
   MessageCircle, 
@@ -806,47 +807,91 @@ export default function HomePage() {
               </OrkutCardContent>
             </OrkutCard>
 
-            {/* 8. Download Apps - sidebar direita */}
+            {/* 8. Install App - sidebar direita */}
             <OrkutCard>
               <OrkutCardHeader>
                 <div className="flex items-center space-x-2">
                   <Download className="h-4 w-4 text-purple-600" />
-                  <span className="text-gray-600 text-sm font-medium">Baixar Apps</span>
+                  <span className="text-gray-600 text-sm font-medium">Instalar App</span>
                 </div>
               </OrkutCardHeader>
               <OrkutCardContent>
+                {/* PWA Install Section */}
+                <div className="bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-3 mb-3">
+                  <div className="text-center mb-2">
+                    <div className="text-lg mb-1">📱</div>
+                    <p className="text-xs font-medium text-gray-700">Instalar como App</p>
+                    <p className="text-xs text-gray-500">Acesso rápido + offline</p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      onClick={() => {
+                        if ('serviceWorker' in navigator) {
+                          toast.success('💡 Procure pelo ícone "Instalar" na barra do navegador!');
+                        } else {
+                          toast.info('📱 Menu → "Adicionar à tela inicial"');
+                        }
+                      }}
+                      size="sm"
+                      variant="outline"
+                      className="border-green-300 text-green-700 hover:bg-green-50 text-xs"
+                    >
+                      🌐 Browser
+                    </Button>
+                    
+                    <Button
+                      onClick={() => {
+                        window.open('https://www.google.com/chrome/', '_blank');
+                        toast.success('🌐 Chrome oferece a melhor experiência!');
+                      }}
+                      size="sm"
+                      variant="outline"
+                      className="border-blue-300 text-blue-700 hover:bg-blue-50 text-xs"
+                    >
+                      🌐 Chrome
+                    </Button>
+                  </div>
+                </div>
+                
                 <div className="space-y-2">
                   <Button 
+                    onClick={() => {
+                      toast.info('🌐 Chrome Store: Em desenvolvimento! Use PWA acima.');
+                    }}
                     size="sm" 
                     variant="outline" 
-                    className="w-full justify-start border-gray-300 text-gray-600 hover:bg-gray-50 cursor-not-allowed opacity-60"
-                    disabled
+                    className="w-full justify-start border-gray-300 text-gray-600 hover:bg-gray-50"
                   >
                     <Monitor className="h-4 w-4 mr-2" />
-                    Windows 10
+                    Chrome Store
                   </Button>
                   <Button 
+                    onClick={() => {
+                      toast.info('📱 Google Play: Em desenvolvimento! Use PWA acima.');
+                    }}
                     size="sm" 
                     variant="outline" 
-                    className="w-full justify-start border-gray-300 text-gray-600 hover:bg-gray-50 cursor-not-allowed opacity-60"
-                    disabled
+                    className="w-full justify-start border-gray-300 text-gray-600 hover:bg-gray-50"
                   >
                     <Smartphone className="h-4 w-4 mr-2" />
-                    Android
+                    Google Play
                   </Button>
                   <Button 
+                    onClick={() => {
+                      toast.info('🍎 App Store: Em desenvolvimento! Use PWA acima.');
+                    }}
                     size="sm" 
                     variant="outline" 
-                    className="w-full justify-start border-gray-300 text-gray-600 hover:bg-gray-50 cursor-not-allowed opacity-60"
-                    disabled
+                    className="w-full justify-start border-gray-300 text-gray-600 hover:bg-gray-50"
                   >
                     <Phone className="h-4 w-4 mr-2" />
-                    iOS
+                    App Store
                   </Button>
                 </div>
                 <div className="mt-3 text-center">
                   <p className="text-xs text-gray-500">
-                    💡 Em desenvolvimento
+                    💡 PWA disponível agora!
                   </p>
                 </div>
               </OrkutCardContent>

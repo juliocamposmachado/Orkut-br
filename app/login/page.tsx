@@ -94,6 +94,44 @@ export default function LoginPage() {
           <p className="text-purple-100 text-lg">
             Reviva a nostalgia das redes sociais
           </p>
+          
+          {/* Recomendação de Navegador */}
+          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 mt-4 border border-white/20">
+            <div className="flex items-center justify-center space-x-2 mb-2">
+              <span className="text-xl">🌐</span>
+              <span className="text-white font-medium text-sm">Para melhor experiência</span>
+            </div>
+            <p className="text-purple-100 text-xs mb-3">
+              O Orkut funciona melhor no <strong>Google Chrome</strong> ou instalado como aplicativo!
+            </p>
+            <div className="flex space-x-2">
+              <Button
+                onClick={() => window.open('https://www.google.com/chrome/', '_blank')}
+                variant="outline"
+                size="sm"
+                className="flex-1 bg-white/20 border-white/30 text-white hover:bg-white/30 text-xs py-2"
+              >
+                <span className="mr-1">🌐</span>
+                Chrome
+              </Button>
+              <Button
+                onClick={() => {
+                  // Trigger PWA install prompt
+                  if ('serviceWorker' in navigator) {
+                    toast.success('💡 Procure pelo ícone "Instalar" na barra do navegador!');
+                  } else {
+                    toast.info('📱 Use o menu do seu navegador para "Adicionar à tela inicial"');
+                  }
+                }}
+                variant="outline"
+                size="sm"
+                className="flex-1 bg-white/20 border-white/30 text-white hover:bg-white/30 text-xs py-2"
+              >
+                <span className="mr-1">📱</span>
+                Instalar
+              </Button>
+            </div>
+          </div>
         </div>
 
         {/* Botões Principais de Acesso */}
@@ -219,54 +257,103 @@ export default function LoginPage() {
           {/* Download Apps Section */}
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 mb-4">
             <div className="text-center mb-4">
-              <h3 className="text-lg font-bold text-white mb-1">Baixe nossos Apps!</h3>
-              <p className="text-sm text-purple-200">Leve o Orkut para qualquer lugar 🚀</p>
+              <h3 className="text-lg font-bold text-white mb-1">Instale o App do Orkut!</h3>
+              <p className="text-sm text-purple-200">Acesso rápido direto da sua tela inicial 🚀</p>
+            </div>
+            
+            {/* PWA Install */}
+            <div className="bg-gradient-to-r from-green-500/20 to-blue-500/20 border border-green-300/30 rounded-lg p-4 mb-4">
+              <div className="text-center mb-3">
+                <div className="text-3xl mb-2">📱</div>
+                <h4 className="text-white font-bold text-sm mb-1">Instalar como App</h4>
+                <p className="text-xs text-green-100">Funciona offline e carrega mais rápido!</p>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  onClick={() => {
+                    if ('serviceWorker' in navigator) {
+                      toast.success('💡 Procure pelo ícone "Instalar app" na barra de endereço!');
+                    } else {
+                      toast.info('📱 Use o menu "⋮" → "Instalar aplicativo" ou "Adicionar à tela inicial"');
+                    }
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="bg-green-500/20 border-green-300/50 text-white hover:bg-green-500/30 text-xs py-2"
+                >
+                  <span className="mr-1">🌐</span>
+                  Browser
+                </Button>
+                
+                <Button
+                  onClick={() => {
+                    if (navigator.userAgent.includes('Mobile')) {
+                      toast.success('📱 Abra o menu do navegador e toque em "Adicionar à tela inicial"!');
+                    } else {
+                      toast.success('💻 Procure pelo ícone de "Instalar" na barra de endereço do seu navegador!');
+                    }
+                  }}
+                  variant="outline"
+                  size="sm"
+                  className="bg-blue-500/20 border-blue-300/50 text-white hover:bg-blue-500/30 text-xs py-2"
+                >
+                  <span className="mr-1">📲</span>
+                  Celular
+                </Button>
+              </div>
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {/* Windows App */}
+              {/* Chrome Web Store */}
               <Button 
+                onClick={() => {
+                  toast.info('🌐 Em desenvolvimento! Por enquanto, use a instalação PWA acima.');
+                }}
                 variant="outline" 
                 className="bg-white/20 border-white/30 text-white hover:bg-white/30 transition-all duration-300 h-auto py-3 px-4 flex flex-col items-center space-y-2"
-                disabled
               >
-                <div className="text-2xl">💻</div>
+                <div className="text-2xl">🌐</div>
                 <div className="text-center">
-                  <p className="font-medium text-sm">Windows</p>
+                  <p className="font-medium text-sm">Chrome Store</p>
                   <p className="text-xs opacity-80">Em breve</p>
                 </div>
               </Button>
               
-              {/* Android App */}
+              {/* Google Play */}
               <Button 
+                onClick={() => {
+                  toast.info('📱 App Android em desenvolvimento! Use a versão PWA por enquanto.');
+                }}
                 variant="outline" 
                 className="bg-white/20 border-white/30 text-white hover:bg-white/30 transition-all duration-300 h-auto py-3 px-4 flex flex-col items-center space-y-2"
-                disabled
               >
                 <div className="text-2xl">📱</div>
                 <div className="text-center">
-                  <p className="font-medium text-sm">Android</p>
-                  <p className="text-xs opacity-80">Em breve</p>
+                  <p className="font-medium text-sm">Google Play</p>
+                  <p className="text-xs opacity-80">Em desenvolvimento</p>
                 </div>
               </Button>
               
-              {/* iOS App */}
+              {/* App Store */}
               <Button 
+                onClick={() => {
+                  toast.info('🍎 App iOS em desenvolvimento! Use a versão PWA por enquanto.');
+                }}
                 variant="outline" 
                 className="bg-white/20 border-white/30 text-white hover:bg-white/30 transition-all duration-300 h-auto py-3 px-4 flex flex-col items-center space-y-2"
-                disabled
               >
-                <div className="text-2xl">📱</div>
+                <div className="text-2xl">🍎</div>
                 <div className="text-center">
-                  <p className="font-medium text-sm">iOS</p>
-                  <p className="text-xs opacity-80">Em breve</p>
+                  <p className="font-medium text-sm">App Store</p>
+                  <p className="text-xs opacity-80">Em desenvolvimento</p>
                 </div>
               </Button>
             </div>
             
             <div className="mt-3 text-center">
               <p className="text-xs text-purple-200 opacity-80">
-                💡 Versões nativas para uma experiência ainda melhor!
+                💡 Instale como PWA para ter a melhor experiência!
               </p>
             </div>
           </div>

@@ -169,7 +169,7 @@ export function MoodSelector({ children, onMoodUpdate }: MoodSelectorProps) {
                   }`}
                   onClick={() => setSelectedMood(mood)}
                 >
-                  <span className="text-2xl">{mood.emoji}</span>
+                  <span className="text-lg">{mood.emoji}</span>
                   <span className="text-xs font-medium">{mood.label}</span>
                 </Button>
               ))}

@@ -44,6 +44,7 @@ export default function LoginPage() {
   // Estados para login Google e UI
   const [isOpen, setIsOpen] = useState(false)
   const [buttonText, setButtonText] = useState('Continuar com Google')
+  const [showMoreInfo, setShowMoreInfo] = useState(false)
   
   const { signIn, signInWithGoogle } = useAuth()
   const router = useRouter()
@@ -226,8 +227,32 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        {/* Recursos em destaque */}
-        <div className="mt-8 text-center text-white">
+        {/* Botão Saiba Mais */}
+        <div className="text-center mb-6">
+          <Button
+            onClick={() => setShowMoreInfo(!showMoreInfo)}
+            variant="outline"
+            className="bg-white/20 border-white/30 text-white hover:bg-white/30 transition-all duration-300"
+          >
+            {showMoreInfo ? (
+              <>
+                <ChevronUp className="mr-2 h-4 w-4" />
+                Ocultar informações
+              </>
+            ) : (
+              <>
+                <ChevronDown className="mr-2 h-4 w-4" />
+                Saiba mais sobre o Orkut
+              </>
+            )}
+          </Button>
+        </div>
+
+        {/* Conteúdo Adicional - Controlado por showMoreInfo */}
+        {showMoreInfo && (
+          <div className="animate-in slide-in-from-top-5 duration-500">
+            {/* Recursos em destaque */}
+            <div className="mt-8 text-center text-white">
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 hover:bg-white/20 transition-colors">
               <div className="flex justify-center mb-2">
@@ -580,6 +605,8 @@ export default function LoginPage() {
             </div>
           </div>
         </div>
+          </div>
+        )}
       </div>
     </div>
   )

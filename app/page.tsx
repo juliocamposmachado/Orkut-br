@@ -326,7 +326,12 @@ export default function HomePage() {
   }
 
   const loadTopFriends = async () => {
-    if (!user || !supabase) return
+    if (!user || !supabase) {
+      console.log('🚫 loadTopFriends: user ou supabase não disponível', { user: !!user, supabase: !!supabase })
+      return
+    }
+
+    console.log('🔍 loadTopFriends: Iniciando busca de amigos para user:', user.id)
 
     try {
       // Buscar amigos aceitos com informações de atividade
@@ -342,13 +347,35 @@ export default function HomePage() {
         .order('created_at', { ascending: false })
         .limit(10)
 
+      console.log('📊 loadTopFriends: Resultado da consulta:', { 
+        data: data, 
+        error: error, 
+        count: data?.length || 0 
+      })
+
       if (error) throw error
 
       // Transform the data to get the friend's profile and calculate activity score
-      const friendsList = data?.map(friendship => {
+      const friendsList = data?.map((friendship, index) => {
+        console.log(`🔍 Processando amizade ${index + 1}:`, {
+          id: friendship.id,
+          requester_id: friendship.requester_id,
+          addressee_id: friendship.addressee_id,
+          current_user_id: user.id,
+          requester: friendship.requester?.display_name,
+          addressee: friendship.addressee?.display_name
+        })
+        
         const friend = friendship.requester_id === user.id 
           ? friendship.addressee 
           : friendship.requester
+        
+        if (!friend) {
+          console.warn(`⚠️ Amigo não encontrado na amizade ${friendship.id}`)
+          return null
+        }
+        
+        console.log(`👤 Amigo selecionado: ${friend.display_name} (ID: ${friend.id})`)
         
         // Calculate activity score based on last seen and friendship duration
         const friendshipDate = new Date(friendship.created_at)
@@ -360,20 +387,33 @@ export default function HomePage() {
         // Score: friendship longevity + recent activity (lower days since last seen = higher score)
         const activityScore = Math.max(1, friendshipDays) + Math.max(1, 30 - daysSinceLastSeen)
         
-        return {
+        const processedFriend = {
           ...friend,
           friendship_created_at: friendship.created_at,
           activity_score: activityScore,
           days_since_last_seen: daysSinceLastSeen
         }
-      }) || []
+        
+        console.log(`📊 Score calculado para ${friend.display_name}:`, {
+          friendship_days: friendshipDays,
+          days_since_last_seen: daysSinceLastSeen,
+          activity_score: activityScore
+        })
+        
+        return processedFriend
+      }).filter(Boolean) || []
 
+      console.log(`✅ Total de amigos processados: ${friendsList.length}`)
+      
       // Sort by activity score (highest first) and limit to top 10
       const topFriendsList = friendsList
         .sort((a, b) => b.activity_score - a.activity_score)
         .slice(0, 10)
 
+      console.log('🏆 Top Friends lista final:', topFriendsList.map(f => ({ name: f.display_name, score: f.activity_score })))
+
       setTopFriends(topFriendsList)
+      console.log(`🎯 Estado topFriends atualizado com ${topFriendsList.length} amigos`)
     } catch (error) {
       console.error('Error loading top friends:', error)
       // In case of error, keep empty array

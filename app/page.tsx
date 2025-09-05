@@ -448,6 +448,72 @@ export default function HomePage() {
                 </div>
               </OrkutCardContent>
             </OrkutCard>
+
+            {/* Card Escrito */}
+            <OrkutCard>
+              <OrkutCardHeader>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-600">Escrito</span>
+                  <span className="text-xs text-gray-400">Conteúdo</span>
+                </div>
+              </OrkutCardHeader>
+              <OrkutCardContent>
+                <div className="space-y-3">
+                  <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-blue-700">Artigo em Destaque</span>
+                    </div>
+                    <h4 className="font-medium text-sm text-gray-800 mb-1">
+                      Como o Orkut Revolucionou as Redes Sociais
+                    </h4>
+                    <p className="text-xs text-gray-600 mb-2">
+                      Relembre a história da rede social que marcou uma geração e inspire-se com os novos recursos...
+                    </p>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 text-xs"
+                    >
+                      Ler mais
+                    </Button>
+                  </div>
+                  
+                  <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-green-700">Novidade</span>
+                    </div>
+                    <h4 className="font-medium text-sm text-gray-800 mb-1">
+                      Recursos de Chamada de Voz
+                    </h4>
+                    <p className="text-xs text-gray-600 mb-2">
+                      Descubra como usar as novas funcionalidades de comunicação em tempo real...
+                    </p>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="w-full border-green-300 text-green-700 hover:bg-green-50 text-xs"
+                    >
+                      Explorar
+                    </Button>
+                  </div>
+                </div>
+              </OrkutCardContent>
+            </OrkutCard>
+
+            {/* Anúncios Patrocinados - Sidebar Esquerda */}
+            <OrkutCard>
+              <OrkutCardHeader>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-600">Patrocinado</span>
+                  <span className="text-xs text-gray-400">Anúncio</span>
+                </div>
+              </OrkutCardHeader>
+              <OrkutCardContent className="p-0">
+                <SponsoredCarousel />
+              </OrkutCardContent>
+            </OrkutCard>
           </div>
 
           
@@ -703,7 +769,60 @@ export default function HomePage() {
             </OrkutCard>
 
 
-            {/* 4. Anúncios Patrocinados - sidebar direita */}
+            {/* 4. Card Escrito - sidebar direita */}
+            <OrkutCard>
+              <OrkutCardHeader>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-600">Escrito</span>
+                  <span className="text-xs text-gray-400">Conteúdo</span>
+                </div>
+              </OrkutCardHeader>
+              <OrkutCardContent>
+                <div className="space-y-3">
+                  <div className="p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-purple-700">Tutorial</span>
+                    </div>
+                    <h4 className="font-medium text-sm text-gray-800 mb-1">
+                      Guia Completo do Novo Orkut
+                    </h4>
+                    <p className="text-xs text-gray-600 mb-2">
+                      Aprenda a usar todos os recursos desta versão moderna do Orkut...
+                    </p>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="w-full border-purple-300 text-purple-700 hover:bg-purple-50 text-xs"
+                    >
+                      Começar
+                    </Button>
+                  </div>
+                  
+                  <div className="p-3 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg border border-orange-200">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                      <span className="text-sm font-medium text-orange-700">Dica</span>
+                    </div>
+                    <h4 className="font-medium text-sm text-gray-800 mb-1">
+                      Personalize seu Perfil
+                    </h4>
+                    <p className="text-xs text-gray-600 mb-2">
+                      Dicas para deixar seu perfil mais atrativo e encontrar mais amigos...
+                    </p>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="w-full border-orange-300 text-orange-700 hover:bg-orange-50 text-xs"
+                    >
+                      Ver dicas
+                    </Button>
+                  </div>
+                </div>
+              </OrkutCardContent>
+            </OrkutCard>
+
+            {/* 5. Anúncios Patrocinados - sidebar direita */}
             <OrkutCard>
               <OrkutCardHeader>
                 <div className="flex items-center justify-between">

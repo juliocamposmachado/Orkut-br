@@ -422,8 +422,8 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Card de Login Tradicional */}
-          <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl mb-4">
+          {/* Card de Login Tradicional - OCULTO */}
+          <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl mb-4 hidden">
             <CardHeader className="pb-4">
               <CardTitle className="text-center text-gray-800">Login Tradicional</CardTitle>
             </CardHeader>

@@ -46,6 +46,7 @@ import {
   Monitor,
   Smartphone
 } from 'lucide-react'
+import { DiChrome, DiAndroid, DiApple } from 'react-icons/di'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import Link from 'next/link'
@@ -863,7 +864,7 @@ export default function HomePage() {
                     variant="outline" 
                     className="w-full justify-start border-gray-300 text-gray-600 hover:bg-gray-50"
                   >
-                    <Monitor className="h-4 w-4 mr-2" />
+                    <DiChrome className="h-4 w-4 mr-2 text-blue-400" />
                     Chrome Store
                   </Button>
                   <Button 
@@ -874,7 +875,7 @@ export default function HomePage() {
                     variant="outline" 
                     className="w-full justify-start border-gray-300 text-gray-600 hover:bg-gray-50"
                   >
-                    <Smartphone className="h-4 w-4 mr-2" />
+                    <DiAndroid className="h-4 w-4 mr-2 text-green-400" />
                     Google Play
                   </Button>
                   <Button 
@@ -885,7 +886,7 @@ export default function HomePage() {
                     variant="outline" 
                     className="w-full justify-start border-gray-300 text-gray-600 hover:bg-gray-50"
                   >
-                    <Phone className="h-4 w-4 mr-2" />
+                    <DiApple className="h-4 w-4 mr-2 text-gray-700" />
                     App Store
                   </Button>
                 </div>

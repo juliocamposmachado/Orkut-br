@@ -15,6 +15,18 @@ import { toast } from 'sonner';
 import { Eye, EyeOff, ChevronDown, ChevronUp, BarChart3 } from 'lucide-react';
 import { FcGoogle } from 'react-icons/fc';
 import { Crown } from 'lucide-react';
+// Ícones das tecnologias
+import { 
+  SiNextdotjs, 
+  SiReact, 
+  SiTailwindcss, 
+  SiSupabase, 
+  SiVercel,
+  SiGooglegemini,
+  SiClaude
+} from 'react-icons/si';
+import { DiChrome, DiAndroid, DiApple } from 'react-icons/di';
+import { IoTerminal } from 'react-icons/io5';
 import { 
   Collapsible,
   CollapsibleContent,
@@ -313,7 +325,7 @@ export default function LoginPage() {
                 variant="outline" 
                 className="bg-white/20 border-white/30 text-white hover:bg-white/30 transition-all duration-300 h-auto py-3 px-4 flex flex-col items-center space-y-2"
               >
-                <div className="text-2xl">🌐</div>
+                <DiChrome className="text-2xl text-blue-400" />
                 <div className="text-center">
                   <p className="font-medium text-sm">Chrome Store</p>
                   <p className="text-xs opacity-80">Em breve</p>
@@ -328,7 +340,7 @@ export default function LoginPage() {
                 variant="outline" 
                 className="bg-white/20 border-white/30 text-white hover:bg-white/30 transition-all duration-300 h-auto py-3 px-4 flex flex-col items-center space-y-2"
               >
-                <div className="text-2xl">📱</div>
+                <DiAndroid className="text-2xl text-green-400" />
                 <div className="text-center">
                   <p className="font-medium text-sm">Google Play</p>
                   <p className="text-xs opacity-80">Em desenvolvimento</p>
@@ -343,7 +355,7 @@ export default function LoginPage() {
                 variant="outline" 
                 className="bg-white/20 border-white/30 text-white hover:bg-white/30 transition-all duration-300 h-auto py-3 px-4 flex flex-col items-center space-y-2"
               >
-                <div className="text-2xl">🍎</div>
+                <DiApple className="text-2xl text-white" />
                 <div className="text-center">
                   <p className="font-medium text-sm">App Store</p>
                   <p className="text-xs opacity-80">Em desenvolvimento</p>
@@ -367,49 +379,65 @@ export default function LoginPage() {
             
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
               <div className="bg-white/10 rounded-lg p-3 hover:bg-white/20 transition-colors">
-                <div className="text-xl mb-1">🤖</div>
+                <div className="flex justify-center mb-1">
+                  <SiClaude className="text-xl text-orange-400" />
+                </div>
                 <p className="text-xs font-medium text-white">Claude 4</p>
                 <p className="text-xs text-purple-200">Sonnet</p>
               </div>
               
               <div className="bg-white/10 rounded-lg p-3 hover:bg-white/20 transition-colors">
-                <div className="text-xl mb-1">💎</div>
+                <div className="flex justify-center mb-1">
+                  <SiGooglegemini className="text-xl text-blue-400" />
+                </div>
                 <p className="text-xs font-medium text-white">Gemini</p>
                 <p className="text-xs text-purple-200">AI</p>
               </div>
               
               <div className="bg-white/10 rounded-lg p-3 hover:bg-white/20 transition-colors">
-                <div className="text-xl mb-1">🔥</div>
+                <div className="flex justify-center mb-1">
+                  <IoTerminal className="text-xl text-orange-500" />
+                </div>
                 <p className="text-xs font-medium text-white">Warp AI</p>
                 <p className="text-xs text-purple-200">Terminal</p>
               </div>
               
               <div className="bg-white/10 rounded-lg p-3 hover:bg-white/20 transition-colors">
-                <div className="text-xl mb-1">▲</div>
+                <div className="flex justify-center mb-1">
+                  <SiVercel className="text-xl text-white" />
+                </div>
                 <p className="text-xs font-medium text-white">Vercel</p>
                 <p className="text-xs text-purple-200">Deploy</p>
               </div>
               
               <div className="bg-white/10 rounded-lg p-3 hover:bg-white/20 transition-colors">
-                <div className="text-xl mb-1">🗄️</div>
+                <div className="flex justify-center mb-1">
+                  <SiSupabase className="text-xl text-green-400" />
+                </div>
                 <p className="text-xs font-medium text-white">Supabase</p>
                 <p className="text-xs text-purple-200">Database</p>
               </div>
               
               <div className="bg-white/10 rounded-lg p-3 hover:bg-white/20 transition-colors">
-                <div className="text-xl mb-1">🔍</div>
+                <div className="flex justify-center mb-1">
+                  <FcGoogle className="text-xl" />
+                </div>
                 <p className="text-xs font-medium text-white">Google</p>
                 <p className="text-xs text-purple-200">Auth</p>
               </div>
               
               <div className="bg-white/10 rounded-lg p-3 hover:bg-white/20 transition-colors">
-                <div className="text-xl mb-1">⚡</div>
+                <div className="flex justify-center mb-1">
+                  <SiNextdotjs className="text-xl text-white" />
+                </div>
                 <p className="text-xs font-medium text-white">Next.js</p>
                 <p className="text-xs text-purple-200">React</p>
               </div>
               
               <div className="bg-white/10 rounded-lg p-3 hover:bg-white/20 transition-colors">
-                <div className="text-xl mb-1">🎨</div>
+                <div className="flex justify-center mb-1">
+                  <SiTailwindcss className="text-xl text-cyan-400" />
+                </div>
                 <p className="text-xs font-medium text-white">Tailwind</p>
                 <p className="text-xs text-purple-200">CSS</p>
               </div>

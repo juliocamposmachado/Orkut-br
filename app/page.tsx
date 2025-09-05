@@ -99,6 +99,8 @@ export default function HomePage() {
   const [gmailUsers, setGmailUsers] = useState<any[]>([])
   const [gmailUsersStats, setGmailUsersStats] = useState({ online: 0, total: 0 })
   const [loadingGmailUsers, setLoadingGmailUsers] = useState(true)
+  const [topFriends, setTopFriends] = useState<any[]>([])
+  const [loadingTopFriends, setLoadingTopFriends] = useState(true)
 
   useEffect(() => {
     // Aguardar o loading completo antes de redirecionar
@@ -117,6 +119,7 @@ export default function HomePage() {
       loadFeed()
       loadCommunities()
       loadGmailUsers()
+      loadTopFriends()
     }
   }, [user, loading, router])
 
@@ -319,6 +322,64 @@ export default function HomePage() {
       console.error('Erro ao buscar usuários Gmail:', error)
     } finally {
       setLoadingGmailUsers(false)
+    }
+  }
+
+  const loadTopFriends = async () => {
+    if (!user || !supabase) return
+
+    try {
+      // Buscar amigos aceitos com informações de atividade
+      const { data, error } = await supabase
+        .from('friendships')
+        .select(`
+          *,
+          requester:profiles!requester_id(id, username, display_name, photo_url, bio, location, last_seen),
+          addressee:profiles!addressee_id(id, username, display_name, photo_url, bio, location, last_seen)
+        `)
+        .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`)
+        .eq('status', 'accepted')
+        .order('created_at', { ascending: false })
+        .limit(10)
+
+      if (error) throw error
+
+      // Transform the data to get the friend's profile and calculate activity score
+      const friendsList = data?.map(friendship => {
+        const friend = friendship.requester_id === user.id 
+          ? friendship.addressee 
+          : friendship.requester
+        
+        // Calculate activity score based on last seen and friendship duration
+        const friendshipDate = new Date(friendship.created_at)
+        const lastSeen = friend.last_seen ? new Date(friend.last_seen) : friendshipDate
+        const now = new Date()
+        const daysSinceLastSeen = Math.floor((now.getTime() - lastSeen.getTime()) / (1000 * 60 * 60 * 24))
+        const friendshipDays = Math.floor((now.getTime() - friendshipDate.getTime()) / (1000 * 60 * 60 * 24))
+        
+        // Score: friendship longevity + recent activity (lower days since last seen = higher score)
+        const activityScore = Math.max(1, friendshipDays) + Math.max(1, 30 - daysSinceLastSeen)
+        
+        return {
+          ...friend,
+          friendship_created_at: friendship.created_at,
+          activity_score: activityScore,
+          days_since_last_seen: daysSinceLastSeen
+        }
+      }) || []
+
+      // Sort by activity score (highest first) and limit to top 10
+      const topFriendsList = friendsList
+        .sort((a, b) => b.activity_score - a.activity_score)
+        .slice(0, 10)
+
+      setTopFriends(topFriendsList)
+    } catch (error) {
+      console.error('Error loading top friends:', error)
+      // In case of error, keep empty array
+      setTopFriends([])
+    } finally {
+      setLoadingTopFriends(false)
     }
   }
 
@@ -544,21 +605,90 @@ export default function HomePage() {
                 <div className="flex items-center space-x-2">
                   <Star className="h-4 w-4" />
                   <span>Top 10 Amigos</span>
+                  {topFriends.length > 0 && (
+                    <Badge variant="secondary" className="text-xs">
+                      {topFriends.length}
+                    </Badge>
+                  )}
                 </div>
               </OrkutCardHeader>
               <OrkutCardContent>
-                <div className="grid grid-cols-2 gap-3">
-                  {Array.from({ length: 4 }).map((_, idx) => (
-                    <div key={idx} className="text-center">
-                      <img 
-                        src={`https://images.pexels.com/photos/${220000 + idx}/pexels-photo-${220000 + idx}.jpeg?auto=compress&cs=tinysrgb&w=100`}
-                        alt={`Amigo ${idx + 1}`}
-                        className="w-12 h-12 rounded-full mx-auto mb-1 object-cover hover:opacity-80 transition-opacity cursor-pointer"
-                      />
-                      <p className="text-xs text-gray-600">Amigo {idx + 1}</p>
-                    </div>
-                  ))}
-                </div>
+                {loadingTopFriends ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600 mx-auto mb-2"></div>
+                    <p className="text-xs text-gray-500">Carregando amigos...</p>
+                  </div>
+                ) : topFriends.length === 0 ? (
+                  <div className="text-center py-6">
+                    <Users className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500 mb-1">Nenhum amigo ainda</p>
+                    <p className="text-xs text-gray-400">Faça novas amizades!</p>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="mt-2 border-purple-300 text-purple-700 hover:bg-purple-50"
+                      onClick={() => router.push('/buscar')}
+                    >
+                      Buscar pessoas
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    {topFriends.slice(0, 8).map((friend, idx) => (
+                      <div 
+                        key={friend.id} 
+                        className="text-center group cursor-pointer"
+                        onClick={() => router.push(`/perfil/${friend.username}`)}
+                      >
+                        <div className="relative">
+                          <Avatar className="w-12 h-12 mx-auto mb-1 group-hover:opacity-80 transition-opacity">
+                            <AvatarImage 
+                              src={friend.photo_url || undefined} 
+                              alt={friend.display_name}
+                            />
+                            <AvatarFallback className="bg-purple-500 text-white text-xs">
+                              {friend.display_name.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          {/* Ranking badge */}
+                          <div className="absolute -top-1 -right-1 bg-yellow-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-lg">
+                            {idx + 1}
+                          </div>
+                          {/* Online status */}
+                          {friend.days_since_last_seen <= 1 && (
+                            <div className="absolute -bottom-0 -right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-600 truncate px-1" title={friend.display_name}>
+                          {friend.display_name.split(' ')[0]}
+                        </p>
+                        {/* Activity indicator */}
+                        <div className="text-xs text-gray-400 mt-0.5">
+                          {friend.days_since_last_seen === 0 ? (
+                            <span className="text-green-600">Online</span>
+                          ) : friend.days_since_last_seen === 1 ? (
+                            <span className="text-yellow-600">1d</span>
+                          ) : friend.days_since_last_seen <= 7 ? (
+                            <span className="text-orange-600">{friend.days_since_last_seen}d</span>
+                          ) : (
+                            <span className="text-gray-500">+7d</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {topFriends.length > 8 && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full mt-3 border-purple-300 text-purple-700 hover:bg-purple-50"
+                    onClick={() => router.push('/amigos')}
+                  >
+                    Ver todos ({topFriends.length})
+                  </Button>
+                )}
               </OrkutCardContent>
             </OrkutCard>
 

@@ -62,7 +62,7 @@ export function useEdgeCompatibility(): EdgeCompatibilityInfo {
 
       // Fix button interaction issues
       const fixButtonInteractions = () => {
-        const buttons = document.querySelectorAll('button, [role="button"]')
+        const buttons = document.querySelectorAll('button, [role="button"], .cursor-pointer, [onclick]')
         buttons.forEach((button) => {
           const element = button as HTMLElement
           
@@ -70,13 +70,66 @@ export function useEdgeCompatibility(): EdgeCompatibilityInfo {
           element.style.pointerEvents = 'auto'
           element.style.position = 'relative'
           element.style.zIndex = '1'
+          element.style.cursor = 'pointer'
           
           // Add explicit touch-action
           element.style.touchAction = 'manipulation'
           
+          // Edge specific properties
+          ;(element.style as any).msUserSelect = 'none'
+          ;(element.style as any).msTouchAction = 'manipulation'
+          
           // For Edge Legacy, add onclick attribute if missing
           if (isEdgeLegacy && !element.onclick && !element.getAttribute('onclick')) {
             element.setAttribute('onclick', 'void(0);')
+          }
+          
+          // Fix for Radix UI and shadcn components
+          if (element.classList.contains('inline-flex') || element.closest('[data-radix-collection-item]')) {
+            element.style.pointerEvents = 'auto'
+            element.style.display = element.style.display || 'inline-flex'
+          }
+        })
+        
+        // Fix avatar images that might not load
+        const avatarImages = document.querySelectorAll('img[alt*="Avatar"], img[src*="avatar"], .avatar img, [class*="avatar"] img')
+        avatarImages.forEach((img) => {
+          const imgElement = img as HTMLImageElement
+          
+          // Add error handler for failed image loads
+          imgElement.onerror = function() {
+            console.warn('🖼️ Avatar image failed to load:', imgElement.src)
+            
+            // Try to find fallback element
+            const fallback = imgElement.nextElementSibling || imgElement.parentElement?.querySelector('[class*="fallback"]')
+            if (fallback) {
+              imgElement.style.display = 'none'
+              ;(fallback as HTMLElement).style.display = 'flex'
+            }
+          }
+          
+          // Ensure proper loading attributes
+          if (!imgElement.loading) {
+            imgElement.loading = 'lazy'
+          }
+          
+          // Add crossOrigin for external images if not set
+          if (imgElement.src.includes('http') && !imgElement.crossOrigin) {
+            imgElement.crossOrigin = 'anonymous'
+          }
+        })
+        
+        // Fix backdrop-filter elements
+        const backdropElements = document.querySelectorAll('[class*="backdrop-"], .memorial-backdrop, .orkut-glass, .orkut-modal')
+        backdropElements.forEach((element) => {
+          const htmlElement = element as HTMLElement
+          const computedStyle = window.getComputedStyle(htmlElement)
+          
+          // If backdrop-filter is not supported, apply fallback background
+          if (!CSS.supports || (!CSS.supports('backdrop-filter', 'blur(10px)') && !CSS.supports('-webkit-backdrop-filter', 'blur(10px)'))) {
+            const isDark = document.documentElement.classList.contains('dark') || document.body.classList.contains('dark')
+            htmlElement.style.backgroundColor = isDark ? 'rgba(31, 41, 55, 0.95)' : 'rgba(255, 255, 255, 0.95)'
+            htmlElement.style.backdropFilter = 'none'
           }
         })
       }

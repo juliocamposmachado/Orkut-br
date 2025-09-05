@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { Eye, EyeOff, ChevronDown, ChevronUp, BarChart3 } from 'lucide-react';
 import { FcGoogle } from 'react-icons/fc';
 import { Crown } from 'lucide-react';
+import { Mic, Phone, Users, Heart } from 'lucide-react';
 // Ícones das tecnologias
 import { 
   SiNextdotjs, 
@@ -229,20 +230,28 @@ export default function LoginPage() {
         <div className="mt-8 text-center text-white">
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 hover:bg-white/20 transition-colors">
-              <div className="text-3xl mb-2">🎤</div>
-              <p className="font-medium">Assistente de Voz</p>
+              <div className="flex justify-center mb-2">
+                <Mic className="h-6 w-6 text-green-400" />
+              </div>
+              <p className="font-medium text-sm">Assistente de Voz</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 hover:bg-white/20 transition-colors">
-              <div className="text-3xl mb-2">📞</div>
-              <p className="font-medium">Chamadas A/V</p>
+              <div className="flex justify-center mb-2">
+                <Phone className="h-6 w-6 text-blue-400" />
+              </div>
+              <p className="font-medium text-sm">Chamadas A/V</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 hover:bg-white/20 transition-colors">
-              <div className="text-3xl mb-2">👥</div>
-              <p className="font-medium">Comunidades</p>
+              <div className="flex justify-center mb-2">
+                <Users className="h-6 w-6 text-purple-400" />
+              </div>
+              <p className="font-medium text-sm">Comunidades</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 hover:bg-white/20 transition-colors">
-              <div className="text-3xl mb-2">💝</div>
-              <p className="font-medium">Scraps & Depoimentos</p>
+              <div className="flex justify-center mb-2">
+                <Heart className="h-6 w-6 text-pink-400" />
+              </div>
+              <p className="font-medium text-sm">Scraps & Depoimentos</p>
             </div>
           </div>
           

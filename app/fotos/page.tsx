@@ -143,6 +143,43 @@ export default function PhotosPage() {
     await likePhoto(photoId)
   }, [likePhoto])
   
+  // Função para abrir Google Photos com login automático
+  const openGooglePhotosWithLogin = useCallback(() => {
+    console.log('[Google Photos] Tentando abrir com login automático para:', user?.email)
+    
+    // Estratégia 1: Usar link direto com hint de email
+    const userEmail = user?.email
+    let googlePhotosUrl = 'https://photos.google.com/'
+    
+    if (userEmail) {
+      // Adicionar hint de login para o Google
+      googlePhotosUrl = `https://accounts.google.com/signin/v2/identifier?service=picasa&continue=https://photos.google.com/&authuser=${encodeURIComponent(userEmail)}&flowName=GlifWebSignIn&flowEntry=ServiceLogin&hl=pt-BR`
+      console.log('[Google Photos] URL com login hint:', googlePhotosUrl)
+    }
+    
+    // Abrir em nova aba
+    window.open(googlePhotosUrl, '_blank', 'noopener,noreferrer')
+  }, [user?.email])
+  
+  // Função para gerar URL do iframe com login
+  const getGooglePhotosIframeUrl = useCallback(() => {
+    const userEmail = user?.email
+    
+    if (userEmail) {
+      // Tentar URLs que podem funcionar melhor em iframes
+      const iframeUrls = [
+        `https://photos.google.com/?authuser=${encodeURIComponent(userEmail)}`,
+        `https://photos.google.com/?hl=pt-BR&authuser=${encodeURIComponent(userEmail)}`,
+        'https://photos.google.com/'
+      ]
+      
+      console.log('[Google Photos] URLs para iframe:', iframeUrls)
+      return iframeUrls[0] // Usar a primeira por enquanto
+    }
+    
+    return 'https://photos.google.com/'
+  }, [user?.email])
+  
   // Detectar modo demo e configuração do Google Photos
   useEffect(() => {
     const checkDemoMode = async () => {
@@ -364,10 +401,10 @@ export default function PhotosPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => window.open('https://photos.google.com/', '_blank')}
+                      onClick={openGooglePhotosWithLogin}
                     >
                       <ExternalLink className="w-4 h-4 mr-2" />
-                      Abrir em nova aba
+                      Abrir com login
                     </Button>
                     <Button
                       variant="ghost"
@@ -382,7 +419,7 @@ export default function PhotosPage() {
               <OrkutCardContent className="p-0">
                 <div className="relative w-full" style={{ height: '700px' }}>
                   <iframe
-                    src="https://photos.google.com/"
+                    src={getGooglePhotosIframeUrl()}
                     title="Google Photos"
                     className="w-full h-full border-0 rounded-b-lg"
                     sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation"

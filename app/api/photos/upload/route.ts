@@ -209,7 +209,15 @@ export async function POST(request: NextRequest) {
         // Obter dimensões da imagem original usando Sharp
         const metadata = await sharp(fileBuffer).metadata()
 
-        // Inserir registro no banco de dados
+        // Inserir registro no banco de dados usando Service Role para bypass RLS
+        console.log('📸 Inserindo foto no banco:', {
+          photoId,
+          userId: user.id,
+          title: title || `Foto ${timestamp}`,
+          isPublic,
+          fileSize: originalBuffer.length
+        })
+        
         const { data: photoRecord, error: dbError } = await supabase
           .from('user_photos')
           .insert({
@@ -222,12 +230,16 @@ export async function POST(request: NextRequest) {
             description: description || null,
             category: category || null,
             file_size: originalBuffer.length,
-            width: metadata.width,
-            height: metadata.height,
+            width: metadata.width || 0,
+            height: metadata.height || 0,
             mime_type: 'image/webp',
             file_path: originalPath,
             is_public: isPublic,
-            is_processed: true
+            is_processed: true,
+            is_deleted: false,
+            likes_count: 0,
+            comments_count: 0,
+            views_count: 0
           })
           .select()
           .single()

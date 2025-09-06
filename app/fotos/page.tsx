@@ -31,7 +31,9 @@ import {
   Heart,
   MessageCircle,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  ExternalLink,
+  Monitor
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
@@ -72,6 +74,8 @@ export default function PhotosPage() {
   const [isGooglePhotosConfigured, setIsGooglePhotosConfigured] = useState(false)
   // Estado para verificar se Google Drive está configurado  
   const [isGoogleDriveConfigured, setIsGoogleDriveConfigured] = useState(true) // Drive já está ativo
+  // Estado para controlar o iframe do Flickr
+  const [showFlickrIframe, setShowFlickrIframe] = useState(false)
 
   // Aplicar filtros quando mudarem
   const handleSearchChange = useCallback((value: string) => {
@@ -240,6 +244,15 @@ export default function PhotosPage() {
                 bucket="user-photos"
                 folder="direct-uploads"
               />
+              {/* Botão para mostrar/ocultar iframe do Flickr */}
+              <Button
+                variant="secondary"
+                className="bg-gradient-to-r from-pink-500 to-violet-500 hover:from-pink-600 hover:to-violet-600 text-white"
+                onClick={() => setShowFlickrIframe(!showFlickrIframe)}
+              >
+                <Monitor className="w-4 h-4 mr-2" />
+                {showFlickrIframe ? 'Fechar' : 'Abrir'} Flickr
+              </Button>
             </div>
           </div>
         </div>
@@ -257,6 +270,61 @@ export default function PhotosPage() {
               Você está visualizando fotos de exemplo. Para upload e funcionalidade completa, 
               configure o banco de dados Supabase.
             </p>
+          </div>
+        )}
+        
+        {/* Flickr Upload Iframe */}
+        {showFlickrIframe && (
+          <div className="mb-6">
+            <OrkutCard>
+              <OrkutCardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Monitor className="w-5 h-5 text-pink-500" />
+                    <h3 className="text-lg font-medium">Upload de Fotos via Flickr</h3>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => window.open('https://www.flickr.com/photos/upload/', '_blank')}
+                    >
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Abrir em nova aba
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowFlickrIframe(false)}
+                    >
+                      ×
+                    </Button>
+                  </div>
+                </div>
+              </OrkutCardHeader>
+              <OrkutCardContent className="p-0">
+                <div className="relative w-full" style={{ height: '600px' }}>
+                  <iframe
+                    src="https://www.flickr.com/photos/upload/"
+                    title="Flickr Upload"
+                    className="w-full h-full border-0 rounded-b-lg"
+                    sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="p-4 bg-gradient-to-r from-pink-50 to-violet-50 border-t">
+                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                    <div className="w-2 h-2 bg-pink-500 rounded-full animate-pulse"></div>
+                    <span>
+                      Faça upload das suas fotos no Flickr e depois compartilhe os links aqui no Orkut!
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    💡 Dica: Após fazer upload no Flickr, você pode copiar o link da foto e colar nos campos de upload do Orkut.
+                  </p>
+                </div>
+              </OrkutCardContent>
+            </OrkutCard>
           </div>
         )}
         

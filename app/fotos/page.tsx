@@ -14,6 +14,7 @@ import { PhotoModal } from '@/components/photos/photo-modal'
 import { PhotoUpload } from '@/components/photos/photo-upload'
 import { DirectUpload } from '@/components/photos/direct-upload'
 import { GooglePhotoUpload } from '@/components/photos/GooglePhotoUpload'
+import { GooglePhotosSetup } from '@/components/photos/GooglePhotosSetup'
 import { usePhotos, type Photo } from '@/hooks/use-photos'
 import { 
   Camera, 
@@ -66,6 +67,8 @@ export default function PhotosPage() {
   
   // Estado para verificar se está em modo demo
   const [isDemoMode, setIsDemoMode] = useState(false)
+  // Estado para verificar se Google Photos está configurado
+  const [isGooglePhotosConfigured, setIsGooglePhotosConfigured] = useState(false)
 
   // Aplicar filtros quando mudarem
   const handleSearchChange = useCallback((value: string) => {
@@ -130,7 +133,7 @@ export default function PhotosPage() {
     await likePhoto(photoId)
   }, [likePhoto])
   
-  // Detectar modo demo
+  // Detectar modo demo e configuração do Google Photos
   useEffect(() => {
     const checkDemoMode = async () => {
       try {
@@ -142,7 +145,17 @@ export default function PhotosPage() {
       }
     }
     
+    // Verificar se Google Photos está configurado
+    const checkGooglePhotosConfig = () => {
+      // Verificar se as variáveis de ambiente estão definidas no cliente
+      // Como não podemos acessar diretamente, vamos assumir que não está configurado
+      // até que o usuário configure manualmente
+      const hasGoogleConfig = false // Será true quando configurado
+      setIsGooglePhotosConfigured(hasGoogleConfig)
+    }
+    
     checkDemoMode()
+    checkGooglePhotosConfig()
   }, [])
 
   if (!user) {
@@ -193,15 +206,17 @@ export default function PhotosPage() {
                 <RefreshCw className={cn('w-4 h-4 mr-2', loading && 'animate-spin')} />
                 Atualizar
               </Button>
-              <GooglePhotoUpload 
-                onUploadComplete={handleUploadComplete}
-                trigger={
-                  <Button className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white">
-                    <Upload className="w-4 h-4 mr-2" />
-                    Google Photos
-                  </Button>
-                }
-              />
+              {isGooglePhotosConfigured ? (
+                <GooglePhotoUpload 
+                  onUploadComplete={handleUploadComplete}
+                  trigger={
+                    <Button className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white">
+                      <Upload className="w-4 h-4 mr-2" />
+                      Google Photos
+                    </Button>
+                  }
+                />
+              ) : null}
               <PhotoUpload 
                 onUploadComplete={handleUploadComplete}
                 categories={popularCategories.map(c => c.category)}
@@ -228,6 +243,13 @@ export default function PhotosPage() {
               Você está visualizando fotos de exemplo. Para upload e funcionalidade completa, 
               configure o banco de dados Supabase.
             </p>
+          </div>
+        )}
+        
+        {/* Google Photos Setup */}
+        {!isGooglePhotosConfigured && (
+          <div className="mb-6">
+            <GooglePhotosSetup />
           </div>
         )}
         
@@ -530,15 +552,17 @@ export default function PhotosPage() {
                   </Button>
                 ) : (
                   <div className="flex flex-col sm:flex-row gap-2 justify-center">
-                    <GooglePhotoUpload 
-                      onUploadComplete={handleUploadComplete}
-                      trigger={
-                        <Button className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white">
-                          <Upload className="w-4 h-4 mr-2" />
-                          Upload via Google Photos
-                        </Button>
-                      }
-                    />
+                    {isGooglePhotosConfigured && (
+                      <GooglePhotoUpload 
+                        onUploadComplete={handleUploadComplete}
+                        trigger={
+                          <Button className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white">
+                            <Upload className="w-4 h-4 mr-2" />
+                            Upload via Google Photos
+                          </Button>
+                        }
+                      />
+                    )}
                     <PhotoUpload 
                       onUploadComplete={handleUploadComplete}
                       categories={popularCategories.map(c => c.category)}

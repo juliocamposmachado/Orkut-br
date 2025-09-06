@@ -408,7 +408,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         provider: 'google',
         options: {
           redirectTo: redirectUrl,
-          scopes: 'email profile openid https://www.googleapis.com/auth/photoslibrary https://www.googleapis.com/auth/photoslibrary.appendonly',
+          scopes: 'email profile openid',
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',

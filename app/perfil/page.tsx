@@ -36,7 +36,8 @@ import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import Link from 'next/link'
 import { SocialNetworksDisplay } from '@/components/profile/social-networks-display'
-import { PhotoUpload } from '@/components/photos/photo-upload'
+import { GooglePhotoUpload } from '@/components/photos/GooglePhotoUpload'
+import { useGooglePhotos } from '@/hooks/use-google-photos'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -92,6 +93,7 @@ export default function ProfilePage() {
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [socialData, setSocialData] = useState<any>({})
   const [photoUploadOpen, setPhotoUploadOpen] = useState(false)
+  const { photos: googlePhotos, loading: googlePhotosLoading, fetchPhotos: fetchGooglePhotos } = useGooglePhotos()
 
   useEffect(() => {
     if (!loading && !user) {
@@ -110,6 +112,7 @@ export default function ProfilePage() {
       loadProfile()
       loadScraps()
       loadPhotos()
+      loadGooglePhotos()
       updateProfileViews()
       loadSocialData()
     }
@@ -214,6 +217,16 @@ export default function ProfilePage() {
       console.error('Error loading photos:', error)
       // Fallback: use empty array when Supabase is not available
       setPhotos([])
+    }
+  }
+
+  const loadGooglePhotos = async () => {
+    if (!profileId || !isOwnProfile) return
+    
+    try {
+      await fetchGooglePhotos()
+    } catch (error) {
+      console.error('Error loading Google Photos:', error)
     }
   }
 
@@ -486,10 +499,13 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-between">
                   <span>Fotos Recentes</span>
                   {isOwnProfile && (
-                    <PhotoUpload 
-                      onUploadComplete={handlePhotoUploadComplete}
-                      maxFiles={5}
-                      categories={['pessoal', 'viagem', 'familia', 'trabalho', 'hobby', 'lifestyle']}
+                    <GooglePhotoUpload 
+                      onUploadComplete={(photo) => {
+                        console.log('✅ Foto enviada para Google Photos:', photo)
+                        // Atualizar galeria local
+                        loadGooglePhotos()
+                      }}
+                      trigger={<Button size="sm" variant="ghost" className="text-purple-600 hover:bg-purple-50"><Plus className="h-4 w-4" /></Button>}
                     />
                   )}
                 </div>
@@ -655,26 +671,74 @@ export default function ProfilePage() {
 
               {/* Photos Tab */}
               <TabsContent value="photos" className="space-y-4">
-                {photos.length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {photos.map((photo) => (
-                      <OrkutCard key={photo.id} className="overflow-hidden">
-                        <div className="aspect-square">
-                          <img 
-                            src={photo.photo_url}
-                            alt={photo.caption || 'Foto'}
-                            className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
-                          />
-                        </div>
-                        {photo.caption && (
+                {/* Fotos do Google Photos (se for o próprio perfil) */}
+                {isOwnProfile && googlePhotos.length > 0 && (
+                  <div className="mb-6">
+                    <div className="flex items-center space-x-2 mb-4">
+                      <Camera className="h-5 w-5 text-purple-600" />
+                      <h3 className="text-lg font-semibold text-gray-800">Google Photos</h3>
+                      <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+                        {googlePhotos.length}
+                      </Badge>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {googlePhotos.map((photo) => (
+                        <OrkutCard key={photo.id} className="overflow-hidden">
+                          <div className="aspect-square relative">
+                            <img 
+                              src={photo.thumbnailUrl}
+                              alt={photo.filename}
+                              className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
+                            />
+                            <div className="absolute top-2 right-2">
+                              <Badge variant="secondary" className="bg-green-100 text-green-700 text-xs">
+                                Google Photos
+                              </Badge>
+                            </div>
+                          </div>
                           <OrkutCardContent className="p-3">
-                            <p className="text-sm text-gray-700 line-clamp-2">{photo.caption}</p>
+                            <p className="text-sm text-gray-700 truncate">{photo.filename}</p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(photo.createdAt).toLocaleDateString('pt-BR')}
+                            </p>
                           </OrkutCardContent>
-                        )}
-                      </OrkutCard>
-                    ))}
+                        </OrkutCard>
+                      ))}
+                    </div>
                   </div>
-                ) : (
+                )}
+                
+                {/* Fotos do Supabase (tradicionais) */}
+                {photos.length > 0 && (
+                  <div className="mb-6">
+                    <div className="flex items-center space-x-2 mb-4">
+                      <Camera className="h-5 w-5 text-gray-600" />
+                      <h3 className="text-lg font-semibold text-gray-800">Galeria</h3>
+                      <Badge variant="outline">{photos.length}</Badge>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {photos.map((photo) => (
+                        <OrkutCard key={photo.id} className="overflow-hidden">
+                          <div className="aspect-square">
+                            <img 
+                              src={photo.photo_url}
+                              alt={photo.caption || 'Foto'}
+                              className="w-full h-full object-cover hover:scale-105 transition-transform cursor-pointer"
+                            />
+                          </div>
+                          {photo.caption && (
+                            <OrkutCardContent className="p-3">
+                              <p className="text-sm text-gray-700 line-clamp-2">{photo.caption}</p>
+                            </OrkutCardContent>
+                          )}
+                        </OrkutCard>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Sem fotos */}
+                {photos.length === 0 && googlePhotos.length === 0 && (
                   <OrkutCard>
                     <OrkutCardContent>
                       <div className="text-center py-12">
@@ -687,10 +751,12 @@ export default function ProfilePage() {
                         </p>
                         {isOwnProfile && (
                           <div className="mt-4">
-                            <PhotoUpload 
-                              onUploadComplete={handlePhotoUploadComplete}
-                              maxFiles={10}
-                              categories={['pessoal', 'viagem', 'familia', 'trabalho', 'hobby', 'lifestyle', 'arte', 'natureza']}
+                            <GooglePhotoUpload 
+                              onUploadComplete={(photo) => {
+                                console.log('✅ Foto enviada para Google Photos:', photo)
+                                // Atualizar galeria local
+                                loadGooglePhotos()
+                              }}
                             />
                           </div>
                         )}
@@ -699,6 +765,14 @@ export default function ProfilePage() {
                   </OrkutCard>
                 )}
               </TabsContent>
+              
+              {/* Loading das fotos do Google */}
+              {isOwnProfile && googlePhotosLoading && (
+                <div className="text-center py-4">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600 mx-auto mb-2"></div>
+                  <p className="text-sm text-gray-600">Carregando fotos do Google Photos...</p>
+                </div>
+              )}
 
               {/* About Tab */}
               <TabsContent value="about" className="space-y-4">

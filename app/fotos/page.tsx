@@ -13,6 +13,7 @@ import { PhotoCard } from '@/components/photos/photo-card'
 import { PhotoModal } from '@/components/photos/photo-modal'
 import { PhotoUpload } from '@/components/photos/photo-upload'
 import { DirectUpload } from '@/components/photos/direct-upload'
+import { GooglePhotoUpload } from '@/components/photos/GooglePhotoUpload'
 import { usePhotos, type Photo } from '@/hooks/use-photos'
 import { 
   Camera, 
@@ -192,6 +193,15 @@ export default function PhotosPage() {
                 <RefreshCw className={cn('w-4 h-4 mr-2', loading && 'animate-spin')} />
                 Atualizar
               </Button>
+              <GooglePhotoUpload 
+                onUploadComplete={handleUploadComplete}
+                trigger={
+                  <Button className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white">
+                    <Upload className="w-4 h-4 mr-2" />
+                    Google Photos
+                  </Button>
+                }
+              />
               <PhotoUpload 
                 onUploadComplete={handleUploadComplete}
                 categories={popularCategories.map(c => c.category)}
@@ -519,10 +529,21 @@ export default function PhotosPage() {
                     Limpar Filtros
                   </Button>
                 ) : (
-                  <PhotoUpload 
-                    onUploadComplete={handleUploadComplete}
-                    categories={popularCategories.map(c => c.category)}
-                  />
+                  <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                    <GooglePhotoUpload 
+                      onUploadComplete={handleUploadComplete}
+                      trigger={
+                        <Button className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white">
+                          <Upload className="w-4 h-4 mr-2" />
+                          Upload via Google Photos
+                        </Button>
+                      }
+                    />
+                    <PhotoUpload 
+                      onUploadComplete={handleUploadComplete}
+                      categories={popularCategories.map(c => c.category)}
+                    />
+                  </div>
                 )}
               </div>
             ) : null}

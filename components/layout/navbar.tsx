@@ -70,6 +70,13 @@ export function Navbar() {
       id: profile?.id 
     })
     
+    // Se for o ícone de fotos, abrir Google Photos diretamente
+    if (label === 'fotos' || href === '/fotos') {
+      console.log('[Navbar] Abrindo Google Photos diretamente')
+      window.open('https://photos.google.com/', '_blank')
+      return
+    }
+    
     try {
       router.push(href)
       console.log(`[Navbar] Navegação iniciada com sucesso para: ${href}`)

@@ -77,8 +77,8 @@ export default function PhotosPage() {
   const [isGoogleDriveConfigured, setIsGoogleDriveConfigured] = useState(true) // Drive já está ativo
   // Estado para controlar o iframe do Flickr
   const [showFlickrIframe, setShowFlickrIframe] = useState(false)
-  // Estado para controlar o iframe do Google Photos
-  const [showGooglePhotosIframe, setShowGooglePhotosIframe] = useState(false)
+  // Estado para controlar o iframe do Google Photos (iniciar aberto)
+  const [showGooglePhotosIframe, setShowGooglePhotosIframe] = useState(true)
 
   // Aplicar filtros quando mudarem
   const handleSearchChange = useCallback((value: string) => {
@@ -358,13 +358,13 @@ export default function PhotosPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Monitor className="w-5 h-5 text-blue-500" />
-                    <h3 className="text-lg font-medium">Explorar Fotos via Google Photos</h3>
+                    <h3 className="text-lg font-medium">Google Photos</h3>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => window.open('https://orkut-br-oficial.vercel.app/fotos', '_blank')}
+                      onClick={() => window.open('https://photos.google.com/', '_blank')}
                     >
                       <ExternalLink className="w-4 h-4 mr-2" />
                       Abrir em nova aba
@@ -382,8 +382,8 @@ export default function PhotosPage() {
               <OrkutCardContent className="p-0">
                 <div className="relative w-full" style={{ height: '700px' }}>
                   <iframe
-                    src="https://orkut-br-oficial.vercel.app/fotos"
-                    title="Google Photos - Orkut BR Oficial"
+                    src="https://photos.google.com/"
+                    title="Google Photos"
                     className="w-full h-full border-0 rounded-b-lg"
                     sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation"
                     loading="lazy"
@@ -393,11 +393,11 @@ export default function PhotosPage() {
                   <div className="flex items-center space-x-2 text-sm text-gray-600">
                     <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                     <span>
-                      Explore e interaja com fotos da comunidade Orkut BR oficial integrada ao seu site!
+                      Gerencie, edite e organize suas fotos diretamente no Google Photos oficial!
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 mt-2">
-                    💡 Dica: Esta é a página completa de fotos do Orkut BR oficial (https://orkut-br-oficial.vercel.app/fotos) integrada ao seu site.
+                    💡 Dica: Acesse todas as funcionalidades do Google Photos (https://photos.google.com/) integrado ao seu Orkut.
                   </p>
                 </div>
               </OrkutCardContent>

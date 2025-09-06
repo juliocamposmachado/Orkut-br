@@ -16,6 +16,7 @@ import { DirectUpload } from '@/components/photos/direct-upload'
 import { GooglePhotoUpload } from '@/components/photos/GooglePhotoUpload'
 import { GooglePhotosSetup } from '@/components/photos/GooglePhotosSetup'
 import { GoogleDriveUpload } from '@/components/photos/GoogleDriveUpload'
+import { CustomGoogleDriveUpload } from '@/components/photos/CustomGoogleDriveUpload'
 import { usePhotos, type Photo } from '@/hooks/use-photos'
 import { 
   Camera, 
@@ -243,6 +244,16 @@ export default function PhotosPage() {
                 onUploadComplete={handleUploadComplete}
                 bucket="user-photos"
                 folder="direct-uploads"
+              />
+              {/* Pasta personalizada do Google Drive */}
+              <CustomGoogleDriveUpload 
+                onUploadComplete={handleUploadComplete}
+                trigger={
+                  <Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white">
+                    <Upload className="w-4 h-4 mr-2" />
+                    Minha Pasta
+                  </Button>
+                }
               />
               {/* Botão para mostrar/ocultar iframe do Flickr */}
               <Button

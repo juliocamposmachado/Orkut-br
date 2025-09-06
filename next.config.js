@@ -20,37 +20,24 @@ const nextConfig = {
     // Configure server actions body size limit (Next.js 14+)
     serverActionsBodySizeLimit: '10mb'
   },
-  webpack: (config, { isServer }) => {
-    // Fix potential performance.now() issues
-    config.resolve.alias = {
-      ...config.resolve.alias,
-    };
-    
+  webpack: (config, { isServer, webpack }) => {
+    // Fix potential browser API issues on server
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
         net: false,
         tls: false,
-        // Add performance polyfill for older environments
-        performance: false,
+        crypto: false,
       };
     }
     
-    // Optimize bundle size
-    config.optimization = {
-      ...config.optimization,
-      splitChunks: {
-        chunks: 'all',
-        cacheGroups: {
-          vendor: {
-            test: /[\/]node_modules[\/]/,
-            name: 'vendors',
-            chunks: 'all',
-          },
-        },
-      },
-    };
+    // Add global polyfill for 'self' to prevent server errors
+    config.plugins.push(
+      new webpack.DefinePlugin({
+        'self': 'globalThis',
+      })
+    );
     
     return config;
   },

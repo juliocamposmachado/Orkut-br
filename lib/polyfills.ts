@@ -59,7 +59,11 @@ if (typeof window !== 'undefined') {
     }
   });
 
-  // Microsoft Edge specific polyfills
+// Microsoft Edge specific polyfills (only on client)
+  if (typeof navigator === 'undefined') {
+    // Exit early if not in browser environment
+  } else {
+  
   const isEdge = /Edge\/|Edg\//.test(navigator.userAgent);
   const isEdgeLegacy = /Edge\//.test(navigator.userAgent);
   
@@ -226,6 +230,7 @@ if (typeof window !== 'undefined') {
       childList: true,
       subtree: true
     });
+  }
   }
 }
 

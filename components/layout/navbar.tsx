@@ -75,8 +75,10 @@ export function Navbar() {
       console.log(`[Navbar] Navegação iniciada com sucesso para: ${href}`)
     } catch (error) {
       console.error(`[Navbar] Erro na navegação para ${href}:`, error)
-      // Fallback: try window.location if router fails
-      window.location.href = href
+      // Fallback: try window.location if router fails (only on client)
+      if (typeof window !== 'undefined') {
+        window.location.href = href
+      }
     }
   }
 

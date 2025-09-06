@@ -43,7 +43,8 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public files (public folder)
      * - API routes that don't need auth
+     * - auth/callback (Supabase callback)
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|api/auth).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$|api/auth|auth/callback).*)',
   ],
 }

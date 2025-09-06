@@ -4,7 +4,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -48,6 +48,36 @@ export default function LoginPage() {
   
   const { signIn, signInWithGoogle } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Verificar erros de callback de autenticação
+  useEffect(() => {
+    const error = searchParams?.get('error')
+    if (error) {
+      let errorMessage = 'Erro no processo de autenticação.'
+      
+      switch (error) {
+        case 'auth_callback_error':
+          errorMessage = '❌ Erro na autenticação. Tente fazer login novamente.'
+          break
+        case 'missing_code':
+          errorMessage = '❌ Código de autenticação não encontrado. Tente novamente.'
+          break
+        case 'callback_error':
+          errorMessage = '❌ Erro no callback de autenticação. Tente novamente.'
+          break
+        default:
+          errorMessage = `❌ Erro: ${error}`
+      }
+      
+      toast.error(errorMessage)
+      
+      // Limpar parâmetro de erro da URL
+      const newUrl = new URL(window.location.href)
+      newUrl.searchParams.delete('error')
+      router.replace(newUrl.pathname + newUrl.search)
+    }
+  }, [searchParams, router])
 
   // Cooldown simples para evitar cliques repetidos
   let lastGoogleClick = 0

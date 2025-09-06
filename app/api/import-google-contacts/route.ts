@@ -165,14 +165,46 @@ export async function POST(request: NextRequest) {
 }
 
 // Get Google OAuth2 URL
+// Rate limiting simples em memória (por IP)
+const RATE_LIMIT_WINDOW_MS = 60_000 // 1 minuto
+const RATE_LIMIT_MAX = 12 // no máx. 12 requisições/min por IP
+const rateMap = new Map<string, { count: number; ts: number }>()
+
 export async function GET(request: NextRequest) {
   try {
+    // Rate limit por IP
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+               request.headers.get('x-real-ip') || 'unknown'
+
+    const now = Date.now()
+    const entry = rateMap.get(ip)
+    if (!entry || now - entry.ts > RATE_LIMIT_WINDOW_MS) {
+      rateMap.set(ip, { count: 1, ts: now })
+    } else {
+      entry.count += 1
+      if (entry.count > RATE_LIMIT_MAX) {
+        return NextResponse.json(
+          { error: 'Muitas solicitações. Aguarde alguns segundos e tente novamente.' },
+          { status: 429 }
+        )
+      }
+    }
+
     // Detectar URL base dinamicamente
     const { headers } = request
     const host = headers.get('host') || 'localhost:3000'
     const protocol = host.includes('localhost') ? 'http' : 'https'
     const baseUrl = `${protocol}://${host}`
     const redirectUri = `${baseUrl}/api/import-google-contacts/callback`
+
+    // Validar presença das variáveis de ambiente
+    if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+      return NextResponse.json({
+        error: 'Configuração do Google OAuth ausente. Defina GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET.',
+        details: 'Adicione as variáveis no ambiente e autorize a URI de redirecionamento no Console do Google.',
+        redirectUri
+      }, { status: 500 })
+    }
     
     console.log('🔧 Configurando OAuth:', {
       host,

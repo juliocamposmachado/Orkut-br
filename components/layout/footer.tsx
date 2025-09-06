@@ -99,7 +99,25 @@ export function Footer() {
           <p className="text-sm text-purple-300">
             © 2025 Like Look Solutions • Orkut Retrô • Todos os direitos reservados
           </p>
-          <p className="text-xs text-purple-400 mt-2">
+          
+          {/* Links legais */}
+          <div className="flex flex-wrap justify-center gap-4 mt-4 mb-4 py-3 border-t border-purple-600">
+            <a 
+              href="/privacy" 
+              className="text-sm text-purple-200 hover:text-white transition-colors underline hover:no-underline bg-purple-800/30 px-3 py-1 rounded-lg hover:bg-purple-700/50"
+            >
+              Política de Privacidade
+            </a>
+            <span className="text-sm text-purple-400">•</span>
+            <a 
+              href="/terms" 
+              className="text-sm text-purple-200 hover:text-white transition-colors underline hover:no-underline bg-purple-800/30 px-3 py-1 rounded-lg hover:bg-purple-700/50"
+            >
+              Termos de Uso
+            </a>
+          </div>
+          
+          <p className="text-xs text-purple-400">
             Este é um projeto de demonstração nostálgico. Não possui relação oficial com o Orkut original.
           </p>
         </div>

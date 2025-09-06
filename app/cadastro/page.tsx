@@ -77,6 +77,7 @@ const CadastroPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generatedUsername, setGeneratedUsername] = useState<string>('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const { signUp } = useAuth();
   const router = useRouter();
@@ -132,6 +133,11 @@ const CadastroPage: React.FC = () => {
 
     if (formData.password !== formData.confirmPassword) {
       setError('Senhas não conferem');
+      return false;
+    }
+
+    if (!termsAccepted) {
+      setError('Você deve aceitar os termos de uso e política de privacidade');
       return false;
     }
 
@@ -305,6 +311,36 @@ const CadastroPage: React.FC = () => {
                   )}
                 </button>
               </div>
+            </div>
+
+            {/* Checkbox dos termos */}
+            <div className="flex items-start">
+              <input
+                id="terms"
+                name="terms"
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={(e) => setTermsAccepted(e.target.checked)}
+                className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded mt-0.5"
+              />
+              <label htmlFor="terms" className="ml-3 text-sm text-gray-700">
+                Eu aceito os{' '}
+                <a 
+                  href="/terms" 
+                  target="_blank" 
+                  className="font-medium text-purple-600 hover:text-purple-500 underline"
+                >
+                  Termos de Uso
+                </a>
+                {' '}e a{' '}
+                <a 
+                  href="/privacy" 
+                  target="_blank" 
+                  className="font-medium text-purple-600 hover:text-purple-500 underline"
+                >
+                  Política de Privacidade
+                </a>
+              </label>
             </div>
 
             {/* Erro */}

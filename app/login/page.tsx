@@ -49,7 +49,16 @@ export default function LoginPage() {
   const { signIn, signInWithGoogle } = useAuth()
   const router = useRouter()
 
+  // Cooldown simples para evitar cliques repetidos
+  let lastGoogleClick = 0
   const handleGoogleLogin = async () => {
+    const now = Date.now()
+    if (now - lastGoogleClick < 3000 || isLoading) {
+      // Ignorar cliques em sequência em menos de 3s
+      return
+    }
+    lastGoogleClick = now
+
     setIsLoading(true)
     setButtonText('Verificando usuário...')
     
@@ -59,7 +68,10 @@ export default function LoginPage() {
       toast.success('🔍 Redirecionando para autenticação Google...')
     } catch (error: any) {
       console.error('Erro no handleGoogleLogin:', error)
-      toast.error(error.message || 'Erro ao conectar com Google. Tente novamente.')
+      const msg = /redirect_uri_mismatch/i.test(error?.message || '')
+        ? 'Erro de configuração do Google: URL de redirecionamento não autorizada. Avise o suporte.'
+        : (error.message || 'Erro ao conectar com Google. Tente novamente.')
+      toast.error(msg)
       setIsLoading(false)
       setButtonText('Continuar com Google')
     }

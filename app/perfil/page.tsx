@@ -36,6 +36,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import Link from 'next/link'
 import { SocialNetworksDisplay } from '@/components/profile/social-networks-display'
+import { PhotoUpload } from '@/components/photos/photo-upload'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -90,6 +91,7 @@ export default function ProfilePage() {
   const [isOwnProfile, setIsOwnProfile] = useState(false)
   const [editModalOpen, setEditModalOpen] = useState(false)
   const [socialData, setSocialData] = useState<any>({})
+  const [photoUploadOpen, setPhotoUploadOpen] = useState(false)
 
   useEffect(() => {
     if (!loading && !user) {
@@ -180,14 +182,34 @@ export default function ProfilePage() {
 
     try {
       const { data, error } = await supabase
-        .from('photos')
-        .select('*')
-        .eq('profile_id', profileId)
+        .from('user_photos')
+        .select(`
+          id,
+          url,
+          thumbnail_url,
+          title,
+          description,
+          category,
+          created_at
+        `)
+        .eq('user_id', profileId)
+        .eq('is_public', true)
+        .eq('is_processed', true)
         .order('created_at', { ascending: false })
         .limit(12)
 
       if (error) throw error
-      setPhotos(data || [])
+      
+      // Mapear para o formato esperado pela interface Photo
+      const mappedPhotos = (data || []).map(photo => ({
+        id: photo.id,
+        profile_id: profileId,
+        photo_url: photo.url,
+        caption: photo.description || photo.title,
+        created_at: photo.created_at
+      }))
+      
+      setPhotos(mappedPhotos)
     } catch (error) {
       console.error('Error loading photos:', error)
       // Fallback: use empty array when Supabase is not available
@@ -282,6 +304,15 @@ export default function ProfilePage() {
     } catch (error) {
       console.error('Error deleting scrap:', error)
     }
+  }
+
+  // Callback quando upload de fotos for concluído
+  const handlePhotoUploadComplete = (uploadedPhotos: any[]) => {
+    console.log('✅ Upload concluído:', uploadedPhotos)
+    // Recarregar fotos após upload
+    loadPhotos()
+    // Fechar modal se estiver aberto
+    setPhotoUploadOpen(false)
   }
 
   if (loading || loadingProfile) {
@@ -455,9 +486,11 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-between">
                   <span>Fotos Recentes</span>
                   {isOwnProfile && (
-                    <Button size="sm" variant="ghost">
-                      <Plus className="h-4 w-4" />
-                    </Button>
+                    <PhotoUpload 
+                      onUploadComplete={handlePhotoUploadComplete}
+                      maxFiles={5}
+                      categories={['pessoal', 'viagem', 'familia', 'trabalho', 'hobby', 'lifestyle']}
+                    />
                   )}
                 </div>
               </OrkutCardHeader>
@@ -653,10 +686,13 @@ export default function ProfilePage() {
                           {isOwnProfile && 'Que tal adicionar algumas fotos ao seu perfil?'}
                         </p>
                         {isOwnProfile && (
-                          <Button className="mt-4 bg-purple-500 hover:bg-purple-600">
-                            <Plus className="h-4 w-4 mr-2" />
-                            Adicionar Fotos
-                          </Button>
+                          <div className="mt-4">
+                            <PhotoUpload 
+                              onUploadComplete={handlePhotoUploadComplete}
+                              maxFiles={10}
+                              categories={['pessoal', 'viagem', 'familia', 'trabalho', 'hobby', 'lifestyle', 'arte', 'natureza']}
+                            />
+                          </div>
                         )}
                       </div>
                     </OrkutCardContent>

@@ -15,6 +15,7 @@ import { PhotoUpload } from '@/components/photos/photo-upload'
 import { DirectUpload } from '@/components/photos/direct-upload'
 import { GooglePhotoUpload } from '@/components/photos/GooglePhotoUpload'
 import { GooglePhotosSetup } from '@/components/photos/GooglePhotosSetup'
+import { GoogleDriveUpload } from '@/components/photos/GoogleDriveUpload'
 import { usePhotos, type Photo } from '@/hooks/use-photos'
 import { 
   Camera, 
@@ -69,6 +70,8 @@ export default function PhotosPage() {
   const [isDemoMode, setIsDemoMode] = useState(false)
   // Estado para verificar se Google Photos está configurado
   const [isGooglePhotosConfigured, setIsGooglePhotosConfigured] = useState(false)
+  // Estado para verificar se Google Drive está configurado  
+  const [isGoogleDriveConfigured, setIsGoogleDriveConfigured] = useState(true) // Drive já está ativo
 
   // Aplicar filtros quando mudarem
   const handleSearchChange = useCallback((value: string) => {
@@ -206,6 +209,17 @@ export default function PhotosPage() {
                 <RefreshCw className={cn('w-4 h-4 mr-2', loading && 'animate-spin')} />
                 Atualizar
               </Button>
+              {/* Google Drive Upload - Sempre disponível */}
+              <GoogleDriveUpload 
+                onUploadComplete={handleUploadComplete}
+                trigger={
+                  <Button className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white">
+                    <Upload className="w-4 h-4 mr-2" />
+                    Google Drive
+                  </Button>
+                }
+              />
+              {/* Google Photos Upload - Quando configurado */}
               {isGooglePhotosConfigured ? (
                 <GooglePhotoUpload 
                   onUploadComplete={handleUploadComplete}
@@ -552,6 +566,17 @@ export default function PhotosPage() {
                   </Button>
                 ) : (
                   <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                    {/* Google Drive sempre disponível */}
+                    <GoogleDriveUpload 
+                      onUploadComplete={handleUploadComplete}
+                      trigger={
+                        <Button className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white">
+                          <Upload className="w-4 h-4 mr-2" />
+                          Salvar no Drive
+                        </Button>
+                      }
+                    />
+                    {/* Google Photos quando configurado */}
                     {isGooglePhotosConfigured && (
                       <GooglePhotoUpload 
                         onUploadComplete={handleUploadComplete}

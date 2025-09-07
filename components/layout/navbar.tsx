@@ -70,12 +70,8 @@ export function Navbar() {
       id: profile?.id 
     })
     
-    // Se for o ícone de fotos, abrir Google Photos diretamente
-    if (label === 'fotos' || href === '/fotos') {
-      console.log('[Navbar] Abrindo Google Photos diretamente')
-      window.open('https://photos.google.com/', '_blank')
-      return
-    }
+    // Navegar normalmente para todas as páginas (incluindo fotos)
+    // O Google Photos deve ser acessado dentro da página /fotos
     
     try {
       router.push(href)

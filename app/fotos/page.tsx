@@ -80,23 +80,44 @@ export default function PhotosPage() {
 
   // Upload de foto simplificado
   const handleUpload = async () => {
-    if (!uploadFile) return
+    if (!uploadFile) {
+      setError('Nenhum arquivo selecionado')
+      return
+    }
+
+    console.log('📤 Iniciando upload...')
+    console.log('📄 Arquivo:', {
+      name: uploadFile.name,
+      size: uploadFile.size,
+      type: uploadFile.type
+    })
 
     try {
       setUploading(true)
       setError(null)
       
       // Obter token de autenticação
+      console.log('🔑 Verificando autenticação...')
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       
-      if (sessionError || !session?.access_token) {
+      if (sessionError) {
+        console.error('❌ Erro na sessão:', sessionError)
         setError('Erro de autenticação. Faça login novamente.')
         return
       }
       
+      if (!session?.access_token) {
+        console.error('❌ Sem token de acesso')
+        setError('Sem token de autenticação. Faça login novamente.')
+        return
+      }
+      
+      console.log('✅ Autenticação OK, token disponível')
+      
       // Gerar título automático baseado no nome do arquivo
       const autoTitle = `Foto enviada em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
       
+      console.log('📝 Preparando FormData...')
       const formData = new FormData()
       formData.append('file', uploadFile)
       formData.append('title', autoTitle)
@@ -104,8 +125,15 @@ export default function PhotosPage() {
       formData.append('category', 'geral')
       formData.append('isPublic', 'true')
       
-      console.log('Enviando upload para:', '/api/photos/upload')
-      console.log('FormData entries:', Array.from(formData.entries()))
+      console.log('📊 Dados do FormData:', {
+        hasFile: formData.has('file'),
+        title: autoTitle,
+        fileSize: uploadFile.size,
+        fileType: uploadFile.type
+      })
+      
+      console.log('🚀 Enviando para:', '/api/photos/upload')
+      console.log('🔗 Headers inclusos: Authorization Bearer [HIDDEN]')
       
       const response = await fetch('/api/photos/upload', {
         method: 'POST',

@@ -96,10 +96,20 @@ function validateImageFile(file: File): { valid: boolean; error?: string } {
  * Upload otimizado de foto
  */
 export async function POST(request: NextRequest) {
+  console.log('🚀 POST /api/photos/upload chamado')
+  
   try {
+    // Log das configurações do Supabase (sem expor secrets)
+    console.log('🔧 Configuração Supabase:', {
+      hasUrl: !!supabaseUrl,
+      hasKey: !!supabaseServiceKey,
+      isConfigured: isSupabaseConfigured,
+      supabaseExists: !!supabase
+    })
+
     // Se Supabase não estiver configurado, retornar erro informativo
     if (!supabase) {
-      console.error('Supabase não configurado para upload de fotos')
+      console.error('❌ Supabase não configurado para upload de fotos')
       return NextResponse.json({ 
         success: false,
         error: 'Funcionalidade de upload de fotos não disponível no momento',
@@ -109,7 +119,7 @@ export async function POST(request: NextRequest) {
       }, { status: 503 })
     }
 
-    console.log('Iniciando upload de fotos...')
+    console.log('✅ Iniciando upload de fotos...')
 
     // Verificar autenticação
     const authHeader = request.headers.get('authorization')

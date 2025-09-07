@@ -296,14 +296,16 @@ export function GooglePhotosDragDrop({
           <Button 
             onClick={handleManualAdd}
             disabled={!manualLink.trim() || isProcessing}
-            className="w-full"
+            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isProcessing ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              <Loader2 className="w-4 h-4 mr-2 animate-spin text-white" />
             ) : (
-              <Upload className="w-4 h-4 mr-2" />
+              <Upload className="w-4 h-4 mr-2 text-white" />
             )}
-            {isProcessing ? 'Adicionando...' : 'Adicionar Foto'}
+            <span className="text-white font-medium">
+              {isProcessing ? 'Adicionando...' : 'Adicionar Foto'}
+            </span>
           </Button>
         </div>
 

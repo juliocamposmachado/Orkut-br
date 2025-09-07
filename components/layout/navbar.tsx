@@ -33,7 +33,8 @@ import {
   ExternalLink,
   Camera,
   Shield,
-  Crown
+  Crown,
+  BookOpen
 } from 'lucide-react'
 import { useAuth } from '@/contexts/enhanced-auth-context'
 import { useVoice } from '@/contexts/voice-context'
@@ -55,6 +56,7 @@ export function Navbar() {
     { icon: Users, label: 'amigos', href: '/amigos' },
     { icon: MessageCircle, label: 'mensagens', href: '/mensagens' },
     { icon: Globe, label: 'comunidades', href: '/comunidades' },
+    { icon: BookOpen, label: 'blog', href: '/blog' },
     { icon: Camera, label: 'fotos', href: '/fotos' },
     { icon: Search, label: 'buscar', href: '/buscar' },
   ]

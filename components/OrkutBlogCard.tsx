@@ -53,8 +53,12 @@ export function OrkutBlogCard() {
       } else {
         console.error('Erro ao carregar posts:', data.error)
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao buscar posts do blog:', error)
+      // Se a tabela não existir, mostrar estado específico
+      if (error?.message?.includes('relation "blog_posts" does not exist')) {
+        console.warn('Tabela blog_posts não encontrada - migration não foi executada')
+      }
     } finally {
       setLoading(false)
     }

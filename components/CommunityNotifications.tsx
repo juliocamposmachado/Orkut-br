@@ -334,10 +334,19 @@ export function CommunityNotifications({ className }: CommunityNotificationsProp
                         </>
                       )}
                       
-                      {activity.activity_type === 'post' && activity.activity_data.post_id && (
-                        <Button size="sm" variant="outline" className="text-xs h-6 px-2">
-                          Ver post
-                        </Button>
+                      {activity.activity_type === 'post' && (
+                        <>
+                          <Link href={`/perfil/${activity.profile?.username}`}>
+                            <Button size="sm" variant="outline" className="text-xs h-6 px-2">
+                              Ver post
+                            </Button>
+                          </Link>
+                          <Link href={`/perfil/${activity.profile?.username}`}>
+                            <Button size="sm" variant="outline" className="text-xs h-6 px-2">
+                              Ver perfil
+                            </Button>
+                          </Link>
+                        </>
                       )}
                       
                       {activity.activity_type === 'community_joined' && (

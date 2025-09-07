@@ -21,6 +21,7 @@ import {
   Tag,
   X
 } from 'lucide-react'
+import { MigrationNotice } from '@/components/MigrationNotice'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -40,6 +41,7 @@ export default function CreatePostPage() {
   const [newTag, setNewTag] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isPreview, setIsPreview] = useState(false)
+  const [migrationError, setMigrationError] = useState<any>(null)
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -90,6 +92,11 @@ export default function CreatePostPage() {
         toast.success(isDraft ? 'Rascunho salvo com sucesso!' : 'Post publicado com sucesso!')
         router.push(`/blog/${data.post.slug}`)
       } else {
+        // Check if it's a migration error (table doesn't exist)
+        if (response.status === 503 && data.code === 'MIGRATION_REQUIRED') {
+          setMigrationError(data)
+          return
+        }
         throw new Error(data.error || 'Erro ao salvar post')
       }
     } catch (error) {
@@ -343,6 +350,14 @@ export default function CreatePostPage() {
       </div>
 
       <Footer />
+      
+      {/* Migration Notice Modal */}
+      {migrationError && (
+        <MigrationNotice 
+          error={{ migration_needed: true, details: migrationError.message }} 
+          onClose={() => setMigrationError(null)} 
+        />
+      )}
     </div>
   )
 }

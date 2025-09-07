@@ -94,8 +94,22 @@ export async function GET(request: NextRequest) {
       }
     })
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro ao buscar posts do blog:', error)
+    
+    // Detectar se a tabela não existe
+    if (error?.message?.includes('relation "blog_posts" does not exist') || 
+        error?.code === '42P01') {
+      return NextResponse.json(
+        { 
+          error: 'Blog não configurado',
+          details: 'A tabela blog_posts não existe. Execute a migration no Supabase.',
+          migration_needed: true
+        },
+        { status: 503 }
+      )
+    }
+    
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }
@@ -165,8 +179,22 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ post }, { status: 201 })
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Erro ao criar post do blog:', error)
+    
+    // Detectar se a tabela não existe
+    if (error?.message?.includes('relation "blog_posts" does not exist') || 
+        error?.code === '42P01') {
+      return NextResponse.json(
+        { 
+          error: 'Blog não configurado',
+          details: 'A tabela blog_posts não existe. Execute a migration no Supabase.',
+          migration_needed: true
+        },
+        { status: 503 }
+      )
+    }
+    
     return NextResponse.json(
       { error: 'Erro interno do servidor' },
       { status: 500 }

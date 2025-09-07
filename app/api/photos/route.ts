@@ -74,6 +74,22 @@ export async function GET(request: NextRequest) {
     if (!supabase) {
       const demoPhotos = [
         {
+          id: 'orkut-logo',
+          user_id: 'orkut-system',
+          url: '/logoorkut.png',
+          thumbnail_url: '/logoorkut.png',
+          preview_url: '/logoorkut.png',
+          title: 'Logo Oficial do Orkut BR',
+          description: 'Logo oficial da rede social Orkut BR - Bem-vindo à comunidade!',
+          category: 'sistema',
+          likes_count: 999,
+          comments_count: 150,
+          views_count: 5000,
+          created_at: new Date('2024-01-01T00:00:00Z').toISOString(),
+          user_name: 'Orkut BR',
+          user_avatar: '/logoorkut.png'
+        },
+        {
           id: '1',
           user_id: 'demo-user-1',
           url: 'https://images.pexels.com/photos/417074/pexels-photo-417074.jpeg?auto=compress&cs=tinysrgb&w=800',
@@ -237,6 +253,24 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Sempre incluir o logo do Orkut como primeira foto
+    const orkutLogo = {
+      id: 'orkut-logo-official',
+      user_id: 'orkut-system',
+      url: '/logoorkut.png',
+      thumbnail_url: '/logoorkut.png',
+      preview_url: '/logoorkut.png',
+      title: 'Logo Oficial do Orkut BR',
+      description: 'Logo oficial da rede social Orkut BR - Bem-vindo à nossa comunidade! 🌈',
+      category: 'sistema',
+      likes_count: 1337,
+      comments_count: 200,
+      views_count: 9999,
+      created_at: new Date('2024-01-01T00:00:00Z').toISOString(),
+      user_name: 'Orkut BR',
+      user_avatar: '/logoorkut.png'
+    }
+
     // Filtrar por busca de texto se especificado (pós-processamento)
     let filteredPhotos = photos || []
     if (filters.search) {
@@ -247,6 +281,20 @@ export async function GET(request: NextRequest) {
         photo.category?.toLowerCase().includes(searchTerm) ||
         photo.user_name?.toLowerCase().includes(searchTerm)
       )
+      
+      // Verificar se o logo do Orkut corresponde à busca
+      const logoMatchesSearch = 
+        orkutLogo.title.toLowerCase().includes(searchTerm) ||
+        orkutLogo.description.toLowerCase().includes(searchTerm) ||
+        orkutLogo.category.toLowerCase().includes(searchTerm) ||
+        orkutLogo.user_name.toLowerCase().includes(searchTerm)
+      
+      if (logoMatchesSearch) {
+        filteredPhotos = [orkutLogo, ...filteredPhotos]
+      }
+    } else {
+      // Sempre incluir o logo como primeira foto quando não há busca
+      filteredPhotos = [orkutLogo, ...filteredPhotos]
     }
 
     // Buscar estatísticas gerais (com cache separado)
@@ -278,9 +326,12 @@ export async function GET(request: NextRequest) {
       }, {})
 
       stats = {
-        total: totalCount || 0,
-        categories: categoryStats,
-        public: (statsData || []).filter((p: any) => p.is_public).length,
+        total: (totalCount || 0) + 1, // +1 para incluir o logo do Orkut
+        categories: {
+          ...categoryStats,
+          sistema: (categoryStats.sistema || 0) + 1 // Adicionar categoria sistema
+        },
+        public: (statsData || []).filter((p: any) => p.is_public).length + 1, // +1 para o logo
         private: (statsData || []).filter((p: any) => !p.is_public).length
       }
 

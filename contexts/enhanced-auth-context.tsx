@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { getProxiedImageUrl } from '@/hooks/use-google-image-proxy'
+import { autoInitGalleryOnLogin } from '@/utils/gallery-utils'
 
 // Enhanced types for user profile
 type Profile = {
@@ -212,6 +213,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
           email_confirmed: !!user.email_confirmed_at,
           email_confirmed_at: user.email_confirmed_at || null
         })
+        
+        // Inicializar galeria automaticamente para usuários logados
+        console.log('📸 [AUTO INIT] Tentando inicializar galeria para usuário logado')
+        setTimeout(() => {
+          autoInitGalleryOnLogin(user.id).catch(error => {
+            console.error('Erro na inicialização automática da galeria:', error)
+          })
+        }, 2000) // Aguardar 2 segundos para garantir que o usuário esteja completamente carregado
       } else {
         // Create profile if it doesn't exist
         console.log('🆕 [CREATE USER] Perfil não encontrado, criando novo usuário...')
@@ -610,6 +619,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         })
         
         console.log('🎉 [CREATE PROFILE] SetProfile chamado com sucesso!')
+        
+        // Inicializar galeria para novo usuário
+        console.log('📸 [NEW USER] Inicializando galeria para novo usuário')
+        setTimeout(() => {
+          autoInitGalleryOnLogin(user.id).catch(error => {
+            console.error('Erro na inicialização da galeria para novo usuário:', error)
+          })
+        }, 3000) // Aguardar 3 segundos para novo usuário
       } else {
         console.error('❌ [CREATE PROFILE] Perfil não encontrado após criação')
         throw new Error('Perfil não encontrado após criação')

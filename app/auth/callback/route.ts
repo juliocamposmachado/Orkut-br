@@ -1,13 +1,21 @@
 import { createClient } from '@/utils/supabase/server'
 import { cookies } from 'next/headers'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 
-export async function GET(request: NextRequest) {
+// Forçar esta rota a ser dinâmica para evitar problemas de build
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
+export async function GET(request: Request) {
   try {
-    const { searchParams, origin } = new URL(request.url)
-    const code = searchParams.get('code')
-    // Se há um parâmetro next, usar ele; caso contrário, usar /login
-    const next = searchParams.get('next') ?? '/login'
+    // Extrair URL e parâmetros de forma segura
+    const url = new URL(request.url)
+    const code = url.searchParams.get('code')
+    
+    // Definir origem baseada no ambiente
+    const origin = process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:3000'
+      : (process.env.NEXT_PUBLIC_SITE_URL || 'https://orkut-br-oficial.vercel.app')
 
     if (code) {
       const cookieStore = cookies()
@@ -29,8 +37,12 @@ export async function GET(request: NextRequest) {
     }
   } catch (error) {
     console.error('Erro no callback de autenticação:', error)
-    // Em caso de erro, redirecionar para login
-    const { origin } = new URL(request.url)
+    
+    // Definir origem para fallback
+    const origin = process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:3000'
+      : (process.env.NEXT_PUBLIC_SITE_URL || 'https://orkut-br-oficial.vercel.app')
+      
     return NextResponse.redirect(`${origin}/login?error=callback_error`)
   }
 }

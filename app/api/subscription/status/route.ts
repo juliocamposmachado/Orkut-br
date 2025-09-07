@@ -23,7 +23,22 @@ export async function GET(request: NextRequest) {
       .limit(1)
       .single();
 
+    // Se a tabela não existir ou não houver dados, retornar como não tendo assinatura
     if (subError && subError.code !== 'PGRST116') {
+      // Se for erro de tabela não existe, retornar como se não houvesse assinatura
+      if (subError.code === '42P01' || subError.message?.includes('does not exist')) {
+        console.log('⚠️ Tabela user_subscriptions não existe - assumindo sem assinatura');
+        return NextResponse.json({
+          hasActiveSubscription: false,
+          subscription: null,
+          user: {
+            id: user.id,
+            email: user.email,
+            isPro: false
+          }
+        });
+      }
+      
       console.error('❌ Erro ao buscar assinatura:', subError);
       return NextResponse.json(
         { error: 'Erro ao verificar assinatura' },

@@ -47,12 +47,16 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         setHasActiveSubscription(data.hasActiveSubscription);
         setSubscription(data.subscription);
       } else {
-        console.error('Erro ao verificar status da assinatura');
+        // Silenciar erro se for 401 (não autenticado) ou 500 (tabela não existe)
+        if (response.status !== 401 && response.status !== 500) {
+          console.error('Erro ao verificar status da assinatura:', response.status);
+        }
         setHasActiveSubscription(false);
         setSubscription(null);
       }
     } catch (error) {
-      console.error('Erro ao verificar assinatura:', error);
+      // Silenciar erros de rede comuns
+      console.debug('Debug - erro de assinatura:', error);
       setHasActiveSubscription(false);
       setSubscription(null);
     } finally {

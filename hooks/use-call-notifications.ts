@@ -167,7 +167,8 @@ export function useCallNotifications() {
         )
         .subscribe((status, error) => {
           if (error) {
-            console.error('❌ Erro ao subscrever notificações de chamada:', error)
+            // Silenciar erros de subscrição comuns em desenvolvimento
+            console.debug('Debug - erro de subscrição de notificações:', error)
           } else {
             console.log('✅ Subscrito para notificações de chamada. Status:', status)
           }

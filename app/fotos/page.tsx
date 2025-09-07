@@ -18,6 +18,7 @@ import { GooglePhotoUpload } from '@/components/photos/GooglePhotoUpload'
 import { GooglePhotosSetup } from '@/components/photos/GooglePhotosSetup'
 import { GoogleDriveUpload } from '@/components/photos/GoogleDriveUpload'
 import { CustomGoogleDriveUpload } from '@/components/photos/CustomGoogleDriveUpload'
+import { UserPhotosGallery } from '@/components/photos/user-photos-gallery'
 import { usePhotos, type Photo } from '@/hooks/use-photos'
 import { 
   Camera, 
@@ -388,84 +389,16 @@ export default function PhotosPage() {
           </div>
         )}
         
-        {/* Google Photos Galeria Integrada */}
+        {/* Galeria de Fotos do Usuário Logado */}
         {showGooglePhotosIframe && (
           <div className="mb-6">
-            <OrkutCard>
-              <OrkutCardHeader>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Monitor className="w-5 h-5 text-blue-500" />
-                    <h3 className="text-lg font-medium">Galeria Google Photos - Orkut</h3>
-                    <Badge variant="secondary" className="text-xs">
-                      Armazenamento Gratuito
-                    </Badge>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={openGooglePhotosWithLogin}
-                    >
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      Gerenciar fotos
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowGooglePhotosIframe(false)}
-                    >
-                      ×
-                    </Button>
-                  </div>
-                </div>
-              </OrkutCardHeader>
-              <OrkutCardContent className="p-0">
-                <div className="relative w-full" style={{ height: '800px' }}>
-                  <iframe
-                    src={getGooglePhotosIframeUrl()}
-                    title="Galeria Google Photos - Orkut"
-                    className="w-full h-full border-0 rounded-b-lg"
-                    sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation allow-storage-access-by-user-activation"
-                    loading="lazy"
-                    allow="camera; microphone; geolocation; encrypted-media; fullscreen"
-                  />
-                </div>
-                <div className="p-4 bg-gradient-to-r from-blue-50 to-green-50 border-t">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <div className="w-3 h-3 bg-green-500 rounded-full mx-auto mb-2 animate-pulse"></div>
-                      <h4 className="font-medium text-sm text-gray-800">🔒 Armazenamento Seguro</h4>
-                      <p className="text-xs text-gray-600">15GB gratuitos do Google</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full mx-auto mb-2 animate-pulse"></div>
-                      <h4 className="font-medium text-sm text-gray-800">📱 Sincronização</h4>
-                      <p className="text-xs text-gray-600">Acesso em todos dispositivos</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="w-3 h-3 bg-purple-500 rounded-full mx-auto mb-2 animate-pulse"></div>
-                      <h4 className="font-medium text-sm text-gray-800">🎨 Edição Avançada</h4>
-                      <p className="text-xs text-gray-600">Ferramentas do Google AI</p>
-                    </div>
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <div className="flex items-start space-x-2 text-sm">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                      <div>
-                        <p className="text-gray-700 font-medium mb-1">Como usar sua Galeria Integrada:</p>
-                        <ul className="text-xs text-gray-600 space-y-1">
-                          <li>• <strong>Upload:</strong> Arraste fotos diretamente na área acima</li>
-                          <li>• <strong>Organizar:</strong> Crie álbuns e organize por datas</li>
-                          <li>• <strong>Compartilhar:</strong> Gere links diretos para suas fotos</li>
-                          <li>• <strong>Backup:</strong> Fotos sincronizam automaticamente</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </OrkutCardContent>
-            </OrkutCard>
+            <UserPhotosGallery 
+              className="mb-4"
+              onPhotoClick={(photo) => {
+                console.log('📸 Foto clicada:', photo)
+                // Aqui pode abrir um modal ou navegar para visualização da foto
+              }}
+            />
           </div>
         )}
         

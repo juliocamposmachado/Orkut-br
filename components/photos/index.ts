@@ -15,3 +15,6 @@ export { GooglePhotosSetup } from './GooglePhotosSetup'
 export { UserPhotosGallery } from './user-photos-gallery'
 export { GooglePhotosDragDrop } from './google-photos-drag-drop'
 export { GooglePhotosGallery } from './google-photos-gallery'
+
+// Importação de redes sociais
+export { SocialMediaImport } from './social-media-import'

@@ -21,6 +21,7 @@ import { CustomGoogleDriveUpload } from '@/components/photos/CustomGoogleDriveUp
 import { UserPhotosGallery } from '@/components/photos/user-photos-gallery'
 import { GooglePhotosDragDrop } from '@/components/photos/google-photos-drag-drop'
 import { GooglePhotosGallery } from '@/components/photos/google-photos-gallery'
+import { SocialMediaImport } from '@/components/photos/social-media-import'
 import { usePhotos, type Photo } from '@/hooks/use-photos'
 import { 
   Camera, 
@@ -401,6 +402,20 @@ export default function PhotosPage() {
               console.log('📸 Nova foto adicionada:', photoLink)
               // A foto será automaticamente exibida na galeria abaixo
               // O hook useGooglePhotosLinks vai atualizar a lista automaticamente
+            }}
+          />
+        </div>
+
+        {/* Componente de Importação de Redes Sociais */}
+        <div className="mb-6">
+          <SocialMediaImport 
+            className="mb-4"
+            onImportComplete={(importedPhotos) => {
+              console.log('📱 Fotos importadas de redes sociais:', importedPhotos)
+              // Refresh das fotos após importação bem-sucedida
+              setTimeout(() => {
+                refreshPhotos()
+              }, 1000)
             }}
           />
         </div>

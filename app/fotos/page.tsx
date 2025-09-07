@@ -19,6 +19,8 @@ import { GooglePhotosSetup } from '@/components/photos/GooglePhotosSetup'
 import { GoogleDriveUpload } from '@/components/photos/GoogleDriveUpload'
 import { CustomGoogleDriveUpload } from '@/components/photos/CustomGoogleDriveUpload'
 import { UserPhotosGallery } from '@/components/photos/user-photos-gallery'
+import { GooglePhotosDragDrop } from '@/components/photos/google-photos-drag-drop'
+import { GooglePhotosGallery } from '@/components/photos/google-photos-gallery'
 import { usePhotos, type Photo } from '@/hooks/use-photos'
 import { 
   Camera, 
@@ -389,6 +391,34 @@ export default function PhotosPage() {
           </div>
         )}
         
+        {/* Componente Drag & Drop para Google Photos */}
+        <div className="mb-6">
+          <GooglePhotosDragDrop 
+            className="mb-4"
+            showGallery={false}
+            maxPhotos={30}
+            onPhotoAdded={(photoLink) => {
+              console.log('📸 Nova foto adicionada:', photoLink)
+              // A foto será automaticamente exibida na galeria abaixo
+              // O hook useGooglePhotosLinks vai atualizar a lista automaticamente
+            }}
+          />
+        </div>
+
+        {/* Galeria de Fotos do Google Photos */}
+        <div className="mb-6">
+          <GooglePhotosGallery 
+            className="mb-4"
+            showUserPhotos={true}
+            showPublicPhotos={true}
+            onPhotoClick={(photo) => {
+              console.log('🖼️ Foto do Google Photos clicada:', photo)
+              // Aqui você pode abrir um modal personalizado ou navegar
+              // Por padrão, vai abrir o link do Google Photos em nova aba
+            }}
+          />
+        </div>
+
         {/* Galeria de Fotos do Usuário Logado */}
         {showGooglePhotosIframe && (
           <div className="mb-6">

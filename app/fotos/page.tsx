@@ -78,9 +78,9 @@ export default function PhotosPage() {
     }
   }
 
-  // Upload de foto
+  // Upload de foto simplificado
   const handleUpload = async () => {
-    if (!uploadFile || !uploadTitle.trim()) return
+    if (!uploadFile) return
 
     try {
       setUploading(true)
@@ -94,12 +94,18 @@ export default function PhotosPage() {
         return
       }
       
+      // Gerar título automático baseado no nome do arquivo
+      const autoTitle = `Foto enviada em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+      
       const formData = new FormData()
       formData.append('file', uploadFile)
-      formData.append('title', uploadTitle.trim())
-      formData.append('description', uploadDescription.trim() || '')
+      formData.append('title', autoTitle)
+      formData.append('description', '')
       formData.append('category', 'geral')
       formData.append('isPublic', 'true')
+      
+      console.log('Enviando upload para:', '/api/photos/upload')
+      console.log('FormData entries:', Array.from(formData.entries()))
       
       const response = await fetch('/api/photos/upload', {
         method: 'POST',
@@ -109,25 +115,33 @@ export default function PhotosPage() {
         body: formData
       })
       
-      const result = await response.json()
+      console.log('Response status:', response.status)
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()))
       
-      if (response.ok) {
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Error response:', errorText)
+        setError(`Erro ${response.status}: ${errorText}`)
+        return
+      }
+      
+      const result = await response.json()
+      console.log('Upload result:', result)
+      
+      if (result.summary?.success > 0) {
         setUploadFile(null)
         setUploadTitle('')
         setUploadDescription('')
         setShowUploadForm(false)
         loadPhotos() // Recarregar fotos
-        
-        // Mostrar sucesso
-        if (result.summary?.success > 0) {
-          console.log(`Upload realizado com sucesso: ${result.summary.success} foto(s)`)
-        }
+        console.log(`Upload realizado com sucesso: ${result.summary.success} foto(s)`)
       } else {
         setError(result.error || result.message || 'Erro no upload')
       }
+      
     } catch (err) {
       console.error('Erro no upload:', err)
-      setError('Erro de conexão durante upload')
+      setError(`Erro de conexão: ${err instanceof Error ? err.message : 'Erro desconhecido'}`)
     } finally {
       setUploading(false)
     }
@@ -207,13 +221,13 @@ export default function PhotosPage() {
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         
-        {/* Upload Form */}
+        {/* Upload Form Simplificado */}
         {showUploadForm && (
           <div className="mb-6">
             <OrkutCard>
               <OrkutCardHeader>
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium">Adicionar Nova Foto</h3>
+                  <h3 className="text-lg font-medium">📸 Enviar Nova Foto</h3>
                   <Button 
                     variant="ghost" 
                     size="sm" 
@@ -224,44 +238,43 @@ export default function PhotosPage() {
                 </div>
               </OrkutCardHeader>
               <OrkutCardContent className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Título da Foto</label>
-                  <Input
-                    type="text"
-                    value={uploadTitle}
-                    onChange={(e) => setUploadTitle(e.target.value)}
-                    placeholder="Digite um título para sua foto"
-                    maxLength={100}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Descrição (opcional)</label>
-                  <Input
-                    type="text"
-                    value={uploadDescription}
-                    onChange={(e) => setUploadDescription(e.target.value)}
-                    placeholder="Descreva sua foto..."
-                    maxLength={500}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Selecionar Arquivo</label>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-                  />
+                <div className="text-center p-8 border-2 border-dashed border-purple-300 rounded-lg bg-purple-50">
+                  <Camera className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+                  <div className="space-y-2">
+                    <p className="text-lg font-medium text-gray-800">Escolha uma foto para enviar</p>
+                    <p className="text-sm text-gray-600">JPG, PNG, WebP ou HEIC até 10MB</p>
+                  </div>
+                  <div className="mt-4">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+                      className="w-full"
+                    />
+                  </div>
                   {uploadFile && (
-                    <div className="mt-2 text-sm text-gray-600">
-                      Arquivo selecionado: {uploadFile.name} ({(uploadFile.size / 1024 / 1024).toFixed(2)} MB)
+                    <div className="mt-4 p-3 bg-white rounded-lg border">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                          <Camera className="w-6 h-6 text-purple-600" />
+                        </div>
+                        <div className="text-left">
+                          <p className="font-medium text-gray-900 truncate max-w-xs">{uploadFile.name}</p>
+                          <p className="text-sm text-gray-500">
+                            {(uploadFile.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
-                <div className="flex space-x-2">
+                
+                <div className="flex space-x-2 justify-center">
                   <Button 
                     onClick={handleUpload} 
-                    disabled={!uploadFile || !uploadTitle.trim() || uploading}
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                    disabled={!uploadFile || uploading}
+                    size="lg"
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 px-8"
                   >
                     {uploading ? (
                       <>
@@ -275,7 +288,15 @@ export default function PhotosPage() {
                       </>
                     )}
                   </Button>
-                  <Button variant="outline" onClick={() => setShowUploadForm(false)}>
+                  <Button 
+                    variant="outline" 
+                    size="lg"
+                    onClick={() => {
+                      setShowUploadForm(false)
+                      setUploadFile(null)
+                      setError(null)
+                    }}
+                  >
                     Cancelar
                   </Button>
                 </div>

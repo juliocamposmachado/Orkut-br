@@ -126,24 +126,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Token inválido' }, { status: 401 })
     }
 
-    // Parse do FormData
-    const formData = await request.formData()
+    // Parse do FormData com melhor tratamento de erros
+    let formData: FormData
+    try {
+      formData = await request.formData()
+    } catch (error) {
+      console.error('Erro ao fazer parse do FormData:', error)
+      return NextResponse.json({ error: 'Dados do formulário inválidos' }, { status: 400 })
+    }
     
     // Suportar tanto 'file' quanto 'files' (retrocompatibilidade)
     let files: File[] = []
     const singleFile = formData.get('file') as File
     const multipleFiles = formData.getAll('files') as File[]
     
-    if (singleFile && singleFile.size > 0) {
+    if (singleFile && singleFile instanceof File && singleFile.size > 0) {
       files = [singleFile]
     } else if (multipleFiles.length > 0) {
-      files = multipleFiles
+      files = multipleFiles.filter(f => f instanceof File && f.size > 0)
     }
     
-    const title = formData.get('title') as string
-    const description = formData.get('description') as string
-    const category = formData.get('category') as string || 'geral'
-    const isPublic = formData.get('isPublic') !== 'false' // padrão true
+    const title = (formData.get('title') as string) || `Foto ${new Date().toLocaleDateString('pt-BR')}`
+    const description = (formData.get('description') as string) || ''
+    const category = (formData.get('category') as string) || 'geral'
+    const isPublic = (formData.get('isPublic') as string) !== 'false' // padrão true
 
     if (files.length === 0) {
       return NextResponse.json({ error: 'Nenhum arquivo enviado' }, { status: 400 })

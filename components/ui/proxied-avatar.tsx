@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useCallback } from 'react'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { useAvatarProxy } from '@/hooks/use-google-image-proxy'
 import { cn } from '@/lib/utils'
@@ -19,71 +20,61 @@ export function ProxiedAvatar({
   size = 96, 
   className 
 }: ProxiedAvatarProps) {
+  const [imageError, setImageError] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false)
   const proxiedSrc = useAvatarProxy(src, size)
 
   // Generate fallback from alt if not provided
   const defaultFallback = fallback || alt?.charAt(0)?.toUpperCase() || '?'
 
-  // Detect Edge browser
-  const isEdge = typeof window !== 'undefined' && /Edge\/|Edg\//.test(window.navigator.userAgent)
+  // Reset error state when src changes
+  const handleImageLoad = useCallback(() => {
+    setImageLoaded(true)
+    setImageError(false)
+  }, [])
+
+  const handleImageError = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+    console.warn('🖼️ Erro ao carregar avatar:', proxiedSrc)
+    setImageError(true)
+    setImageLoaded(false)
+    
+    // Hide the failed image
+    const target = e.currentTarget as HTMLImageElement
+    target.style.display = 'none'
+  }, [proxiedSrc])
+
+  // Don't render AvatarImage if we had an error or no src
+  const shouldShowImage = proxiedSrc && !imageError
 
   return (
     <Avatar className={cn(className)}>
-      <AvatarImage 
-        src={proxiedSrc} 
-        alt={alt}
-        loading="lazy"
-        crossOrigin={proxiedSrc?.includes('http') ? 'anonymous' : undefined}
-        onError={(e) => {
-          console.warn('🖼️ Erro ao carregar avatar:', proxiedSrc)
-          // Remove src to show fallback - Edge compatible
-          const target = e.currentTarget as HTMLImageElement
-          target.src = ''
-          target.style.display = 'none'
-          
-          // Force show fallback for Edge
-          if (isEdge) {
-            const fallbackElement = target.nextElementSibling as HTMLElement
-            if (fallbackElement) {
-              fallbackElement.style.display = 'flex'
-              fallbackElement.style.visibility = 'visible'
-            }
-          }
-        }}
-        onLoad={(e) => {
-          // Ensure image is visible when loaded successfully
-          const target = e.currentTarget as HTMLImageElement
-          target.style.display = 'block'
-          target.style.visibility = 'visible'
-        }}
-        style={{
-          // Edge compatibility styles
-          objectFit: 'cover',
-          objectPosition: 'center',
-          // Fallback for Edge Legacy that doesn't support object-fit
-          width: '100%',
-          height: '100%',
-          ...(isEdge && {
-            // Additional Edge-specific styles
-            imageRendering: 'auto',
-            backfaceVisibility: 'hidden'
-          })
-        }}
-      />
+      {shouldShowImage && (
+        <AvatarImage 
+          src={proxiedSrc} 
+          alt={alt}
+          loading="lazy"
+          onError={handleImageError}
+          onLoad={handleImageLoad}
+          style={{
+            objectFit: 'cover',
+            objectPosition: 'center',
+            width: '100%',
+            height: '100%',
+            transition: 'opacity 0.2s ease-in-out',
+            opacity: imageLoaded ? 1 : 0.8
+          }}
+        />
+      )}
       <AvatarFallback 
         className="bg-purple-500 text-white"
         style={{
-          // Ensure fallback is properly styled for Edge
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           fontSize: `${Math.max(size / 3, 12)}px`,
           fontWeight: '500',
-          ...(isEdge && {
-            // Additional Edge compatibility
-            msFlexAlign: 'center',
-            msFlexPack: 'center'
-          })
+          // Show fallback if no image or error
+          opacity: (!shouldShowImage || !imageLoaded) ? 1 : 0
         }}
       >
         {defaultFallback}

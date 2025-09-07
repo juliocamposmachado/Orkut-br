@@ -11,7 +11,7 @@ export function useGoogleImageProxy(originalUrl?: string | null, options: UseGoo
   const proxiedUrl = useMemo(() => {
     if (!originalUrl) return fallback
 
-    // Se não for uma URL do Google, retornar como está
+    // Se não for uma URL do Google, retornar como está (sem proxy)
     if (!originalUrl.includes('googleusercontent.com') && !originalUrl.includes('lh3.googleusercontent.com')) {
       return originalUrl
     }
@@ -22,29 +22,26 @@ export function useGoogleImageProxy(originalUrl?: string | null, options: UseGoo
     }
 
     try {
-      // Modificar a URL do Google para o tamanho desejado
-      let modifiedGoogleUrl = originalUrl
+      // Tentar primeiro usar a URL direta do Google com parâmetros
+      let directGoogleUrl = originalUrl
       
       // Remove parâmetros de tamanho existentes e adiciona novos
       if (originalUrl.includes('=s') && originalUrl.includes('-c')) {
-        modifiedGoogleUrl = originalUrl.replace(/=s\d+-c$/, `=s${size}-c`)
+        directGoogleUrl = originalUrl.replace(/=s\d+-c$/, `=s${size}-c`)
       } else if (originalUrl.includes('=s')) {
-        modifiedGoogleUrl = originalUrl.replace(/=s\d+$/, `=s${size}`)
+        directGoogleUrl = originalUrl.replace(/=s\d+$/, `=s${size}`)
       } else {
         // Se não tem parâmetros de tamanho, adicionar
-        modifiedGoogleUrl = `${originalUrl}=s${size}-c`
+        directGoogleUrl = `${originalUrl}=s${size}-c`
       }
 
-      // Criar URL do proxy
-      const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(modifiedGoogleUrl)}`
-      
-      console.log('🔄 Convertendo URL do Google:', {
+      console.log('🔄 Processando URL do Google (direto):', {
         original: originalUrl,
-        modified: modifiedGoogleUrl,
-        proxy: proxyUrl
+        direct: directGoogleUrl
       })
 
-      return proxyUrl
+      // Retornar URL direta do Google (sem proxy por enquanto para evitar problemas)
+      return directGoogleUrl
     } catch (error) {
       console.warn('⚠️ Erro ao processar URL da imagem:', error)
       return fallback || originalUrl

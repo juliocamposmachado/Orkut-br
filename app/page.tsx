@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/enhanced-auth-context'
 import { EmailVerificationBanner } from '@/components/auth/email-verification-banner'
 import { Navbar } from '@/components/layout/navbar'
@@ -63,6 +63,7 @@ import OnlineFriends from '@/components/friends/online-friends'
 import { CommunityNotifications } from '@/components/CommunityNotifications'
 import { RecentLoginsCard } from '@/components/auth/recent-logins-card'
 import { CallCenterCard } from '@/components/call/call-center-card'
+import { OrkutBlogCard } from '@/components/OrkutBlogCard'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -92,6 +93,7 @@ interface Community {
 export default function HomePage() {
   const { user, profile, loading } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { callState, startVideoCall, startAudioCall, endCall } = useCall()
   const [posts, setPosts] = useState<Post[]>([])
   const [communities, setCommunities] = useState<Community[]>([])
@@ -119,6 +121,38 @@ export default function HomePage() {
       loadGmailUsers()
     }
   }, [user, loading, router])
+
+  // useEffect para scroll automático para post específico
+  useEffect(() => {
+    const scrollTo = searchParams?.get('scrollTo')
+    if (scrollTo && scrollTo.startsWith('post-')) {
+      // Aguardar um pouco para o conteúdo carregar
+      const timer = setTimeout(() => {
+        const element = document.getElementById(scrollTo)
+        if (element) {
+          element.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          })
+          // Destacar o post temporariamente
+          element.style.boxShadow = '0 0 0 3px rgba(168, 85, 247, 0.4)'
+          element.style.borderRadius = '12px'
+          setTimeout(() => {
+            element.style.boxShadow = ''
+          }, 3000)
+          
+          // Remover parâmetro da URL
+          const url = new URL(window.location.href)
+          url.searchParams.delete('scrollTo')
+          window.history.replaceState({}, '', url.toString())
+        } else {
+          console.log(`Elemento ${scrollTo} não encontrado`)
+        }
+      }, 2000) // Aguardar 2 segundos para o feed carregar
+      
+      return () => clearTimeout(timer)
+    }
+  }, [searchParams, posts])
 
   // Demo posts para não deixar o feed vazio
   const demoPosts: Post[] = [
@@ -486,58 +520,8 @@ export default function HomePage() {
               </OrkutCardContent>
             </OrkutCard>
 
-            {/* 5. Card Escrito */}
-            <OrkutCard>
-              <OrkutCardHeader>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-600">Escrito</span>
-                  <span className="text-xs text-gray-400">Conteúdo</span>
-                </div>
-              </OrkutCardHeader>
-              <OrkutCardContent>
-                <div className="space-y-3">
-                  <div className="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <span className="text-sm font-medium text-blue-700">Artigo em Destaque</span>
-                    </div>
-                    <h4 className="font-medium text-sm text-gray-800 mb-1">
-                      Como o Orkut Revolucionou as Redes Sociais
-                    </h4>
-                    <p className="text-xs text-gray-600 mb-2">
-                      Relembre a história da rede social que marcou uma geração e inspire-se com os novos recursos...
-                    </p>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="w-full border-blue-300 text-blue-700 hover:bg-blue-50 text-xs"
-                    >
-                      Ler mais
-                    </Button>
-                  </div>
-                  
-                  <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <span className="text-sm font-medium text-green-700">Novidade</span>
-                    </div>
-                    <h4 className="font-medium text-sm text-gray-800 mb-1">
-                      Recursos de Chamada de Voz
-                    </h4>
-                    <p className="text-xs text-gray-600 mb-2">
-                      Descubra como usar as novas funcionalidades de comunicação em tempo real...
-                    </p>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="w-full border-green-300 text-green-700 hover:bg-green-50 text-xs"
-                    >
-                      Explorar
-                    </Button>
-                  </div>
-                </div>
-              </OrkutCardContent>
-            </OrkutCard>
+            {/* 5. Orkut Blog */}
+            <OrkutBlogCard />
 
             {/* 6. Logins Recentes - Movido para esquerda */}
             <RecentLoginsCard />

@@ -41,6 +41,7 @@ import { useSubscription } from '@/hooks/use-subscription'
 import { NotificationsDropdown } from '@/components/notifications/notifications-dropdown'
 import BugReporter from '@/components/bug-reporter'
 import { AnimatediFoodButton } from '@/components/ui/animated-ifood-button'
+import { OfflineStatusIndicator } from '@/components/ui/offline-status-indicator'
 
 export function Navbar() {
   const router = useRouter()
@@ -93,7 +94,8 @@ export function Navbar() {
   if (!user) return null
 
   return (
-    <nav className="bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 shadow-lg sticky top-0 z-50">
+    <>
+      <nav className="bg-gradient-to-r from-purple-600 via-purple-500 to-pink-500 shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center h-16">
           {/* Left Side - Logo + GitHub */}
@@ -350,5 +352,9 @@ export function Navbar() {
         </div>
       </div>
     </nav>
+      
+      {/* Status Indicator - aparece apenas quando offline ou dados desatualizados */}
+      <OfflineStatusIndicator className="w-full" />
+    </>
   )
 }

@@ -20,7 +20,8 @@ import {
   Filter,
   TrendingUp,
   AlertCircle,
-  User
+  User,
+  ExternalLink
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
@@ -476,13 +477,34 @@ export default function AtividadesPage() {
                               </div>
                             )}
                             
-                            {/* Timestamp */}
-                            <div className="flex items-center mt-2 text-xs text-gray-500">
-                              <Clock className="w-3 h-3 mr-1" />
-                              {formatDistanceToNow(new Date(activity.created_at), {
-                                addSuffix: true,
-                                locale: ptBR
-                              })}
+                            {/* Ações e timestamp */}
+                            <div className="flex items-center justify-between mt-2">
+                              <div className="flex items-center text-xs text-gray-500">
+                                <Clock className="w-3 h-3 mr-1" />
+                                {formatDistanceToNow(new Date(activity.created_at), {
+                                  addSuffix: true,
+                                  locale: ptBR
+                                })}
+                              </div>
+                              
+                              {/* Botão Ver Post - aparece para atividades relacionadas a posts */}
+                              {activity.activity_data.post_id && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="text-xs h-7 px-2"
+                                  asChild
+                                >
+                                  <Link 
+                                    href={`/?scrollTo=post-${activity.activity_data.post_id}`}
+                                    className="flex items-center space-x-1"
+                                    title="Ver este post"
+                                  >
+                                    <ExternalLink className="w-3 h-3" />
+                                    <span>Ver post</span>
+                                  </Link>
+                                </Button>
+                              )}
                             </div>
                           </div>
                           

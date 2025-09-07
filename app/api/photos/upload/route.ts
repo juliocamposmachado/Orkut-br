@@ -128,11 +128,22 @@ export async function POST(request: NextRequest) {
 
     // Parse do FormData
     const formData = await request.formData()
-    const files = formData.getAll('files') as File[]
+    
+    // Suportar tanto 'file' quanto 'files' (retrocompatibilidade)
+    let files: File[] = []
+    const singleFile = formData.get('file') as File
+    const multipleFiles = formData.getAll('files') as File[]
+    
+    if (singleFile && singleFile.size > 0) {
+      files = [singleFile]
+    } else if (multipleFiles.length > 0) {
+      files = multipleFiles
+    }
+    
     const title = formData.get('title') as string
     const description = formData.get('description') as string
-    const category = formData.get('category') as string
-    const isPublic = formData.get('isPublic') === 'true'
+    const category = formData.get('category') as string || 'geral'
+    const isPublic = formData.get('isPublic') !== 'false' // padrão true
 
     if (files.length === 0) {
       return NextResponse.json({ error: 'Nenhum arquivo enviado' }, { status: 400 })

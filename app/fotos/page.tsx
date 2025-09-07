@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+import { supabase } from '@/lib/supabase'
 
 interface Photo {
   id: string
@@ -83,17 +84,32 @@ export default function PhotosPage() {
 
     try {
       setUploading(true)
+      setError(null)
+      
+      // Obter token de autenticação
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError || !session?.access_token) {
+        setError('Erro de autenticação. Faça login novamente.')
+        return
+      }
       
       const formData = new FormData()
       formData.append('file', uploadFile)
-      formData.append('title', uploadTitle)
-      formData.append('description', uploadDescription)
+      formData.append('title', uploadTitle.trim())
+      formData.append('description', uploadDescription.trim() || '')
       formData.append('category', 'geral')
+      formData.append('isPublic', 'true')
       
       const response = await fetch('/api/photos/upload', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`
+        },
         body: formData
       })
+      
+      const result = await response.json()
       
       if (response.ok) {
         setUploadFile(null)
@@ -101,13 +117,17 @@ export default function PhotosPage() {
         setUploadDescription('')
         setShowUploadForm(false)
         loadPhotos() // Recarregar fotos
+        
+        // Mostrar sucesso
+        if (result.summary?.success > 0) {
+          console.log(`Upload realizado com sucesso: ${result.summary.success} foto(s)`)
+        }
       } else {
-        const data = await response.json()
-        setError(data.error || 'Erro no upload')
+        setError(result.error || result.message || 'Erro no upload')
       }
     } catch (err) {
       console.error('Erro no upload:', err)
-      setError('Erro no upload')
+      setError('Erro de conexão durante upload')
     } finally {
       setUploading(false)
     }

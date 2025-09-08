@@ -233,17 +233,46 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Construir query otimizada usando a função do banco
-    let query = supabase.rpc('get_photos_optimized', {
-      p_user_id: filters.userId || null,
-      p_category: filters.category || null,
-      p_limit: filters.limit || 20,
-      p_offset: filters.offset || 0,
-      p_public_only: filters.publicOnly !== false
-    })
+    // Construir query direta sem joins complexos
+    let photosQuery = supabase
+      .from('user_photos')
+      .select(`
+        id,
+        user_id,
+        url,
+        thumbnail_url,
+        preview_url,
+        title,
+        description,
+        category,
+        likes_count,
+        comments_count,
+        views_count,
+        created_at
+      `)
+      .eq('is_processed', true)
+      .eq('is_deleted', false)
+
+    // Aplicar filtros
+    if (filters.userId) {
+      photosQuery = photosQuery.eq('user_id', filters.userId)
+    }
+    
+    if (filters.category) {
+      photosQuery = photosQuery.eq('category', filters.category)
+    }
+    
+    if (filters.publicOnly !== false) {
+      photosQuery = photosQuery.eq('is_public', true)
+    }
+
+    // Aplicar paginação e ordenação
+    photosQuery = photosQuery
+      .order('created_at', { ascending: false })
+      .range(filters.offset || 0, (filters.offset || 0) + (filters.limit || 20) - 1)
 
     // Executar query
-    const { data: photos, error, count } = await query
+    const { data: photos, error, count } = await photosQuery
 
     if (error) {
       console.error('Erro na query de fotos:', error)
@@ -251,6 +280,40 @@ export async function GET(request: NextRequest) {
         { error: 'Erro ao buscar fotos', details: error.message },
         { status: 500 }
       )
+    }
+
+    // Buscar informações dos usuários separadamente para evitar problemas de join
+    let enrichedPhotos = photos || []
+    if (enrichedPhotos.length > 0) {
+      const userIds = Array.from(new Set(enrichedPhotos.map((photo: any) => photo.user_id)))
+      
+      // Buscar dados dos usuários da tabela profiles
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, display_name, photo_url')
+        .in('id', userIds)
+      
+      if (!profilesError && profiles) {
+        // Criar mapa de usuários para lookup rápido
+        const userMap = profiles.reduce((acc: any, profile: any) => {
+          acc[profile.id] = profile
+          return acc
+        }, {})
+        
+        // Enriquecer fotos com dados do usuário
+        enrichedPhotos = enrichedPhotos.map((photo: any) => ({
+          ...photo,
+          user_name: userMap[photo.user_id]?.display_name || 'Usuário Anônimo',
+          user_avatar: userMap[photo.user_id]?.photo_url || '/default-avatar.png'
+        }))
+      } else {
+        // Fallback se não conseguir buscar profiles
+        enrichedPhotos = enrichedPhotos.map((photo: any) => ({
+          ...photo,
+          user_name: 'Usuário',
+          user_avatar: '/default-avatar.png'
+        }))
+      }
     }
 
     // Sempre incluir o logo do Orkut como primeira foto
@@ -272,7 +335,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Filtrar por busca de texto se especificado (pós-processamento)
-    let filteredPhotos = photos || []
+    let filteredPhotos = enrichedPhotos
     if (filters.search) {
       const searchTerm = filters.search.toLowerCase()
       filteredPhotos = filteredPhotos.filter((photo: any) =>

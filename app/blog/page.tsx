@@ -109,8 +109,15 @@ export default function BlogPage() {
       if (searchQuery) params.append('search', searchQuery)
       if (tagQuery) params.append('tag', tagQuery)
       
-      const response = await fetch(`/api/blog?${params}`)
-      const data = await response.json()
+      // Tentar API melhorada primeiro, depois fallback para API padrão
+      let response = await fetch(`/api/blog/improved?${params}`)
+      let data = await response.json()
+      
+      // Se API melhorada falhar, tentar API padrão
+      if (!response.ok) {
+        response = await fetch(`/api/blog?${params}`)
+        data = await response.json()
+      }
       
       if (response.ok) {
         setPosts(data.posts || [])
@@ -129,6 +136,11 @@ export default function BlogPage() {
           post.tags.forEach(tag => tags.add(tag))
         })
         setAllTags(Array.from(tags))
+        
+        // Mostrar aviso se estiver em modo demo
+        if (data.source === 'demo') {
+          console.log('⚠️ Blog em modo demo - configuração necessária')
+        }
       } else {
         throw new Error(data.error || 'Erro ao carregar posts')
       }

@@ -46,6 +46,7 @@ import { SocialNetworksDisplay } from '@/components/profile/social-networks-disp
 import Gallery from '@/components/Gallery'
 import UpdateGalleries from '@/components/UpdateGalleries'
 import { useSmartWhatsApp } from '@/hooks/useSmartWhatsApp'
+import UserClassifications from '@/components/profile/user-classifications'
 
 interface UserProfile {
   id: string;
@@ -67,6 +68,23 @@ interface UserProfile {
   scrapy_count: number;
   profile_views: number;
   birth_date?: string;
+  // Campos de classificação
+  fan_count?: number;
+  fan_level_1?: number;
+  fan_level_2?: number;
+  fan_level_3?: number;
+  trustworthy_count?: number;
+  trustworthy_level_1?: number;
+  trustworthy_level_2?: number;
+  trustworthy_level_3?: number;
+  cool_count?: number;
+  cool_level_1?: number;
+  cool_level_2?: number;
+  cool_level_3?: number;
+  sexy_count?: number;
+  sexy_level_1?: number;
+  sexy_level_2?: number;
+  sexy_level_3?: number;
 }
 
 interface FriendItem {
@@ -1830,6 +1848,30 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
               </OrkutCardContent>
             </OrkutCard>
             
+            {/* Sistema de Classificações do Orkut */}
+            <UserClassifications 
+              userId={profile.id}
+              isOwnProfile={isOwnProfile}
+              classifications={{
+                fan_count: profile.fan_count || 0,
+                fan_level_1: profile.fan_level_1 || 0,
+                fan_level_2: profile.fan_level_2 || 0,
+                fan_level_3: profile.fan_level_3 || 0,
+                trustworthy_count: profile.trustworthy_count || 0,
+                trustworthy_level_1: profile.trustworthy_level_1 || 0,
+                trustworthy_level_2: profile.trustworthy_level_2 || 0,
+                trustworthy_level_3: profile.trustworthy_level_3 || 0,
+                cool_count: profile.cool_count || 0,
+                cool_level_1: profile.cool_level_1 || 0,
+                cool_level_2: profile.cool_level_2 || 0,
+                cool_level_3: profile.cool_level_3 || 0,
+                sexy_count: profile.sexy_count || 0,
+                sexy_level_1: profile.sexy_level_1 || 0,
+                sexy_level_2: profile.sexy_level_2 || 0,
+                sexy_level_3: profile.sexy_level_3 || 0
+              }}
+            />
+
             {/* Top 10 Amigos */}
             <OrkutCard>
               <OrkutCardHeader>

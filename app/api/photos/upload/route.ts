@@ -154,20 +154,44 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Iniciando upload de fotos...')
 
-    // Verificar autenticação
+    // Verificar autenticação via header Authorization
     const authHeader = request.headers.get('authorization')
-    if (!authHeader) {
-      return NextResponse.json({ error: 'Token de autorização necessário' }, { status: 401 })
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.error('Header de autenticação ausente ou inválido')
+      return NextResponse.json({ 
+        error: 'Token de autorização necessário',
+        details: 'Cabeçalho Authorization com Bearer token é obrigatório'
+      }, { status: 401 })
     }
 
-    // Extrair user do token
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    )
-
+    const token = authHeader.replace('Bearer ', '')
+    console.log('Token recebido:', token.substring(0, 20) + '...')
+    
+    // Criar cliente supabase temporário para verificar o token
+    const tempSupabase = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      },
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    })
+    
+    // Verificar se o token é válido
+    const { data: { user }, error: authError } = await tempSupabase.auth.getUser()
+    
     if (authError || !user) {
-      return NextResponse.json({ error: 'Token inválido' }, { status: 401 })
+      console.error('Erro de autenticação no upload:', authError)
+      return NextResponse.json({ 
+        error: 'Token inválido ou expirado',
+        details: authError?.message || 'Token não pôde ser validado'
+      }, { status: 401 })
     }
+    
+    console.log('Usuário autenticado:', user.email)
 
     // Parse do FormData com melhor tratamento de erros
     let formData: FormData

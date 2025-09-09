@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/contexts/enhanced-auth-context'
+import { usePhotos, Photo } from '@/hooks/use-photos'
 import { Button } from '@/components/ui/button'
 import { ImprovedPhotoCard } from '@/components/photos/improved-photo-card'
 import { OrkutCard, OrkutCardContent, OrkutCardHeader } from '@/components/ui/orkut-card'
@@ -9,99 +10,50 @@ import { Badge } from '@/components/ui/badge'
 import { 
   Camera, 
   Upload, 
-  ExternalLink, 
   RefreshCw, 
   AlertCircle,
   Loader2,
   FolderOpen,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Heart,
+  Eye
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-interface GoogleDrivePhoto {
-  id: string
-  name: string
-  webViewLink?: string
-  webContentLink?: string
-  thumbnailLink?: string
-  createdTime: string
-  modifiedTime: string
-  size?: string
-  mimeType: string
-}
-
 interface UserPhotosGalleryProps {
   className?: string
-  onPhotoClick?: (photo: GoogleDrivePhoto) => void
+  onPhotoClick?: (photo: Photo) => void
 }
 
 export function UserPhotosGallery({ className, onPhotoClick }: UserPhotosGalleryProps) {
   const { user, profile } = useAuth()
-  const [photos, setPhotos] = useState<GoogleDrivePhoto[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  
+  // Usar apenas fotos do usuário atual
+  const { 
+    photos, 
+    loading, 
+    error, 
+    stats, 
+    refreshPhotos, 
+    likePhoto, 
+    incrementViews
+  } = usePhotos({
+    userId: user?.id,
+    publicOnly: false, // Mostrar fotos públicas e privadas do usuário
+    limit: 50
+  })
 
-  const fetchUserPhotos = useCallback(async () => {
-    if (!user) {
-      setError('Usuário não autenticado')
-      return
-    }
+  const handlePhotoClick = useCallback(async (photo: Photo) => {
+    // Incrementar visualizações
+    await incrementViews(photo.id)
+    // Chamar callback se fornecido
+    onPhotoClick?.(photo)
+  }, [incrementViews, onPhotoClick])
 
-    setLoading(true)
-    setError(null)
-
-    try {
-      console.log('🔍 Buscando fotos do usuário:', user.email)
-      
-      const response = await fetch('/api/photos/google-drive', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${user.id}` // Usar o ID do usuário como referência
-        }
-      })
-
-      if (!response.ok) {
-        throw new Error(`Erro ${response.status}: ${response.statusText}`)
-      }
-
-      const data = await response.json()
-      
-      if (data.photos && Array.isArray(data.photos)) {
-        setPhotos(data.photos)
-        console.log('✅ Fotos carregadas:', data.photos.length)
-      } else {
-        console.warn('⚠️ Resposta inesperada:', data)
-        setPhotos([])
-      }
-
-    } catch (err: any) {
-      console.error('❌ Erro ao buscar fotos:', err)
-      setError(err.message || 'Erro ao carregar fotos')
-    } finally {
-      setLoading(false)
-    }
-  }, [user])
-
-  const handleConnectGoogleDrive = useCallback(() => {
-    // Abrir Google Drive para o usuário fazer upload manualmente
-    window.open('https://drive.google.com/drive/my-drive', '_blank', 'noopener,noreferrer')
-  }, [])
-
-  const handleConnectGooglePhotos = useCallback(() => {
-    // Abrir Google Photos para o usuário gerenciar suas fotos
-    const googlePhotosUrl = user?.email 
-      ? `https://photos.google.com/?authuser=${encodeURIComponent(user.email)}`
-      : 'https://photos.google.com/'
-    
-    window.open(googlePhotosUrl, '_blank', 'noopener,noreferrer')
-  }, [user?.email])
-
-  useEffect(() => {
-    if (user) {
-      fetchUserPhotos()
-    }
-  }, [user, fetchUserPhotos])
+  const handleLikePhoto = useCallback(async (photoId: string, event: React.MouseEvent) => {
+    event.stopPropagation() // Evitar abrir a foto
+    await likePhoto(photoId)
+  }, [likePhoto])
 
   if (!user) {
     return (
@@ -130,27 +82,11 @@ export function UserPhotosGallery({ className, onPhotoClick }: UserPhotosGallery
             <Button
               variant="outline"
               size="sm"
-              onClick={fetchUserPhotos}
+              onClick={refreshPhotos}
               disabled={loading}
             >
               <RefreshCw className={cn('w-4 h-4 mr-2', loading && 'animate-spin')} />
               Atualizar
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleConnectGoogleDrive}
-            >
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Abrir Drive
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleConnectGooglePhotos}
-            >
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Abrir Photos
             </Button>
           </div>
         </div>
@@ -173,12 +109,9 @@ export function UserPhotosGallery({ className, onPhotoClick }: UserPhotosGallery
               <h4 className="font-medium text-red-800">Erro ao carregar fotos</h4>
             </div>
             <p className="text-red-600 mt-1 text-sm">{error}</p>
-            <div className="mt-3 space-x-2">
-              <Button size="sm" variant="outline" onClick={fetchUserPhotos}>
+            <div className="mt-3">
+              <Button size="sm" variant="outline" onClick={refreshPhotos}>
                 Tentar novamente
-              </Button>
-              <Button size="sm" variant="outline" onClick={handleConnectGoogleDrive}>
-                Abrir Google Drive
               </Button>
             </div>
           </div>
@@ -191,24 +124,18 @@ export function UserPhotosGallery({ className, onPhotoClick }: UserPhotosGallery
               Nenhuma foto encontrada
             </h4>
             <p className="text-gray-600 mb-6">
-              Faça upload de fotos no seu Google Drive para vê-las aqui
+              Faça upload de suas primeiras fotos para começar sua galeria pessoal
             </p>
-            <div className="flex flex-col sm:flex-row gap-2 justify-center">
-              <Button 
-                onClick={handleConnectGoogleDrive}
-                className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                Fazer Upload no Drive
-              </Button>
-              <Button 
-                onClick={handleConnectGooglePhotos}
-                variant="outline"
-              >
-                <Camera className="w-4 h-4 mr-2" />
-                Abrir Google Photos
-              </Button>
-            </div>
+            <Button 
+              className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
+              onClick={() => {
+                // Redirecionar para a página de upload ou abrir modal de upload
+                window.location.href = '/fotos?upload=true'
+              }}
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Fazer Upload de Fotos
+            </Button>
           </div>
         )}
 
@@ -216,40 +143,76 @@ export function UserPhotosGallery({ className, onPhotoClick }: UserPhotosGallery
           <>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 mb-4">
               {photos.map((photo) => (
-                <ImprovedPhotoCard
-                  key={photo.id}
-                  id={photo.id}
-                  src={photo.thumbnailLink || photo.webContentLink || '/placeholder-image.jpg'}
-                  title={photo.name}
-                  description={`Criada: ${new Date(photo.createdTime).toLocaleDateString('pt-BR')}`}
-                  className="aspect-square"
-                  onClick={() => onPhotoClick?.(photo)}
-                />
+                <div key={photo.id} className="relative group">
+                  <ImprovedPhotoCard
+                    id={photo.id}
+                    src={photo.thumbnail_url || photo.url}
+                    title={photo.title}
+                    description={photo.description || `Criada: ${new Date(photo.created_at).toLocaleDateString('pt-BR')}`}
+                    className="aspect-square cursor-pointer"
+                    onClick={() => handlePhotoClick(photo)}
+                  />
+                  
+                  {/* Overlay com estatísticas */}
+                  <div className="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={(e) => handleLikePhoto(photo.id, e)}
+                      className="bg-white/90 backdrop-blur-sm rounded-full p-1.5 shadow-sm hover:bg-white transition-colors"
+                      title="Curtir foto"
+                    >
+                      <Heart className="w-4 h-4 text-red-500" fill={photo.likes_count > 0 ? "currentColor" : "none"} />
+                    </button>
+                  </div>
+                  
+                  {/* Stats na parte inferior */}
+                  <div className="absolute bottom-2 left-2 right-2 bg-black/70 backdrop-blur-sm rounded-lg px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center justify-between text-white text-xs">
+                      <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-1">
+                          <Heart className="w-3 h-3" />
+                          <span>{photo.likes_count}</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <Eye className="w-3 h-3" />
+                          <span>{photo.views_count}</span>
+                        </div>
+                      </div>
+                      {photo.category && (
+                        <Badge variant="secondary" className="text-xs py-0 px-1 h-4">
+                          {photo.category}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
             
-            <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-4 border border-blue-200">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="text-2xl font-bold text-blue-600">{photos.length}</div>
-                  <p className="text-xs text-gray-600">Fotos Encontradas</p>
+            {/* Estatísticas da galeria */}
+            {stats && (
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border border-blue-200">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div className="text-2xl font-bold text-blue-600">{stats.total}</div>
+                    <p className="text-xs text-gray-600">Fotos Total</p>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-green-600">{stats.public}</div>
+                    <p className="text-xs text-gray-600">Fotos Públicas</p>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-purple-600">{stats.private}</div>
+                    <p className="text-xs text-gray-600">Fotos Privadas</p>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-2xl font-bold text-green-600">15GB</div>
-                  <p className="text-xs text-gray-600">Espaço Gratuito</p>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-purple-600">∞</div>
-                  <p className="text-xs text-gray-600">Backup Automático</p>
+                
+                <div className="mt-4 pt-4 border-t border-blue-200">
+                  <p className="text-xs text-gray-600 text-center">
+                    📸 Suas fotos são armazenadas com segurança e podem ser compartilhadas com seus amigos
+                  </p>
                 </div>
               </div>
-              
-              <div className="mt-4 pt-4 border-t border-blue-200">
-                <p className="text-xs text-gray-600 text-center">
-                  📱 Suas fotos são sincronizadas automaticamente com Google Drive e Google Photos
-                </p>
-              </div>
-            </div>
+            )}
           </>
         )}
       </OrkutCardContent>

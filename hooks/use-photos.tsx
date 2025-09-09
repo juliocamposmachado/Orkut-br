@@ -3,8 +3,6 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { useAuth } from '@/contexts/enhanced-auth-context'
 import { supabase } from '@/lib/supabase'
-import { useGoogleDrive } from '@/hooks/use-google-drive'
-
 export interface Photo {
   id: string
   user_id: string
@@ -60,10 +58,6 @@ export interface UsePhotosResult {
   filters: PhotoFilters
   setFilters: (filters: PhotoFilters) => void
   clearFilters: () => void
-  // Google Drive específicas
-  drivePhotos?: any[]
-  driveLoading?: boolean
-  driveError?: string | null
 }
 
 // Cache global para fotos (compartilhado entre componentes)
@@ -88,7 +82,6 @@ function setCachedPhotos(key: string, data: any, duration = CACHE_DURATION) {
 
 export function usePhotos(initialFilters: PhotoFilters = {}): UsePhotosResult {
   const { user } = useAuth()
-  const { photos: drivePhotos, loading: driveLoading, fetchPhotos: fetchDrivePhotos } = useGoogleDrive()
   
   const [photos, setPhotos] = useState<Photo[]>([])
   const [loading, setLoading] = useState(false)
@@ -248,11 +241,7 @@ export function usePhotos(initialFilters: PhotoFilters = {}): UsePhotosResult {
     photoCache.clear()
     lastFetchRef.current = ''
     await fetchPhotos(filters)
-    // Também atualizar fotos do Google Drive
-    if (user) {
-      await fetchDrivePhotos()
-    }
-  }, [fetchPhotos, filters, fetchDrivePhotos, user])
+  }, [fetchPhotos, filters])
 
   /**
    * Curtir/descurtir foto
@@ -341,10 +330,6 @@ export function usePhotos(initialFilters: PhotoFilters = {}): UsePhotosResult {
   // Efeito para buscar fotos quando filtros mudarem
   useEffect(() => {
     fetchPhotos(filters)
-    // Buscar também fotos do Google Drive se usuário autenticado
-    if (user) {
-      fetchDrivePhotos()
-    }
   }, [filters.userId, filters.category, filters.search, filters.publicOnly, user])
 
   // Prefetch de categorias populares no mount
@@ -370,44 +355,10 @@ export function usePhotos(initialFilters: PhotoFilters = {}): UsePhotosResult {
     }
   }, [])
 
-  // Combinar fotos do Supabase e do Google Drive
-  const allPhotos = useMemo(() => {
-    const combined = [...photos]
-    
-    // Adicionar fotos do Google Drive convertendo para o formato esperado
-    if (drivePhotos && drivePhotos.length > 0) {
-      const convertedDrivePhotos = drivePhotos.map(drivePhoto => ({
-        id: `drive-${drivePhoto.id}`,
-        user_id: user?.id || '',
-        url: drivePhoto.url || drivePhoto.webViewLink || '',
-        thumbnail_url: drivePhoto.thumbnailUrl || drivePhoto.url || '',
-        title: drivePhoto.filename || 'Foto do Google Drive',
-        description: drivePhoto.description || '',
-        category: 'Google Drive',
-        likes_count: 0,
-        comments_count: 0,
-        views_count: 0,
-        created_at: drivePhoto.createdAt || new Date().toISOString(),
-        user_name: user?.email?.split('@')[0] || 'Usuário',
-        user_avatar: undefined
-      }))
-      
-      combined.push(...convertedDrivePhotos)
-    }
-    
-    // Ordenar por data de criação (mais recentes primeiro)
-    return combined.sort((a, b) => 
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    )
-  }, [photos, drivePhotos, user])
-  
-  // Combinar estados de loading
-  const combinedLoading = loading || driveLoading
-
   return {
-    photos: allPhotos,
-    loading: combinedLoading,
-    error: error,
+    photos,
+    loading,
+    error,
     stats,
     popularCategories,
     pagination,
@@ -418,10 +369,6 @@ export function usePhotos(initialFilters: PhotoFilters = {}): UsePhotosResult {
     incrementViews,
     filters,
     setFilters,
-    clearFilters,
-    // Expor funcionalidades específicas do Google Drive
-    drivePhotos,
-    driveLoading,
-    driveError: undefined
+    clearFilters
   }
 }

@@ -3,6 +3,7 @@ export { PhotoCard } from './photo-card'
 export { ImprovedPhotoCard } from './improved-photo-card'
 export { PhotoModal } from './photo-modal'
 export { PhotoUpload } from './photo-upload'
+export { PostImageUpload } from './postimage-upload'
 export { DirectUpload } from './direct-upload'
 
 // Integração com Google

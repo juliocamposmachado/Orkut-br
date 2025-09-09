@@ -21,11 +21,13 @@ import {
   Loader2,
   AlertCircle,
   Plus,
-  X
+  X,
+  ExternalLink
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { PostImageUpload } from '@/components/photos/postimage-upload'
 
 interface Photo {
   id: string
@@ -39,6 +41,10 @@ interface Photo {
   comments_count: number
   views_count: number
   created_at: string
+  // Campos para PostImage
+  external_service?: string
+  external_url?: string
+  original_filename?: string
 }
 
 type ViewMode = 'grid' | 'list'
@@ -249,87 +255,31 @@ export default function PhotosPage() {
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         
-        {/* Upload Form Simplificado */}
+        {/* Upload com PostImage */}
         {showUploadForm && (
           <div className="mb-6">
-            <OrkutCard>
-              <OrkutCardHeader>
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium">📸 Enviar Nova Foto</h3>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => setShowUploadForm(false)}
-                  >
-                    <X className="w-4 h-4" />
-                  </Button>
-                </div>
-              </OrkutCardHeader>
-              <OrkutCardContent className="space-y-4">
-                <div className="text-center p-8 border-2 border-dashed border-purple-300 rounded-lg bg-purple-50">
-                  <Camera className="w-12 h-12 text-purple-400 mx-auto mb-4" />
-                  <div className="space-y-2">
-                    <p className="text-lg font-medium text-gray-800">Escolha uma foto para enviar</p>
-                    <p className="text-sm text-gray-600">JPG, PNG, WebP ou HEIC até 10MB</p>
-                  </div>
-                  <div className="mt-4">
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-                      className="w-full"
-                    />
-                  </div>
-                  {uploadFile && (
-                    <div className="mt-4 p-3 bg-white rounded-lg border">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                          <Camera className="w-6 h-6 text-purple-600" />
-                        </div>
-                        <div className="text-left">
-                          <p className="font-medium text-gray-900 truncate max-w-xs">{uploadFile.name}</p>
-                          <p className="text-sm text-gray-500">
-                            {(uploadFile.size / 1024 / 1024).toFixed(2)} MB
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="flex space-x-2 justify-center">
-                  <Button 
-                    onClick={handleUpload} 
-                    disabled={!uploadFile || uploading}
-                    size="lg"
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 px-8"
-                  >
-                    {uploading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Enviando...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="w-4 h-4 mr-2" />
-                        Enviar Foto
-                      </>
-                    )}
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="lg"
-                    onClick={() => {
-                      setShowUploadForm(false)
-                      setUploadFile(null)
-                      setError(null)
-                    }}
-                  >
-                    Cancelar
-                  </Button>
-                </div>
-              </OrkutCardContent>
-            </OrkutCard>
+            <div className="flex justify-end mb-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowUploadForm(false)}
+              >
+                <X className="w-4 h-4 mr-2" />
+                Fechar
+              </Button>
+            </div>
+            
+            <PostImageUpload 
+              onUploadComplete={(photos) => {
+                console.log('Upload completo:', photos)
+                loadPhotos() // Recarregar fotos
+                setTimeout(() => setShowUploadForm(false), 3000) // Fechar após 3 segundos
+              }}
+              onUploadStart={() => {
+                setError(null)
+              }}
+              maxFiles={5}
+            />
           </div>
         )}
 
@@ -495,6 +445,17 @@ export default function PhotosPage() {
                                 <MessageCircle className="w-3 h-3" />
                                 <span>{photo.comments_count}</span>
                               </div>
+                              {photo.external_service === 'postimage' && photo.external_url && (
+                                <a 
+                                  href={photo.external_url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-white hover:text-blue-200"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <ExternalLink className="w-3 h-3" />
+                                </a>
+                              )}
                             </div>
                           </div>
                         </div>

@@ -41,9 +41,11 @@ next-env.d.ts
 *.md
 !README.md
 !CHANGELOG.md
+!postimage-api/README.md
 *.js
 !next.config.js
 !postcss.config.js
+!postimage-api/server.js
 *.html
 *.txt
 *.ps1
@@ -55,6 +57,8 @@ next-env.d.ts
 !components.json
 !tsconfig.json
 !vercel.json
+!postimage-api/package.json
+!postimage-api/vercel.json
 .bolt/
 docs/
 sql/
@@ -85,3 +89,9 @@ UnGbDaPWA9.jpg
 
 .vercel
 .env*.local
+
+# PostImage API
+postimage-api/temp-uploads/
+postimage-api/node_modules/
+postimage-api/.env
+postimage-api/.env.local

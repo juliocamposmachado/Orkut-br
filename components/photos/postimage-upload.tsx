@@ -170,17 +170,17 @@ export function PostImageUpload({
   }, [])
 
   /**
-   * Upload para PostImage.org
+   * Upload para PostImage.org via nossa API proxy
    */
   const uploadToPostImage = async (file: File): Promise<PostImageResponse> => {
     const formData = new FormData()
-    formData.append('upload', file)
-    formData.append('type', 'file')
-    formData.append('resize', '100x75') // thumbnail
+    formData.append('file', file)
+    formData.append('resize', '320x240') // tamanho para websites
     formData.append('expire', '0') // sem expiração
     
     try {
-      const response = await fetch('https://postimages.org/json/rr', {
+      // Usar nossa API proxy para evitar CORS
+      const response = await fetch('/api/photos/upload-postimage', {
         method: 'POST',
         body: formData
       })
@@ -191,15 +191,15 @@ export function PostImageUpload({
       
       const result = await response.json()
       
-      if (result.status === 'OK') {
+      if (result.success) {
         return {
           status: 'success',
-          url: result.url,
-          directUrl: result.direct_url || result.url,
-          thumbnailUrl: result.thumb_url || result.url
+          url: result.data.page_url,
+          directUrl: result.data.direct_url,
+          thumbnailUrl: result.data.thumb_url
         }
       } else {
-        throw new Error(result.message || 'Erro no upload')
+        throw new Error(result.error || 'Erro no upload')
       }
     } catch (error) {
       console.error('Erro no upload para PostImage:', error)

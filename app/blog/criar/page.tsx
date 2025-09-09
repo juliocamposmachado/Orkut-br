@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/enhanced-auth-context'
 import { Navbar } from '@/components/layout/navbar'
@@ -19,7 +19,9 @@ import {
   ArrowLeft,
   Image as ImageIcon,
   Tag,
-  X
+  X,
+  Clock,
+  RefreshCw
 } from 'lucide-react'
 import { MigrationNotice } from '@/components/MigrationNotice'
 
@@ -42,28 +44,110 @@ export default function CreatePostPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isPreview, setIsPreview] = useState(false)
   const [migrationError, setMigrationError] = useState<any>(null)
+  const [lastSaved, setLastSaved] = useState<Date | null>(null)
+  const [autoSaving, setAutoSaving] = useState(false)
+
+  // Salvar no localStorage
+  const saveToLocalStorage = useCallback((data: typeof formData) => {
+    try {
+      const draftKey = `orkut-blog-draft-${user?.id || 'anonymous'}`
+      localStorage.setItem(draftKey, JSON.stringify({
+        ...data,
+        savedAt: new Date().toISOString()
+      }))
+      setLastSaved(new Date())
+    } catch (error) {
+      console.error('Erro ao salvar rascunho:', error)
+    }
+  }, [user?.id])
+
+  // Carregar do localStorage
+  const loadFromLocalStorage = useCallback(() => {
+    try {
+      const draftKey = `orkut-blog-draft-${user?.id || 'anonymous'}`
+      const saved = localStorage.getItem(draftKey)
+      if (saved) {
+        const data = JSON.parse(saved)
+        setFormData({
+          title: data.title || '',
+          content: data.content || '',
+          excerpt: data.excerpt || '',
+          featured_image: data.featured_image || '',
+          status: data.status || 'draft',
+          tags: data.tags || []
+        })
+        if (data.savedAt) {
+          setLastSaved(new Date(data.savedAt))
+          toast.success('Rascunho carregado automaticamente!')
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao carregar rascunho:', error)
+    }
+  }, [user?.id])
+
+  // Limpar localStorage
+  const clearLocalStorage = useCallback(() => {
+    try {
+      const draftKey = `orkut-blog-draft-${user?.id || 'anonymous'}`
+      localStorage.removeItem(draftKey)
+      setLastSaved(null)
+    } catch (error) {
+      console.error('Erro ao limpar rascunho:', error)
+    }
+  }, [user?.id])
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    const newData = { ...formData, [field]: value }
+    setFormData(newData)
+    
+    // Auto-save com debounce
+    setAutoSaving(true)
+    setTimeout(() => {
+      saveToLocalStorage(newData)
+      setAutoSaving(false)
+    }, 1000)
   }
 
   const addTag = () => {
     const tag = newTag.trim().toLowerCase()
     if (tag && !formData.tags.includes(tag)) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...prev.tags, tag]
-      }))
+      const newData = {
+        ...formData,
+        tags: [...formData.tags, tag]
+      }
+      setFormData(newData)
+      saveToLocalStorage(newData)
       setNewTag('')
     }
   }
 
   const removeTag = (tagToRemove: string) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove)
-    }))
+    const newData = {
+      ...formData,
+      tags: formData.tags.filter(tag => tag !== tagToRemove)
+    }
+    setFormData(newData)
+    saveToLocalStorage(newData)
   }
+
+  // Carregar rascunho do localStorage quando componente monta
+  useEffect(() => {
+    if (user) {
+      loadFromLocalStorage()
+    }
+  }, [user, loadFromLocalStorage])
+
+  // Auto-save periódico (a cada 30 segundos)
+  useEffect(() => {
+    if (user && (formData.title || formData.content)) {
+      const interval = setInterval(() => {
+        saveToLocalStorage(formData)
+      }, 30000) // 30 segundos
+
+      return () => clearInterval(interval)
+    }
+  }, [user, formData, saveToLocalStorage])
 
   const handleSubmit = async (isDraft: boolean = false) => {
     if (!formData.title.trim() || !formData.content.trim()) {
@@ -90,7 +174,11 @@ export default function CreatePostPage() {
 
       if (response.ok) {
         toast.success(isDraft ? 'Rascunho salvo com sucesso!' : 'Post publicado com sucesso!')
-        router.push(`/blog/${data.post.slug}`)
+        // Limpar localStorage apenas se foi publicado com sucesso
+        if (!isDraft) {
+          clearLocalStorage()
+        }
+        router.push(`/blog/${data.post.slug || data.post.id}`)
       } else {
         // Check if it's a migration error (table doesn't exist)
         if (response.status === 503 && data.code === 'MIGRATION_REQUIRED') {
@@ -214,6 +302,42 @@ export default function CreatePostPage() {
           {/* Sidebar com Configurações */}
           <div className="space-y-6">
             {/* Ações */}
+            {/* Status de Auto-Save */}
+            {(lastSaved || autoSaving) && (
+              <OrkutCard>
+                <OrkutCardContent className="py-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center space-x-2">
+                      {autoSaving ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 animate-spin text-blue-500" />
+                          <span className="text-blue-600">Salvando rascunho...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Clock className="h-4 w-4 text-green-500" />
+                          <span className="text-green-600">
+                            Último rascunho salvo: {lastSaved?.toLocaleTimeString()}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    {lastSaved && !autoSaving && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={clearLocalStorage}
+                        className="text-xs text-red-600 hover:text-red-700"
+                      >
+                        <X className="h-3 w-3 mr-1" />
+                        Limpar
+                      </Button>
+                    )}
+                  </div>
+                </OrkutCardContent>
+              </OrkutCard>
+            )}
+
             <OrkutCard>
               <OrkutCardHeader>
                 <h3 className="font-semibold">Ações</h3>

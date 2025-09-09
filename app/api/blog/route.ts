@@ -141,16 +141,42 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Gerar slug a partir do título
+    const generateSlug = (title: string) => {
+      return title
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s-]/g, '') // Remove caracteres especiais
+        .replace(/\s+/g, '-') // Substitui espaços por hífens
+        .replace(/-+/g, '-') // Remove hífens duplicados
+        .substring(0, 50) // Limita o tamanho
+    }
+
+    let slug = generateSlug(title)
+    
+    // Verificar se o slug já existe e gerar um único se necessário
+    const { data: existingPost } = await supabase
+      .from('blog_posts')
+      .select('id')
+      .eq('slug', slug)
+      .single()
+    
+    if (existingPost) {
+      slug = `${slug}-${Date.now()}`
+    }
+
     const { data: post, error } = await supabase
       .from('blog_posts')
       .insert({
         title,
+        slug,
         content,
         excerpt: excerpt || content.substring(0, 200) + '...',
         author_id: user.id,
-        featured_image,
+        featured_image: featured_image || null,
         status: status || 'draft',
-        tags: tags || []
+        tags: tags || [],
+        published_at: status === 'published' ? new Date().toISOString() : null
       })
       .select(`
         id,

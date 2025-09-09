@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
     console.log('Token recebido:', token.substring(0, 20) + '...')
     
     // Criar cliente supabase temporário para verificar o token
-    const tempSupabase = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    const tempSupabase = createClient(supabaseUrl!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
       auth: {
         autoRefreshToken: false,
         persistSession: false

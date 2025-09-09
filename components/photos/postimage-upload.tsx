@@ -242,7 +242,7 @@ export function PostImageUpload({
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${(await user.getIdToken?.()) || 'mock-token'}`
+                'Authorization': `Bearer ${'mock-token'}`
               },
               body: JSON.stringify({
                 url: postImageResult.directUrl,

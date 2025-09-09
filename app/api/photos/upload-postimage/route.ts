@@ -207,7 +207,7 @@ export async function POST(request: NextRequest) {
     let pageUrl = ''
     
     for (const strategy of extractionStrategies) {
-      const matches = [...responseText.matchAll(strategy.regex)]
+      const matches = Array.from(responseText.matchAll(strategy.regex))
       console.log(`🔍 [PostImage] ${strategy.name}: ${matches.length} matches`)
       
       for (const match of matches) {

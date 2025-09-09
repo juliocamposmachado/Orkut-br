@@ -213,7 +213,7 @@ function extractUrlsFromResponse(html: string): {
   let pageUrl: string | undefined
 
   for (const regex of strategies) {
-    const matches = [...html.matchAll(regex)]
+    const matches = Array.from(html.matchAll(regex))
     
     for (const match of matches) {
       const url = match[1] || match[0]

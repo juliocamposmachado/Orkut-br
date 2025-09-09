@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       console.log('🧪 Usando mock user para desenvolvimento')
     } else {
       // Criar cliente supabase temporário para verificar o token
-      const tempSupabase = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+      const tempSupabase = createClient(supabaseUrl!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
         auth: {
           autoRefreshToken: false,
           persistSession: false

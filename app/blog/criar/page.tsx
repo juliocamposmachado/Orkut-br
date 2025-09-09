@@ -158,10 +158,21 @@ export default function CreatePostPage() {
     setIsSubmitting(true)
 
     try {
+      // Obter token de autenticação
+      const { supabase } = await import('@/lib/supabase')
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        toast.error('Sessão expirada. Faça login novamente.')
+        router.push('/login')
+        return
+      }
+      
       const response = await fetch('/api/blog', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
         },
         body: JSON.stringify({
           ...formData,

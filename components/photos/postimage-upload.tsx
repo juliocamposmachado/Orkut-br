@@ -175,10 +175,15 @@ export function PostImageUpload({
   const uploadToPostImage = async (file: File): Promise<PostImageResponse> => {
     const formData = new FormData()
     formData.append('file', file)
-    formData.append('resize', '320x240') // tamanho para websites
-    formData.append('expire', '0') // sem expiração
+    // Removido 'resize' - será processado pela API proxy
     
     try {
+      console.log('📤 [Component] Enviando arquivo para API proxy:', {
+        name: file.name,
+        size: `${(file.size / 1024).toFixed(2)}KB`,
+        type: file.type
+      })
+      
       // Usar nossa API proxy para evitar CORS
       const response = await fetch('/api/photos/upload-postimage', {
         method: 'POST',

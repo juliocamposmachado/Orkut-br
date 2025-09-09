@@ -116,7 +116,7 @@ export function OnlineFriends({ onOpenMessage, onStartAudioCall }: OnlineFriends
           </div>
           <div className="flex items-center space-x-1">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-<span className="text-xs text-gray-500 font-medium">
+            <span className="text-xs text-gray-500 font-medium">
               {onlineFriends.length} {onlineFriends.length === 1 ? 'amigo' : 'amigos'} online
             </span>
           </div>

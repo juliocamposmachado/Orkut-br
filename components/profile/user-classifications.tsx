@@ -205,7 +205,6 @@ export default function UserClassifications({
 
     return (
       <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-gray-700">{config.name}:</span>
         <div className="flex gap-1">
           {[1, 2, 3].map((level) => {
             const isActive = myClassification?.level === level
@@ -217,12 +216,12 @@ export default function UserClassifications({
                 className={`px-2 py-1 text-xs ${isActive ? config.bgColor : ''}`}
                 onClick={() => handleClassification(type, level)}
                 disabled={loading}
+                title={`${config.levels[level - 1]} - clique para ${isActive ? 'remover' : 'dar'} esta classificação`}
               >
-                <div className="flex items-center gap-1">
+                <div className="flex items-center">
                   {Array.from({ length: level }).map((_, i) => (
-                    <Icon key={i} className={`w-3 h-3 ${isActive ? config.color : 'text-gray-400'}`} />
+                    <Icon key={i} className={`w-3 h-3 ${isActive ? config.color : 'text-gray-400'}`} fill="currentColor" />
                   ))}
-                  <span>{config.levels[level - 1]}</span>
                 </div>
               </Button>
             )
@@ -231,7 +230,6 @@ export default function UserClassifications({
       </div>
     )
   }
-
   if (!classifications) return null
 
   return (

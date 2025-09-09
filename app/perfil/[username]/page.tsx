@@ -1566,6 +1566,30 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
               </OrkutCard>
             )}
             
+            {/* Sistema de Classificações do Orkut */}
+            <UserClassifications 
+              userId={profile.id}
+              isOwnProfile={isOwnProfile}
+              classifications={{
+                fan_count: profile.fan_count || 0,
+                fan_level_1: profile.fan_level_1 || 0,
+                fan_level_2: profile.fan_level_2 || 0,
+                fan_level_3: profile.fan_level_3 || 0,
+                trustworthy_count: profile.trustworthy_count || 0,
+                trustworthy_level_1: profile.trustworthy_level_1 || 0,
+                trustworthy_level_2: profile.trustworthy_level_2 || 0,
+                trustworthy_level_3: profile.trustworthy_level_3 || 0,
+                cool_count: profile.cool_count || 0,
+                cool_level_1: profile.cool_level_1 || 0,
+                cool_level_2: profile.cool_level_2 || 0,
+                cool_level_3: profile.cool_level_3 || 0,
+                sexy_count: profile.sexy_count || 0,
+                sexy_level_1: profile.sexy_level_1 || 0,
+                sexy_level_2: profile.sexy_level_2 || 0,
+                sexy_level_3: profile.sexy_level_3 || 0
+              }}
+            />
+
             {/* Fotos Recentes */}
             <OrkutCard>
               <OrkutCardHeader>
@@ -1848,29 +1872,6 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
               </OrkutCardContent>
             </OrkutCard>
             
-            {/* Sistema de Classificações do Orkut */}
-            <UserClassifications 
-              userId={profile.id}
-              isOwnProfile={isOwnProfile}
-              classifications={{
-                fan_count: profile.fan_count || 0,
-                fan_level_1: profile.fan_level_1 || 0,
-                fan_level_2: profile.fan_level_2 || 0,
-                fan_level_3: profile.fan_level_3 || 0,
-                trustworthy_count: profile.trustworthy_count || 0,
-                trustworthy_level_1: profile.trustworthy_level_1 || 0,
-                trustworthy_level_2: profile.trustworthy_level_2 || 0,
-                trustworthy_level_3: profile.trustworthy_level_3 || 0,
-                cool_count: profile.cool_count || 0,
-                cool_level_1: profile.cool_level_1 || 0,
-                cool_level_2: profile.cool_level_2 || 0,
-                cool_level_3: profile.cool_level_3 || 0,
-                sexy_count: profile.sexy_count || 0,
-                sexy_level_1: profile.sexy_level_1 || 0,
-                sexy_level_2: profile.sexy_level_2 || 0,
-                sexy_level_3: profile.sexy_level_3 || 0
-              }}
-            />
 
             {/* Top 10 Amigos */}
             <OrkutCard>

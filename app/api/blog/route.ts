@@ -139,8 +139,20 @@ export async function POST(request: NextRequest) {
 
     const token = authHeader.replace('Bearer ', '')
     
-    // Usar o cliente Supabase com service key para verificar o token
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    // Criar cliente temporário para verificar o token
+    const tempSupabase = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      },
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    })
+    
+    const { data: { user }, error: authError } = await tempSupabase.auth.getUser()
     
     if (authError || !user) {
       console.error('Erro de autenticação:', authError)
@@ -236,7 +248,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ post }, { status: 201 })
 
   } catch (error: any) {
-    console.error('Erro ao criar post do blog:', error)
+    console.error('Erro ao criar post do blog:', {
+      error: error?.message || error,
+      code: error?.code,
+      details: error?.details,
+      hint: error?.hint,
+      stack: error?.stack?.split('\n')[0]
+    })
     
     // Detectar se a tabela não existe
     if (error?.message?.includes('relation "blog_posts" does not exist') || 
@@ -251,8 +269,26 @@ export async function POST(request: NextRequest) {
       )
     }
     
+    // Detectar problemas de RLS ou permissões
+    if (error?.message?.includes('Row Level Security') || 
+        error?.message?.includes('policy') ||
+        error?.code === '42501') {
+      return NextResponse.json(
+        { 
+          error: 'Erro de permissão',
+          details: 'Problema nas políticas RLS ou permissões da tabela blog_posts.',
+          message: error?.message || 'Erro de permissão'
+        },
+        { status: 403 }
+      )
+    }
+    
     return NextResponse.json(
-      { error: 'Erro interno do servidor' },
+      { 
+        error: 'Erro interno do servidor',
+        details: error?.message || 'Erro desconhecido',
+        code: error?.code
+      },
       { status: 500 }
     )
   }

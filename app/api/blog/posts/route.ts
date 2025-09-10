@@ -24,15 +24,12 @@ export async function GET(request: NextRequest) {
         title,
         slug,
         excerpt,
-        featured_image_url,
-        category,
+        featured_image,
         tags,
         status,
-        is_featured,
         views_count,
         likes_count,
         comments_count,
-        published_at,
         created_at,
         profiles:author_id (
           id,
@@ -42,16 +39,9 @@ export async function GET(request: NextRequest) {
         )
       `)
       .eq('status', 'published')
-      .order('published_at', { ascending: false })
+      .order('created_at', { ascending: false })
 
-    // Aplicar filtros
-    if (category) {
-      query = query.eq('category', category)
-    }
-
-    if (featured) {
-      query = query.eq('is_featured', true)
-    }
+    // Aplicar filtros - removido category e featured pois não existem no schema
 
     if (author) {
       query = query.eq('author_id', author)
@@ -77,8 +67,7 @@ export async function GET(request: NextRequest) {
       .select('*', { count: 'exact', head: true })
       .eq('status', 'published')
 
-    if (category) countQuery = countQuery.eq('category', category)
-    if (featured) countQuery = countQuery.eq('is_featured', true)
+    // Filtros removidos - campos não existem no schema
     if (author) countQuery = countQuery.eq('author_id', author)
     if (search) countQuery = countQuery.or(`title.ilike.%${search}%,content.ilike.%${search}%,excerpt.ilike.%${search}%`)
     if (tag) countQuery = countQuery.contains('tags', [tag])
@@ -139,12 +128,9 @@ export async function POST(request: NextRequest) {
       title,
       content,
       excerpt,
-      category = 'geral',
       tags = [],
       status = 'draft',
-      is_featured = false,
-      featured_image_url,
-      published_at
+      featured_image
     } = body
 
     // Validações básicas
@@ -179,6 +165,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Obter usuário autenticado
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Usuário não autenticado' },
+        { status: 401 }
+      )
+    }
+
     // Criar o post
     const { data: newPost, error } = await supabase
       .from('blog_posts')
@@ -187,25 +182,24 @@ export async function POST(request: NextRequest) {
         slug,
         content,
         excerpt,
-        category,
         tags,
         status,
-        is_featured,
-        featured_image_url,
-        published_at: status === 'published' ? (published_at || new Date().toISOString()) : null,
-        author_id: 'auth.uid()' // Será preenchido pelo RLS
+        featured_image,
+        author_id: user.id
       })
       .select(`
         id,
         title,
         slug,
         excerpt,
-        category,
         tags,
         status,
-        is_featured,
+        featured_image,
+        views_count,
+        likes_count,
+        comments_count,
         created_at,
-        published_at,
+        updated_at,
         profiles:author_id (
           id,
           display_name,

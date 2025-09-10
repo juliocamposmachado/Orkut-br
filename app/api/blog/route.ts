@@ -139,21 +139,8 @@ export async function POST(request: NextRequest) {
 
     const token = authHeader.replace('Bearer ', '')
     
-    // Criar cliente supabase temporário para verificar o token
-    const tempSupabase = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      },
-      global: {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
-    })
-    
-    // Verificar se o token é válido
-    const { data: { user }, error: authError } = await tempSupabase.auth.getUser()
+    // Usar o cliente Supabase com service key para verificar o token
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
     
     if (authError || !user) {
       console.error('Erro de autenticação:', authError)
@@ -207,8 +194,7 @@ export async function POST(request: NextRequest) {
         author_id: user.id,
         featured_image: featured_image || null,
         status: status || 'draft',
-        tags: tags || [],
-        published_at: status === 'published' ? new Date().toISOString() : null
+        tags: tags || []
       })
       .select(`
         id,
@@ -233,7 +219,19 @@ export async function POST(request: NextRequest) {
       `)
       .single()
 
-    if (error) throw error
+    if (error) {
+      console.error('Erro ao inserir post na base de dados:', {
+        error,
+        postData: {
+          title,
+          slug,
+          author_id: user.id,
+          status,
+          tags
+        }
+      })
+      throw error
+    }
 
     return NextResponse.json({ post }, { status: 201 })
 

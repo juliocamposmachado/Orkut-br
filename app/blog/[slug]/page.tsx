@@ -25,6 +25,8 @@ import {
 import Link from 'next/link'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -298,14 +300,56 @@ export default function BlogPostPage() {
                 </div>
               )}
 
-              {/* Conteúdo */}
-              <div className="prose max-w-none prose-lg">
-                <div 
-                  className="text-gray-700 leading-relaxed"
-                  dangerouslySetInnerHTML={{ 
-                    __html: post.content.replace(/\n/g, '<br>') 
-                  }} 
-                />
+              {/* Conteúdo Markdown */}
+              <div className="prose prose-lg max-w-none prose-gray prose-headings:text-gray-800 prose-a:text-purple-600 prose-a:hover:text-purple-700 prose-strong:text-gray-800 prose-code:text-purple-600 prose-code:bg-purple-50 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-blockquote:border-purple-300 prose-blockquote:bg-purple-50 prose-blockquote:text-purple-800 prose-table:text-sm">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    // Customizar links para abrir em nova aba
+                    a: ({ href, children, ...props }) => (
+                      <a
+                        href={href}
+                        target={href?.startsWith('http') ? '_blank' : undefined}
+                        rel={href?.startsWith('http') ? 'noopener noreferrer' : undefined}
+                        {...props}
+                      >
+                        {children}
+                      </a>
+                    ),
+                    // Customizar código inline
+                    code: ({ inline, children, ...props }) => (
+                      inline ? (
+                        <code className="bg-purple-100 text-purple-700 px-1 py-0.5 rounded text-sm" {...props}>
+                          {children}
+                        </code>
+                      ) : (
+                        <code className="block bg-gray-100 text-gray-800 p-4 rounded-lg overflow-x-auto" {...props}>
+                          {children}
+                        </code>
+                      )
+                    ),
+                    // Customizar tabelas
+                    table: ({ children, ...props }) => (
+                      <div className="overflow-x-auto my-6">
+                        <table className="min-w-full border border-gray-200 rounded-lg" {...props}>
+                          {children}
+                        </table>
+                      </div>
+                    ),
+                    th: ({ children, ...props }) => (
+                      <th className="bg-purple-50 border border-gray-200 px-4 py-2 text-left font-semibold text-purple-800" {...props}>
+                        {children}
+                      </th>
+                    ),
+                    td: ({ children, ...props }) => (
+                      <td className="border border-gray-200 px-4 py-2" {...props}>
+                        {children}
+                      </td>
+                    )
+                  }}
+                >
+                  {post.content}
+                </ReactMarkdown>
               </div>
             </OrkutCardContent>
           </OrkutCard>

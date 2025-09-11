@@ -88,8 +88,9 @@ export default function PhotosPage() {
           }}
           onFeedSave={(feedData) => {
             console.log('💾 Foto salva no feed:', feedData)
-            // Atualizar o feed automaticamente
+            // Atualizar o feed automaticamente para mostrar em "Recentes"
             if (feedRef.current) {
+              console.log('🔄 Atualizando feed para mostrar foto recente')
               feedRef.current.refreshToFirst()
             }
           }}

@@ -212,7 +212,9 @@ const GlobalPhotosFeed = forwardRef<GlobalPhotosFeedRef, GlobalPhotosFeedProps>(
     },
     refreshToFirst: async () => {
       console.log('🔄 [Feed] Refresh para primeira página solicitado externamente')
-      await fetchPhotos(1, sortMode)
+      // Forçar ordenação "recent" para mostrar as fotos mais novas primeiro
+      setSortMode('recent')
+      await fetchPhotos(1, 'recent')
     }
   }), [currentPage, sortMode, fetchPhotos])
 

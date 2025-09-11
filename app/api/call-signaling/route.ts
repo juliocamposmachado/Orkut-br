@@ -68,25 +68,42 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Sinal salvo:', signalData)
 
-    // Enviar via realtime para o destinatário
+    // Enviar via realtime para o destinatário com múltiplas tentativas
     try {
-      const realtimeChannel = supabase.channel(`call_signaling_${targetUserId}`)
+      const realtimePayload = {
+        callId,
+        fromUserId: user.id,
+        targetUserId,
+        message,
+        timestamp: new Date().toISOString(),
+        messageId: signalData?.id || `temp_${Date.now()}`
+      }
       
-      await realtimeChannel.send({
+      console.log('📡 Preparando envio via realtime:', realtimePayload)
+      
+      // Canal específico do usuário
+      const userChannel = supabase.channel(`call_signaling_${targetUserId}`)
+      
+      await userChannel.send({
         type: 'broadcast',
         event: 'webrtc_signaling',
-        payload: {
-          callId,
-          fromUserId: user.id,
-          message,
-          timestamp: new Date().toISOString()
-        }
+        payload: realtimePayload
       })
       
-      console.log('📡 Sinalização enviada via realtime')
+      // Canal genérico como backup
+      const globalChannel = supabase.channel('webrtc_global')
+      
+      await globalChannel.send({
+        type: 'broadcast', 
+        event: 'webrtc_signaling',
+        payload: realtimePayload
+      })
+      
+      console.log('✅ Sinalização enviada via realtime (ambos canais)')
       
     } catch (realtimeError) {
-      console.warn('⚠️ Erro no realtime:', realtimeError)
+      console.error('❌ Erro no realtime (não crítico):', realtimeError)
+      // Sinalização continua funcionando mesmo sem realtime
     }
 
     return NextResponse.json({

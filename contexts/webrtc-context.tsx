@@ -52,13 +52,18 @@ interface WebRTCContextType {
 const WebRTCContext = createContext<WebRTCContextType | undefined>(undefined)
 
 // ICE servers configuration (using free STUN servers)
-const ICE_SERVERS = {
-  iceServers: [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun2.l.google.com:19302' }
-  ]
-}
+  // Configurações avançadas para ICE Servers incluindo TURN servers
+  const ICE_SERVERS = {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:stun2.l.google.com:19302' },
+      { urls: 'stun:stun.cloudflare.com:3478' },
+      // Adicione servidores TURN quando disponíveis para NAT traversal
+      // { urls: 'turn:numb.viagenie.ca', username: 'webrtc@live.com', credential: 'muazkh' }
+    ],
+    iceCandidatePoolSize: 10
+  }
 
 export function WebRTCProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
@@ -353,34 +358,50 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
     
     console.log('🔄 Processando sinal:', signal_type, signal_data)
     
-    switch (signal_type) {
-      case 'call_offer':
-        await handleIncomingCallOffer(signal_data)
-        break
-      case 'call_accepted':
-        await handleCallAccepted(signal_data)
-        break
-      case 'call_rejected':
-        handleCallRejected(signal_data)
-        break
-      case 'offer':
-        if (peerConnectionRef.current) {
-          await handleOffer(signal_data)
-        }
-        break
-      case 'answer':
-        if (peerConnectionRef.current) {
-          await handleAnswer(signal_data)
-        }
-        break
-      case 'ice-candidate':
-        if (peerConnectionRef.current) {
-          await handleIceCandidate(signal_data)
-        }
-        break
-      case 'call-end':
-        handleCallEnd()
-        break
+    try {
+      switch (signal_type) {
+        case 'call_offer':
+          await handleIncomingCallOffer(signal_data)
+          break
+        case 'call_accepted':
+          await handleCallAccepted(signal_data)
+          break
+        case 'call_rejected':
+          handleCallRejected(signal_data)
+          break
+        case 'offer':
+          if (peerConnectionRef.current) {
+            await handleOffer(signal_data)
+          } else {
+            console.warn('⚠️ Recebido offer mas peerConnection não existe, criando...')
+            await createPeerConnection()
+            await handleOffer(signal_data)
+          }
+          break
+        case 'answer':
+          if (peerConnectionRef.current) {
+            await handleAnswer(signal_data)
+          } else {
+            console.error('❌ Recebido answer mas peerConnection não existe')
+          }
+          break
+        case 'ice-candidate':
+          if (peerConnectionRef.current) {
+            await handleIceCandidate(signal_data)
+          } else {
+            console.warn('⚠️ Recebido ICE candidate mas peerConnection não existe, criando...')
+            await createPeerConnection()
+            await handleIceCandidate(signal_data)
+          }
+          break
+        case 'call-end':
+          handleCallEnd()
+          break
+        default:
+          console.warn('⚠️ Tipo de sinal desconhecido:', signal_type)
+      }
+    } catch (error) {
+      console.error('❌ Erro ao processar sinal WebRTC:', error)
     }
   }
   
@@ -472,8 +493,16 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
       } : false
     }
     
+    // Adicionar fallbacks para diferentes browsers
+    try {
+      // Verificar se o browser suporta getUserMedia
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('getUserMedia não suportado neste navegador');
+      }
+    
     console.log('🔍 Constraints:', JSON.stringify(constraints, null, 2))
     
+    // Implementação principal
     try {
       console.log('🚀 Chamando getUserMedia...')
       const stream = await navigator.mediaDevices.getUserMedia(constraints)
@@ -502,9 +531,27 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
         constraintName: (error as any)?.constraintName || 'Unknown'
       })
       
-      // Fallback para mobile com permissões limitadas
+      // Série de fallbacks para diferentes situações
+      
+      // Fallback 1: Tentar apenas áudio se o vídeo falhar
+      if (callType === 'video') {
+        try {
+          console.log('🔄 Tentando fallback: apenas áudio')
+          const audioOnlyStream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            video: false
+          })
+          console.log('✅ Stream de áudio obtido com sucesso')
+          return audioOnlyStream
+        } catch (audioError) {
+          console.error('❌ Fallback de áudio falhou:', audioError)
+        }
+      }
+      
+      // Fallback 2: Para mobile com permissões limitadas
       if (isMobile && callType === 'video') {
         try {
+          console.log('🔄 Tentando fallback mobile com resolução menor')
           const fallbackStream = await navigator.mediaDevices.getUserMedia({
             audio: true,
             video: {
@@ -522,13 +569,27 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
           
           return fallbackStream
         } catch (fallbackError) {
-          console.error('Fallback media error:', fallbackError)
-          throw fallbackError
+          console.error('❌ Fallback mobile falhou:', fallbackError)
         }
       }
       
-      throw error
+      // Fallback 3: Último recurso - criar stream vazio com apenas áudio
+      try {
+        console.log('🔄 Tentando criar stream sintético como último recurso')
+        // Criar um contexto de áudio e um destino como fallback extremo
+        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const destination = audioContext.createMediaStreamDestination();
+        return destination.stream;
+    } catch (error) {
+      console.error('❌ Todos os fallbacks falharam')
     }
+    
+    throw error
+  }
+  } catch (outerError) {
+    console.error('❌ Erro geral em getUserMedia:', outerError)
+    throw outerError
+  }
   }
   
   const startAudioCall = async (userId: string) => {

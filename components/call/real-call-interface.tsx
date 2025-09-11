@@ -16,6 +16,7 @@ import {
   Settings
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { toast } from 'sonner'
 
 interface RealCallInterfaceProps {
   callType: 'audio' | 'video'
@@ -58,20 +59,39 @@ export function RealCallInterface({ callType, remoteUserInfo, onEndCall }: RealC
   // Configurar stream local
   useEffect(() => {
     if (localStream && localVideoRef.current) {
-      localVideoRef.current.srcObject = localStream
-      console.log('📹 Stream local configurado')
+      try {
+        localVideoRef.current.srcObject = localStream
+        console.log('📹 Stream local configurado:', {
+          id: localStream.id,
+          videoTracks: localStream.getVideoTracks().length,
+          audioTracks: localStream.getAudioTracks().length
+        })
+      } catch (error) {
+        console.error('❌ Erro ao configurar stream local:', error)
+      }
     }
   }, [localStream])
 
   // Configurar stream remoto
   useEffect(() => {
     if (remoteStream) {
-      if (callType === 'video' && remoteVideoRef.current) {
-        remoteVideoRef.current.srcObject = remoteStream
-        console.log('📹 Stream remoto configurado (vídeo)')
-      } else if (remoteAudioRef.current) {
-        remoteAudioRef.current.srcObject = remoteStream
-        console.log('🔊 Stream remoto configurado (áudio)')
+      try {
+        if (callType === 'video' && remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = remoteStream
+          console.log('📹 Stream remoto configurado (vídeo):', {
+            id: remoteStream.id,
+            videoTracks: remoteStream.getVideoTracks().length,
+            audioTracks: remoteStream.getAudioTracks().length
+          })
+        } else if (remoteAudioRef.current) {
+          remoteAudioRef.current.srcObject = remoteStream
+          console.log('🔊 Stream remoto configurado (áudio):', {
+            id: remoteStream.id,
+            audioTracks: remoteStream.getAudioTracks().length
+          })
+        }
+      } catch (error) {
+        console.error('❌ Erro ao configurar stream remoto:', error)
       }
     }
   }, [remoteStream, callType])
@@ -93,23 +113,53 @@ export function RealCallInterface({ callType, remoteUserInfo, onEndCall }: RealC
   }, [callType])
 
   const handleToggleMicrophone = () => {
-    const newState = toggleMicrophone()
-    setIsMicMuted(!newState)
-    console.log('🎤 Microfone:', newState ? 'ligado' : 'desligado')
+    try {
+      const newState = toggleMicrophone()
+      setIsMicMuted(!newState)
+      console.log('🎤 Microfone:', newState ? 'ligado' : 'desligado')
+      
+      // Feedback visual adicional
+      if (newState) {
+        toast.info('Microfone ligado')
+      } else {
+        toast.info('Microfone desligado')
+      }
+    } catch (error) {
+      console.error('❌ Erro ao alternar microfone:', error)
+      toast.error('Erro ao controlar microfone')
+    }
   }
 
   const handleToggleCamera = () => {
     if (callType === 'video') {
-      const newState = toggleCamera()
-      setIsCameraOff(!newState)
-      console.log('📹 Câmera:', newState ? 'ligada' : 'desligada')
+      try {
+        const newState = toggleCamera()
+        setIsCameraOff(!newState)
+        console.log('📹 Câmera:', newState ? 'ligada' : 'desligada')
+        
+        // Feedback visual adicional
+        if (newState) {
+          toast.info('Câmera ligada')
+        } else {
+          toast.info('Câmera desligada')
+        }
+      } catch (error) {
+        console.error('❌ Erro ao alternar câmera:', error)
+        toast.error('Erro ao controlar câmera')
+      }
     }
   }
 
   const handleEndCall = async () => {
     console.log('☎️ Usuário encerrou a chamada')
-    await endCall()
-    onEndCall()
+    try {
+      await endCall()
+      onEndCall()
+    } catch (error) {
+      console.error('❌ Erro ao encerrar chamada:', error)
+      // Forçar encerramento mesmo com erro
+      onEndCall()
+    }
   }
 
   const formatDuration = (seconds: number) => {

@@ -15,8 +15,13 @@ export function CallTestButton() {
   const { user } = useAuth()
   const { onlineUsers, startAudioCall, startVideoCall } = useWebRTC()
   const [isTestingCall, setIsTestingCall] = useState(false)
+  const [showInterface, setShowInterface] = useState(false)
 
-  if (!user) return null // Temporariamente habilitado em produção para teste
+  // Ocultar em produção ou mostrar apenas quando necessário
+  const isProduction = process.env.NODE_ENV === 'production'
+  const showCallTesting = !isProduction || showInterface
+
+  if (!user || (!showCallTesting && isProduction)) return null
 
   const handleTestAudioCall = async (targetUserId: string) => {
     setIsTestingCall(true)
@@ -103,27 +108,61 @@ export function CallTestButton() {
     }
   }
 
+  // Botão compacto para produção
+  if (isProduction && !showInterface) {
+    return (
+      <div className="fixed bottom-20 right-4 z-40">
+        <Button 
+          onClick={() => setShowInterface(true)}
+          variant="outline"
+          size="sm"
+          className="bg-blue-100 border-blue-300 text-blue-700 hover:bg-blue-200"
+        >
+          <Phone className="h-4 w-4 mr-2" />
+          Chamadas
+        </Button>
+      </div>
+    )
+  }
+
   return (
-    <Card className="fixed bottom-4 right-4 w-80 shadow-lg border-yellow-200 bg-yellow-50 z-40">
+    <Card className={`fixed bottom-4 right-4 w-80 shadow-lg z-40 ${
+      isProduction 
+        ? 'border-blue-200 bg-blue-50' 
+        : 'border-yellow-200 bg-yellow-50'
+    }`}>
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm flex items-center text-yellow-800">
-          <TestTube className="w-4 h-4 mr-2" />
-          Teste de Chamadas (DEV)
+        <CardTitle className={`text-sm flex items-center ${
+          isProduction ? 'text-blue-800' : 'text-yellow-800'
+        }`}>
+          {isProduction ? (
+            <>
+              <Phone className="w-4 h-4 mr-2" />
+              Sistema de Chamadas
+            </>
+          ) : (
+            <>
+              <TestTube className="w-4 h-4 mr-2" />
+              Teste de Chamadas (DEV)
+            </>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-2">
         <div className="space-y-3">
-          {/* Teste de auto-notificação */}
-          <div className="text-center">
-            <Button
-              onClick={handleTestSelfNotification}
-              disabled={isTestingCall}
-              size="sm"
-              className="w-full bg-yellow-600 hover:bg-yellow-700"
-            >
-              {isTestingCall ? '⏳ Testando...' : '🔔 Testar Notificação (Self)'}
-            </Button>
-          </div>
+          {/* Teste de auto-notificação - apenas em desenvolvimento */}
+          {!isProduction && (
+            <div className="text-center">
+              <Button
+                onClick={handleTestSelfNotification}
+                disabled={isTestingCall}
+                size="sm"
+                className="w-full bg-yellow-600 hover:bg-yellow-700"
+              >
+                {isTestingCall ? '⏳ Testando...' : '🔔 Testar Notificação (Self)'}
+              </Button>
+            </div>
+          )}
 
           {/* Lista de usuários online */}
           <div>
@@ -187,9 +226,21 @@ export function CallTestButton() {
           </div>
 
           <div className="text-center">
-            <p className="text-xs text-gray-500 mt-2">
-              Ambiente de desenvolvimento
-            </p>
+            <div className="flex justify-between items-center">
+              <p className="text-xs text-gray-500 mt-2">
+                {isProduction ? 'Sistema de chamadas ativo' : 'Ambiente de desenvolvimento'}
+              </p>
+              {isProduction && (
+                <Button
+                  onClick={() => setShowInterface(false)}
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 w-6 p-0"
+                >
+                  ×
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </CardContent>

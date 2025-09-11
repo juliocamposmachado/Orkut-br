@@ -35,6 +35,7 @@ export function useCallNotifications() {
     }
 
     console.log('🔔 Configurando listener para notificações de chamadas...', user.id)
+    console.log('📊 Estado atual antes da configuração:', { incomingCall: !!incomingCall, isRinging, isInCall })
 
     // Limpar estados anteriores sempre que reconectar
     setIncomingCall(null)
@@ -42,7 +43,10 @@ export function useCallNotifications() {
     setIsInCall(false)
 
     let channelRef: any = null
+    let signalingChannelRef: any = null
     const startTime = Date.now() // Tempo de início da sessão para filtrar apenas notificações novas
+    
+    console.log('⏰ Sessão iniciada em:', new Date(startTime).toLocaleString())
 
     const setupListener = async () => {
       // PRIMEIRO: Marcar todas as notificações de chamada antigas como lidas
@@ -92,10 +96,11 @@ export function useCallNotifications() {
               console.log('⏰ Tempo da notificação:', timeDiff, 'segundos atrás')
               console.log('⏰ Sessão iniciada em:', new Date(startTime))
               console.log('⏰ Notificação criada em:', new Date(notificationTime))
+              console.log('📊 Estado atual antes do processamento:', { incomingCall: !!incomingCall, isRinging, isInCall })
               
               // CRITÉRIO RESTRITO: Só processar se a notificação foi criada APÓS o início desta sessão
-              // E se é muito recente (até 5 segundos)
-              if (notificationTime >= startTime && timeDiff <= 5) {
+              // E se é muito recente (até 10 segundos para dar mais margem)
+              if (notificationTime >= startTime && timeDiff <= 10) {
                 console.log('✅ Notificação NOVA E RECENTE - processando chamada')
                 
                 const incomingCallData = {
@@ -106,8 +111,11 @@ export function useCallNotifications() {
                   timestamp: callData.timestamp || new Date().toISOString()
                 }
                 
+                console.log('📱 Configurando estado da chamada:', incomingCallData)
                 setIncomingCall(incomingCallData)
                 setIsRinging(true)
+                
+                console.log('📊 Estado após configuração:', { incomingCall: true, isRinging: true })
                 
                 // Mostrar toast de notificação
                 toast(`📞 Chamada ${callData.call_type === 'video' ? 'de vídeo' : 'de áudio'} de ${callData.from_user.display_name}`, {
@@ -167,10 +175,24 @@ export function useCallNotifications() {
         )
         .subscribe((status, error) => {
           if (error) {
-            // Silenciar erros de subscrição comuns em desenvolvimento
-            console.debug('Debug - erro de subscrição de notificações:', error)
+            console.error('❌ Erro na subscrição de notificações:', error)
           } else {
             console.log('✅ Subscrito para notificações de chamada. Status:', status)
+          }
+        })
+      
+      // TERCEIRO: Configurar listener para sinalização WebRTC
+      signalingChannelRef = supabase
+        .channel(`webrtc_signaling_${user.id}`)
+        .on('broadcast', { event: 'webrtc_signaling' }, (payload) => {
+          console.log('📡 Sinal WebRTC recebido:', payload)
+          handleWebRTCSignaling(payload.payload)
+        })
+        .subscribe((status, error) => {
+          if (error) {
+            console.error('❌ Erro na subscrição de sinalização WebRTC:', error)
+          } else {
+            console.log('✅ Subscrito para sinalização WebRTC. Status:', status)
           }
         })
     }
@@ -179,10 +201,15 @@ export function useCallNotifications() {
     const timeoutId = setTimeout(setupListener, 500)
 
     return () => {
-      console.log('🧹 Limpando listener de notificações de chamada')
+      console.log('🧧 Limpando listeners de notificações de chamada')
       clearTimeout(timeoutId)
       if (channelRef) {
+        console.log('🧧 Removendo canal de notificações')
         supabase.removeChannel(channelRef)
+      }
+      if (signalingChannelRef) {
+        console.log('🧧 Removendo canal de sinalização WebRTC')
+        supabase.removeChannel(signalingChannelRef)
       }
       // Limpar estados ao desmontar
       setIncomingCall(null)
@@ -454,6 +481,57 @@ export function useCallNotifications() {
       
     } catch (error) {
       console.error('❌ Erro ao encerrar chamada:', error)
+    }
+  }
+  
+  // Processar sinalização WebRTC
+  const handleWebRTCSignaling = (signalPayload: any) => {
+    console.log('📡 Processando sinal WebRTC:', signalPayload)
+    
+    if (!webRTCManagerRef.current) {
+      console.warn('⚠️ WebRTC Manager não inicializado para processar sinal')
+      return
+    }
+    
+    const { message, fromUserId, targetUserId } = signalPayload
+    
+    // Verificar se o sinal é para este usuário
+    if (targetUserId !== user?.id) {
+      console.log('ℹ️ Sinal não é para este usuário')
+      return
+    }
+    
+    try {
+      switch (message.type) {
+        case 'offer':
+          console.log('📥 Processando offer WebRTC')
+          // Offer será processado via acceptCall
+          break
+          
+        case 'answer':
+          console.log('📥 Processando answer WebRTC')
+          if (message.answer) {
+            webRTCManagerRef.current.processAnswer(message.answer)
+          }
+          break
+          
+        case 'ice-candidate':
+          console.log('🧊 Processando ICE candidate')
+          if (message.candidate) {
+            webRTCManagerRef.current.addIceCandidate(message.candidate)
+          }
+          break
+          
+        case 'call-ended':
+          console.log('📞 Chamada encerrada remotamente')
+          endCall()
+          break
+          
+        default:
+          console.warn('⚠️ Tipo de sinal WebRTC desconhecido:', message.type)
+      }
+    } catch (error) {
+      console.error('❌ Erro ao processar sinal WebRTC:', error)
     }
   }
   

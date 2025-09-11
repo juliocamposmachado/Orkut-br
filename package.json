@@ -22,7 +22,9 @@
     "test:deploy:staging": "powershell -ExecutionPolicy Bypass -File ./scripts/simple-deploy-test.ps1 -Url https://orkut-56bknc693-julio-cesar-campos-machados-projects.vercel.app",
     "test:deploy:local": "powershell -ExecutionPolicy Bypass -File ./scripts/simple-deploy-test.ps1 -Url http://localhost:3000",
     "dev:desktop": "cd desktop && npm run dev",
-    "dev:mobile": "cd mobile && npm start"
+    "dev:mobile": "cd mobile && npm start",
+    "db:seed-photos": "node scripts/seed-photos.js",
+    "db:setup-photos": "echo 'Para usar Supabase: execute supabase/migrations/20250911_create_photos_feed.sql no SQL Editor' && node scripts/seed-photos.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

@@ -102,8 +102,12 @@ export async function GET(request: NextRequest) {
         const formattedAlbumPhotos = albumPhotos.map(photo => ({
           id: `album_${photo.id}`, // Prefixo para evitar conflito de ID
           user_id: photo.user_id,
-          user_name: photo.profiles?.display_name || photo.profiles?.username || 'Usuário',
-          user_avatar: photo.profiles?.photo_url || null,
+          user_name: Array.isArray(photo.profiles) && photo.profiles[0] 
+            ? photo.profiles[0].display_name || photo.profiles[0].username || 'Usuário'
+            : 'Usuário',
+          user_avatar: Array.isArray(photo.profiles) && photo.profiles[0] 
+            ? photo.profiles[0].photo_url || null
+            : null,
           imgur_id: photo.imgur_link.match(/\/([a-zA-Z0-9]+)\.(jpg|jpeg|png|gif|webp)$/)?.[1] || '',
           imgur_url: photo.imgur_link,
           imgur_page_url: photo.imgur_link,

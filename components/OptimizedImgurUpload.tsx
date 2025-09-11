@@ -26,6 +26,7 @@ import { cn } from '@/lib/utils'
 import { useOfflineGallery } from '@/components/photos/OfflineGalleryManager'
 import { useOptimisticPhotos } from '@/hooks/useOptimisticPhotos'
 import { useNotifications } from './NotificationSystem'
+import { ErrorBoundary } from './ErrorBoundary'
 
 interface UploadedImage {
   id: string
@@ -72,7 +73,7 @@ export default function OptimizedImgurUpload({
   const [error, setError] = useState<string>('')
   const [uploadProgress, setUploadProgress] = useState(0)
   const [isOnline, setIsOnline] = useState(navigator.onLine)
-  const { user, session } = useAuth()
+  const { user, session } = useAuth() as any
   const { addPhoto } = useOfflineGallery()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { addOptimisticPhoto, syncPhotoToServer } = useOptimisticPhotos()
@@ -200,8 +201,8 @@ export default function OptimizedImgurUpload({
           imgur_page_url: uploadedImage.page_url,
           imgur_delete_url: uploadedImage.delete_url,
           user_id: user?.id || null,
-          user_name: user?.user_metadata?.name || user?.email?.split('@')[0] || 'Usuário Anônimo',
-          user_avatar: user?.user_metadata?.avatar_url || null,
+          user_name: (user as any)?.user_metadata?.name || user?.email?.split('@')[0] || 'Usuário Anônimo',
+          user_avatar: (user as any)?.user_metadata?.avatar_url || null,
           width: uploadedImage.width,
           height: uploadedImage.height,
           file_size: uploadedImage.file_size,
@@ -221,21 +222,15 @@ export default function OptimizedImgurUpload({
         try {
           console.log(`💾 [Local ${i + 1}/${files.length}] Salvando localmente:`, uploadedImage.url)
           await addPhoto({
-            imgur_id: uploadedImage.id,
             imgur_url: uploadedImage.direct_url,
-            imgur_page_url: uploadedImage.page_url,
-            imgur_delete_url: uploadedImage.delete_url,
+            direct_url: uploadedImage.direct_url,
+            title: uploadedImage.title || uploadedImage.original_filename,
+            description: uploadedImage.description || undefined,
+            tags: uploadedImage.tags || [],
+            file_size: uploadedImage.file_size,
             width: uploadedImage.width,
             height: uploadedImage.height,
-            file_size: uploadedImage.file_size,
-            mime_type: 'image/jpeg',
-            original_filename: uploadedImage.original_filename,
-            title: uploadedImage.title || uploadedImage.original_filename,
-            description: uploadedImage.description || null,
-            category: 'imgur',
-            tags: uploadedImage.tags || [],
-            is_public: true,
-            user_id: user?.id || null
+            original_filename: uploadedImage.original_filename
           })
           console.log(`✅ [Local ${i + 1}/${files.length}] Salvo localmente:`, uploadedImage.id)
         } catch (localError) {

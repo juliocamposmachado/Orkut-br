@@ -55,7 +55,7 @@ export function OfflineGalleryManager({
   className, 
   onPhotoSynced 
 }: OfflineGalleryManagerProps) {
-  const { user, session } = useAuth()
+  const { user, session } = useAuth() as any
   const [localPhotos, setLocalPhotos] = useState<LocalPhoto[]>([])
   const [isSyncing, setIsSyncing] = useState(false)
   const [isOnline, setIsOnline] = useState(navigator.onLine)

@@ -57,7 +57,7 @@ export default function AlbumPhotos({
   itemsPerPage = 12,
   viewMode: initialViewMode = 'grid'
 }: AlbumPhotosProps) {
-  const { user, session } = useAuth()
+  const { user, session } = useAuth() as any
   const [photos, setPhotos] = useState<AlbumPhoto[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string>('')

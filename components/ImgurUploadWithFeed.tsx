@@ -58,7 +58,7 @@ export default function ImgurUploadWithFeed({
   const [error, setError] = useState<string>('')
   const [isSavingToFeed, setIsSavingToFeed] = useState<string | null>(null)
   const [expandedForms, setExpandedForms] = useState<Set<string>>(new Set())
-  const { user, session } = useAuth()
+  const { user, session } = useAuth() as any
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleDragEnter = (e: React.DragEvent) => {

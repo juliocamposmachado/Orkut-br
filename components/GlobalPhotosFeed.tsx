@@ -117,7 +117,7 @@ const GlobalPhotosFeed = forwardRef<GlobalPhotosFeedRef, GlobalPhotosFeedProps>(
   const [error, setError] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState('')
   const [showingOptimistic, setShowingOptimistic] = useState(false)
-  const { user, session } = useAuth()
+  const { user, session } = useAuth() as any
   
   // Hooks para otimismo e notificações
   const { 

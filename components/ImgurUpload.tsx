@@ -50,7 +50,7 @@ export default function ImgurUpload({ onUploadComplete, className = '' }: ImgurU
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
   const [error, setError] = useState<string>('')
   const [isSavingToFeed, setIsSavingToFeed] = useState<string | null>(null)
-  const { user, session } = useAuth()
+  const { user, session } = useAuth() as any
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleDragEnter = (e: React.DragEvent) => {

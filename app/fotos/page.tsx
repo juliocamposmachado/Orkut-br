@@ -11,6 +11,7 @@ import Link from 'next/link'
 // Componentes necessários - apenas Imgur
 import OptimizedImgurUpload from '@/components/OptimizedImgurUpload'
 import GlobalPhotosFeed, { GlobalPhotosFeedRef } from '@/components/GlobalPhotosFeed'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 // import AlbumPhotos from '@/components/AlbumPhotos' // REMOVIDO TEMPORARIAMENTE
 
 export default function PhotosPage() {
@@ -65,27 +66,42 @@ export default function PhotosPage() {
         </div>
 
         {/* Componente Otimizado Imgur Upload com Feed */}
-        <OptimizedImgurUpload 
-          className="w-full"
-          autoSaveToFeed={true}
-          onUploadComplete={(images) => {
-            console.log('🚀 Upload completo:', images.length, 'foto(s)')
-          }}
-          onFeedSave={(feedData) => {
-            console.log('💾 Foto salva no feed:', feedData)
-            // Atualizar o feed automaticamente para mostrar em "Recentes"
-            if (feedRef.current) {
-              console.log('🔄 Atualizando feed para mostrar foto recente')
-              feedRef.current.refreshToFirst()
-            }
-          }}
-          onFeedUpdate={() => {
-            // Refresh manual do feed
-            if (feedRef.current) {
-              feedRef.current.refresh()
-            }
-          }}
-        />
+        <ErrorBoundary
+          fallback={
+            <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+              <h3 className="text-lg font-semibold text-red-800 mb-2">Erro no componente de upload</h3>
+              <p className="text-red-600 mb-4">Ocorreu um problema com o sistema de upload. Tente recarregar a página.</p>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Recarregar Página
+              </button>
+            </div>
+          }
+        >
+          <OptimizedImgurUpload 
+            className="w-full"
+            autoSaveToFeed={true}
+            onUploadComplete={(images) => {
+              console.log('🚀 Upload completo:', images.length, 'foto(s)')
+            }}
+            onFeedSave={(feedData) => {
+              console.log('💾 Foto salva no feed:', feedData)
+              // Atualizar o feed automaticamente para mostrar em "Recentes"
+              if (feedRef.current) {
+                console.log('🔄 Atualizando feed para mostrar foto recente')
+                feedRef.current.refreshToFirst()
+              }
+            }}
+            onFeedUpdate={() => {
+              // Refresh manual do feed
+              if (feedRef.current) {
+                feedRef.current.refresh()
+              }
+            }}
+          />
+        </ErrorBoundary>
         
         {/* Separador */}
         <div className="my-12 border-t border-gray-200"></div>

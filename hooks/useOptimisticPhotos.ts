@@ -1,7 +1,22 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
-import { toast } from 'sonner'
+
+// Verifica se estamos no cliente antes de usar toast
+const safeToast = {
+  success: (message: string, options?: any) => {
+    if (typeof window !== 'undefined') {
+      const { toast } = require('sonner')
+      toast.success(message, options)
+    }
+  },
+  error: (message: string, options?: any) => {
+    if (typeof window !== 'undefined') {
+      const { toast } = require('sonner')
+      toast.error(message, options)
+    }
+  }
+}
 
 export interface OptimisticPhoto {
   // IDs e identificadores
@@ -169,7 +184,7 @@ export function useOptimisticPhotos(): UseOptimisticPhotosReturn {
       // Marcar como sincronizada
       updatePhotoStatus(localId, 'synced', result.data.id)
       
-      toast.success('📸 Foto sincronizada com sucesso!', {
+      safeToast.success('📸 Foto sincronizada com sucesso!', {
         description: `"${photo.title}" foi salva no banco de dados.`
       })
 
@@ -185,7 +200,7 @@ export function useOptimisticPhotos(): UseOptimisticPhotosReturn {
       
       updatePhotoStatus(localId, 'error', undefined, errorMessage)
       
-      toast.error('❌ Erro ao sincronizar foto', {
+      safeToast.error('❌ Erro ao sincronizar foto', {
         description: `"${photo.title}": ${errorMessage}`
       })
     }
@@ -200,7 +215,7 @@ export function useOptimisticPhotos(): UseOptimisticPhotosReturn {
     }
 
     if ((photo.retry_count || 0) >= 3) {
-      toast.error('❌ Máximo de tentativas atingido', {
+      safeToast.error('❌ Máximo de tentativas atingido', {
         description: `"${photo.title}" falhou após 3 tentativas.`
       })
       return

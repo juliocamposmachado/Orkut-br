@@ -4,7 +4,7 @@ import React from 'react'
 
 interface PhotosSkeletonProps {
   count?: number
-  viewMode?: 'grid' | 'list'
+  viewMode?: 'grid' | 'list' | 'rich'
 }
 
 export default function PhotosSkeleton({ 

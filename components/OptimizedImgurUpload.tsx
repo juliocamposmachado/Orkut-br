@@ -111,11 +111,6 @@ export default function OptimizedImgurUpload({
   }
 
   const handleFiles = async (files: File[]) => {
-    if (!user || !session) {
-      toast.error('Você precisa estar logado para fazer upload')
-      return
-    }
-
     setError('')
     setIsUploading(true)
     setUploadProgress(0)

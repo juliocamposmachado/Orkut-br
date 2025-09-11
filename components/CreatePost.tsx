@@ -1,13 +1,34 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useAuth } from '@/contexts/enhanced-auth-context'
 import { OrkutCard, OrkutCardContent, OrkutCardHeader } from '@/components/ui/orkut-card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { supabase } from '@/lib/supabase'
-import { Camera, Image, Smile, Send, Globe, Users, ChevronDown, CheckCircle, MapPin, Calendar } from 'lucide-react'
+import { 
+  Camera, 
+  Image as ImageIcon, 
+  Smile, 
+  Send, 
+  Globe, 
+  Users, 
+  ChevronDown, 
+  CheckCircle, 
+  MapPin, 
+  Calendar,
+  X,
+  Upload,
+  Loader2,
+  Hash,
+  Heart,
+  Frown,
+  Meh,
+  Angry,
+  Laugh
+} from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,11 +43,57 @@ interface CreatePostProps {
   onPostCreated?: () => void
 }
 
+// Types for new features
+interface AttachedImage {
+  id: string
+  url: string
+  direct_url: string
+  thumbnail_url: string
+  original_filename: string
+  file_size: number
+}
+
+interface TaggedFriend {
+  id: string
+  name: string
+  avatar?: string
+}
+
+interface LocationData {
+  name: string
+  coordinates?: { lat: number; lng: number }
+}
+
+interface EventData {
+  title: string
+  date: string
+  location?: string
+}
+
+type Feeling = 'happy' | 'sad' | 'angry' | 'excited' | 'love' | 'meh'
+
 export function CreatePost({ onPostCreated }: CreatePostProps) {
   const { user, profile } = useAuth()
   const [content, setContent] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [visibility, setVisibility] = useState<'public' | 'friends'>('public')
+  
+  // New features states
+  const [attachedImages, setAttachedImages] = useState<AttachedImage[]>([])
+  const [taggedFriends, setTaggedFriends] = useState<TaggedFriend[]>([])
+  const [selectedFeeling, setSelectedFeeling] = useState<Feeling | null>(null)
+  const [location, setLocation] = useState<LocationData | null>(null)
+  const [event, setEvent] = useState<EventData | null>(null)
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
+  
+  // UI states
+  const [showFeelingPicker, setShowFeelingPicker] = useState(false)
+  const [showLocationInput, setShowLocationInput] = useState(false)
+  const [showEventInput, setShowEventInput] = useState(false)
+  const [showFriendsPicker, setShowFriendsPicker] = useState(false)
+  
+  // Refs
+  const fileInputRef = useRef<HTMLInputElement>(null)
   
   // Link preview hook
   const { linkPreview, isLoading: isLinkLoading, clearPreview } = useLinkPreview(content)
@@ -34,6 +101,126 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   // Check if we have valid Supabase configuration
   const hasSupabaseConfig = process.env.NEXT_PUBLIC_SUPABASE_URL && 
     process.env.NEXT_PUBLIC_SUPABASE_URL !== 'https://placeholder.supabase.co'
+
+  // Handler functions for new features
+  const handleImageUpload = async (files: File[]) => {
+    if (files.length === 0) return
+    
+    setIsUploadingImage(true)
+    
+    try {
+      for (const file of files) {
+        // Validações
+        if (file.size > 10 * 1024 * 1024) {
+          toast.error('Arquivo muito grande', {
+            description: `${file.name} excede o limite de 10MB`
+          })
+          continue
+        }
+
+        if (!file.type.startsWith('image/')) {
+          toast.error('Formato inválido', {
+            description: `${file.name} não é uma imagem válida`
+          })
+          continue
+        }
+
+        const formData = new FormData()
+        formData.append('file', file)
+
+        const response = await fetch('/api/photos/imgur-upload', {
+          method: 'POST',
+          body: formData
+        })
+
+        const result = await response.json()
+
+        if (!result.success) {
+          throw new Error(result.error || 'Erro no upload')
+        }
+
+        const newImage: AttachedImage = {
+          id: result.data.id,
+          url: result.data.url,
+          direct_url: result.data.direct_url,
+          thumbnail_url: result.data.thumbnail_url,
+          original_filename: result.data.original_filename,
+          file_size: result.data.file_size
+        }
+
+        setAttachedImages(prev => [...prev, newImage])
+        toast.success('Imagem adicionada!', {
+          description: `${file.name} foi anexada ao post`
+        })
+      }
+    } catch (error: any) {
+      toast.error('Erro no upload', {
+        description: error.message || 'Não foi possível fazer upload da imagem'
+      })
+    } finally {
+      setIsUploadingImage(false)
+    }
+  }
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || [])
+    if (files.length > 0) {
+      handleImageUpload(files)
+    }
+    // Reset input
+    event.target.value = ''
+  }
+
+  const removeImage = (imageId: string) => {
+    setAttachedImages(prev => prev.filter(img => img.id !== imageId))
+  }
+
+  const toggleFriendTag = (friend: TaggedFriend) => {
+    setTaggedFriends(prev => {
+      const isAlreadyTagged = prev.some(f => f.id === friend.id)
+      if (isAlreadyTagged) {
+        return prev.filter(f => f.id !== friend.id)
+      } else {
+        return [...prev, friend]
+      }
+    })
+  }
+
+  const getFeelingIcon = (feeling: Feeling) => {
+    switch (feeling) {
+      case 'happy': return <Smile className="h-4 w-4" />
+      case 'sad': return <Frown className="h-4 w-4" />
+      case 'angry': return <Angry className="h-4 w-4" />
+      case 'excited': return <Laugh className="h-4 w-4" />
+      case 'love': return <Heart className="h-4 w-4" />
+      case 'meh': return <Meh className="h-4 w-4" />
+      default: return <Smile className="h-4 w-4" />
+    }
+  }
+
+  const getFeelingLabel = (feeling: Feeling) => {
+    const labels = {
+      happy: 'feliz',
+      sad: 'triste', 
+      angry: 'irritado',
+      excited: 'animado',
+      love: 'apaixonado',
+      meh: 'neutro'
+    }
+    return labels[feeling]
+  }
+
+  const clearAllAttachments = () => {
+    setAttachedImages([])
+    setTaggedFriends([])
+    setSelectedFeeling(null)
+    setLocation(null)
+    setEvent(null)
+    setShowFeelingPicker(false)
+    setShowLocationInput(false)
+    setShowEventInput(false)
+    setShowFriendsPicker(false)
+  }
 
   console.log('🔍 [CreatePost] Renderizando com:', {
     user: !!user,
@@ -104,7 +291,13 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           author_photo: profile?.photo_url || null,
           visibility: visibility,
           is_dj_post: false,
-          link_preview: linkPreview
+          link_preview: linkPreview,
+          // New features data
+          attached_images: attachedImages,
+          tagged_friends: taggedFriends,
+          feeling: selectedFeeling,
+          location: location,
+          event: event
         })
       })
       
@@ -139,6 +332,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       
       console.log('🔄 Limpando form...')
       setContent('')
+      clearAllAttachments() // Limpar todas as funcionalidades anexadas
       onPostCreated?.()
       
       console.log('🎉 Post publicado e salvo permanentemente no seu perfil!')
@@ -228,48 +422,160 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           <div className="flex flex-col gap-3">
             {/* Action buttons row */}
             <div className="flex items-center gap-1 overflow-x-auto scrollbar-thin">
+              {/* Input de arquivo oculto */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                className="hidden"
+                onChange={handleFileSelect}
+              />
+              
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="text-gray-600 hover:bg-gray-50 p-1.5 flex-shrink-0"
+                className={`p-1.5 flex-shrink-0 ${
+                  attachedImages.length > 0 
+                    ? 'text-purple-600 bg-purple-50 hover:bg-purple-100'
+                    : 'text-gray-600 hover:bg-gray-50'
+                }`}
                 title="Adicionar foto"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingImage}
               >
-                <Camera className="h-4 w-4" />
+                {isUploadingImage ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Camera className="h-4 w-4" />
+                )}
+                {attachedImages.length > 0 && (
+                  <span className="ml-1 text-xs">{attachedImages.length}</span>
+                )}
               </Button>
+              
+              <DropdownMenu open={showFriendsPicker} onOpenChange={setShowFriendsPicker}>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className={`p-1.5 flex-shrink-0 ${
+                      taggedFriends.length > 0 
+                        ? 'text-blue-600 bg-blue-50 hover:bg-blue-100'
+                        : 'text-blue-600 hover:bg-blue-50'
+                    }`}
+                    title="Marcar pessoas"
+                  >
+                    <Users className="h-4 w-4" />
+                    {taggedFriends.length > 0 && (
+                      <span className="ml-1 text-xs">{taggedFriends.length}</span>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-64">
+                  <div className="p-2">
+                    <p className="text-sm font-medium mb-2">Marcar amigos</p>
+                    <p className="text-xs text-gray-500 mb-3">Feature em breve! Por enquanto funciona como visual.</p>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        // Simular marcação de um amigo
+                        const mockFriend: TaggedFriend = {
+                          id: '1',
+                          name: 'Amigo Exemplo',
+                          avatar: undefined
+                        }
+                        toggleFriendTag(mockFriend)
+                        setShowFriendsPicker(false)
+                      }}
+                      className="w-full text-xs"
+                    >
+                      + Exemplo: Marcar Amigo
+                    </Button>
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
+              <DropdownMenu open={showFeelingPicker} onOpenChange={setShowFeelingPicker}>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className={`p-1.5 flex-shrink-0 ${
+                      selectedFeeling 
+                        ? 'text-yellow-600 bg-yellow-50 hover:bg-yellow-100'
+                        : 'text-yellow-600 hover:bg-yellow-50'
+                    }`}
+                    title="Adicionar sentimento"
+                  >
+                    {selectedFeeling ? getFeelingIcon(selectedFeeling) : <Smile className="h-4 w-4" />}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <div className="p-2">
+                    <p className="text-sm font-medium mb-2">Como você está se sentindo?</p>
+                    <div className="grid grid-cols-2 gap-1">
+                      {(['happy', 'sad', 'angry', 'excited', 'love', 'meh'] as Feeling[]).map((feeling) => (
+                        <DropdownMenuItem
+                          key={feeling}
+                          onClick={() => {
+                            setSelectedFeeling(feeling)
+                            setShowFeelingPicker(false)
+                          }}
+                          className="flex items-center space-x-2"
+                        >
+                          {getFeelingIcon(feeling)}
+                          <span className="text-sm capitalize">{getFeelingLabel(feeling)}</span>
+                        </DropdownMenuItem>
+                      ))}
+                    </div>
+                    {selectedFeeling && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedFeeling(null)
+                          setShowFeelingPicker(false)
+                        }}
+                        className="w-full mt-2 text-xs"
+                      >
+                        Remover sentimento
+                      </Button>
+                    )}
+                  </div>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="text-blue-600 hover:bg-blue-50 p-1.5 flex-shrink-0"
-                title="Marcar pessoas"
-              >
-                <Users className="h-4 w-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="text-yellow-600 hover:bg-yellow-50 p-1.5 flex-shrink-0"
-                title="Adicionar emoji"
-              >
-                <Smile className="h-4 w-4" />
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="text-red-600 hover:bg-red-50 p-1.5 flex-shrink-0 hidden sm:flex"
+                className={`p-1.5 flex-shrink-0 hidden sm:flex ${
+                  location 
+                    ? 'text-red-600 bg-red-50 hover:bg-red-100'
+                    : 'text-red-600 hover:bg-red-50'
+                }`}
                 title="Adicionar localização"
+                onClick={() => setShowLocationInput(!showLocationInput)}
               >
                 <MapPin className="h-4 w-4" />
               </Button>
+              
               <Button
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="text-green-600 hover:bg-green-50 p-1.5 flex-shrink-0 hidden sm:flex"
+                className={`p-1.5 flex-shrink-0 hidden sm:flex ${
+                  event 
+                    ? 'text-green-600 bg-green-50 hover:bg-green-100'
+                    : 'text-green-600 hover:bg-green-50'
+                }`}
                 title="Adicionar evento"
+                onClick={() => setShowEventInput(!showEventInput)}
               >
                 <Calendar className="h-4 w-4" />
               </Button>

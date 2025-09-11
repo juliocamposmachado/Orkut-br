@@ -12,7 +12,6 @@ import {
   Database,
   Wifi,
   WifiOff,
-  Sync,
   AlertTriangle
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -254,7 +253,7 @@ function NotificationCard({ notification, onRemove, onUpdate }: NotificationCard
       case 'loading':
         return <Loader2 className="w-5 h-5 text-purple-500 animate-spin" />
       case 'sync':
-        return <Sync className="w-5 h-5 text-blue-500 animate-pulse" />
+        return <RefreshCw className="w-5 h-5 text-blue-500 animate-spin" />
       default:
         return <Info className="w-5 h-5 text-gray-500" />
     }

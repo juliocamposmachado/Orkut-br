@@ -15,7 +15,6 @@ import {
   HardDrive,
   Wifi,
   WifiOff,
-  Sync,
   Clock,
   Eye,
   Trash2
@@ -347,7 +346,7 @@ export function OfflineGalleryManager({
               disabled={isSyncing || !isOnline}
               className="border-blue-300 text-blue-700 hover:bg-blue-50"
             >
-              <Sync className={cn('w-4 h-4 mr-2', isSyncing && 'animate-spin')} />
+              <RefreshCw className={cn('w-4 h-4 mr-2', isSyncing && 'animate-spin')} />
               Sincronizar Todas ({stats.pending})
             </Button>
           )}

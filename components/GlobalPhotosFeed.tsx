@@ -28,9 +28,8 @@ import {
   Clock,
   Database,
   Upload,
-  RefreshCw,
-  Sync
-}
+  RefreshCw
+} from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import PhotosSkeleton from './PhotosSkeleton'
@@ -359,7 +358,7 @@ const GlobalPhotosFeed = forwardRef<GlobalPhotosFeedRef, GlobalPhotosFeedProps>(
                 onClick={syncPendingPhotos}
                 className="text-xs h-8 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
               >
-                <Sync className="w-3 h-3 mr-1" />
+                <RefreshCw className="w-3 h-3 mr-1" />
                 Sincronizar {getPendingSyncCount()} {getPendingSyncCount() === 1 ? 'foto' : 'fotos'}
               </Button>
             )}

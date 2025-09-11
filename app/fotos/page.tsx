@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useAuth } from '@/contexts/enhanced-auth-context'
 import { Navbar } from '@/components/layout/navbar'
 import { Footer } from '@/components/layout/footer'
@@ -18,7 +18,8 @@ import Link from 'next/link'
 import PostImagesIntegration from '@/components/PostImagesIntegration'
 import ImgurUpload from '@/components/ImgurUpload'
 import ImgurUploadWithFeed from '@/components/ImgurUploadWithFeed'
-import GlobalPhotosFeed from '@/components/GlobalPhotosFeed'
+import OptimizedImgurUpload from '@/components/OptimizedImgurUpload'
+import GlobalPhotosFeed, { GlobalPhotosFeedRef } from '@/components/GlobalPhotosFeed'
 
 // Manter imports antigos como fallback
 import PostImageUpload from '@/src/components/PostImageUpload'
@@ -51,6 +52,7 @@ export default function PhotosPage() {
   const [currentMode, setCurrentMode] = useState<PhotoMode>('imgur')
   const [showUploadForm, setShowUploadForm] = useState(false)
   const [galleryKey, setGalleryKey] = useState(0)
+  const feedRef = useRef<GlobalPhotosFeedRef>(null)
 
   // Callback quando uma foto é salva com sucesso
   const handlePhotoSaved = (photo: any) => {
@@ -163,12 +165,25 @@ export default function PhotosPage() {
               </div>
             </div>
 
-            {/* Componente Imgur Upload com Feed */}
-            <ImgurUploadWithFeed 
-              className="w-full" 
+            {/* Componente Otimizado Imgur Upload com Feed */}
+            <OptimizedImgurUpload 
+              className="w-full"
+              autoSaveToFeed={true}
+              onUploadComplete={(images) => {
+                console.log('🚀 Upload completo:', images.length, 'foto(s)')
+              }}
               onFeedSave={(feedData) => {
-                console.log('🎆 Nova foto adicionada ao feed:', feedData)
-                // Aqui podemos atualizar o feed ou fazer outras ações
+                console.log('💾 Foto salva no feed:', feedData)
+                // Atualizar o feed automaticamente
+                if (feedRef.current) {
+                  feedRef.current.refreshToFirst()
+                }
+              }}
+              onFeedUpdate={() => {
+                // Refresh manual do feed
+                if (feedRef.current) {
+                  feedRef.current.refresh()
+                }
               }}
             />
           </>
@@ -263,9 +278,11 @@ export default function PhotosPage() {
         
         {/* Feed Global de Fotos */}
         <GlobalPhotosFeed 
+          ref={feedRef}
           className="mb-8"
           showHeader={true}
           itemsPerPage={16}
+          autoRefresh={false}
         />
         
       </div>

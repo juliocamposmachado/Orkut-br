@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/contexts/enhanced-auth-context'
@@ -81,13 +81,22 @@ interface GlobalPhotosFeedProps {
   className?: string
   showHeader?: boolean
   itemsPerPage?: number
+  autoRefresh?: boolean // Auto-atualizar quando houver mudanças
+  refreshInterval?: number // Intervalo em ms para auto-refresh
 }
 
-export default function GlobalPhotosFeed({ 
+export interface GlobalPhotosFeedRef {
+  refresh: () => Promise<void>
+  refreshToFirst: () => Promise<void>
+}
+
+const GlobalPhotosFeed = forwardRef<GlobalPhotosFeedRef, GlobalPhotosFeedProps>(({ 
   className = '', 
   showHeader = true,
-  itemsPerPage = 12
-}: GlobalPhotosFeedProps) {
+  itemsPerPage = 12,
+  autoRefresh = false,
+  refreshInterval = 30000
+}, ref) => {
   const [photos, setPhotos] = useState<PhotoFeedItem[]>([])
   const [pagination, setPagination] = useState<PaginationInfo | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
@@ -195,9 +204,37 @@ export default function GlobalPhotosFeed({
     photo.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
   )
 
+  // Expor funções via ref
+  useImperativeHandle(ref, () => ({
+    refresh: async () => {
+      console.log('🔄 [Feed] Refresh solicitado externamente')
+      await fetchPhotos(currentPage, sortMode)
+    },
+    refreshToFirst: async () => {
+      console.log('🔄 [Feed] Refresh para primeira página solicitado externamente')
+      await fetchPhotos(1, sortMode)
+    }
+  }), [currentPage, sortMode, fetchPhotos])
+
   useEffect(() => {
     fetchPhotos(1, sortMode)
   }, [])
+
+  // Auto-refresh se habilitado
+  useEffect(() => {
+    if (!autoRefresh || !refreshInterval) return
+
+    console.log(`🔄 [Feed] Auto-refresh configurado: ${refreshInterval}ms`)
+    const interval = setInterval(() => {
+      console.log('🔄 [Feed] Auto-refresh executado')
+      fetchPhotos(currentPage, sortMode)
+    }, refreshInterval)
+
+    return () => {
+      console.log('🔄 [Feed] Auto-refresh limpo')
+      clearInterval(interval)
+    }
+  }, [autoRefresh, refreshInterval, currentPage, sortMode])
 
   return (
     <div className={`space-y-6 ${className}`}>
@@ -545,4 +582,8 @@ export default function GlobalPhotosFeed({
       )}
     </div>
   )
-}
+})
+
+GlobalPhotosFeed.displayName = 'GlobalPhotosFeed'
+
+export default GlobalPhotosFeed

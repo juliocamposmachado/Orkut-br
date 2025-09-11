@@ -17,6 +17,7 @@ import Link from 'next/link'
 // Importar componentes de integração
 import PostImagesIntegration from '@/components/PostImagesIntegration'
 import ImgurUpload from '@/components/ImgurUpload'
+import ImgurUploadWithFeed from '@/components/ImgurUploadWithFeed'
 
 // Manter imports antigos como fallback
 import PostImageUpload from '@/src/components/PostImageUpload'
@@ -161,8 +162,14 @@ export default function PhotosPage() {
               </div>
             </div>
 
-            {/* Componente Imgur Upload */}
-            <ImgurUpload className="w-full" />
+            {/* Componente Imgur Upload com Feed */}
+            <ImgurUploadWithFeed 
+              className="w-full" 
+              onFeedSave={(feedData) => {
+                console.log('🎆 Nova foto adicionada ao feed:', feedData)
+                // Aqui podemos atualizar o feed ou fazer outras ações
+              }}
+            />
           </>
         )}
 

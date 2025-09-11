@@ -2,6 +2,9 @@
 
 import React, { useState, useRef } from 'react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { useAuth } from '@/contexts/enhanced-auth-context'
 import { 
   Upload, 
   Image as ImageIcon, 
@@ -11,7 +14,9 @@ import {
   Loader2,
   Copy,
   ExternalLink,
-  Trash2
+  Trash2,
+  Save,
+  Hash
 } from 'lucide-react'
 
 interface UploadedImage {
@@ -26,6 +31,12 @@ interface UploadedImage {
   file_size: number
   original_filename: string
   upload_time: string
+  // Campos para o feed
+  title?: string
+  description?: string
+  tags?: string[]
+  is_saved_to_feed?: boolean
+  feed_id?: string
 }
 
 interface ImgurUploadProps {
@@ -38,6 +49,8 @@ export default function ImgurUpload({ onUploadComplete, className = '' }: ImgurU
   const [isUploading, setIsUploading] = useState(false)
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
   const [error, setError] = useState<string>('')
+  const [isSavingToFeed, setIsSavingToFeed] = useState<string | null>(null)
+  const { user, session } = useAuth()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleDragEnter = (e: React.DragEvent) => {

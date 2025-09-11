@@ -540,7 +540,7 @@ export default function OptimizedImgurUpload({
         <div className="text-xs text-gray-500 space-y-1">
           <p>✨ Upload direto para Imgur.com - Links permanentes</p>
           <p>🚀 Salvamento automático no Orkut</p>
-          <p>🌍 Feed global + {user ? '📸 Álbum pessoal' : 'Apenas feed público'}</p>
+          <p>🌍 {user ? 'Feed global + Álbum pessoal 📸' : 'Salvamento apenas no feed público'}</p>
         </div>
       </div>
 
@@ -616,8 +616,8 @@ export default function OptimizedImgurUpload({
             <>
               <Loader2 className="w-12 h-12 text-purple-500 mx-auto animate-spin" />
               <div>
-                <h3 className="text-lg font-semibold text-gray-700">Uploading para Imgur...</h3>
-                <p className="text-sm text-gray-500 mb-2">Enviando e salvando no feed</p>
+                <h3 className="text-lg font-semibold text-gray-700">Enviando para Imgur...</h3>
+                <p className="text-sm text-gray-500 mb-2">{user ? 'Salvando no Orkut automaticamente' : 'Enviando para o feed global'}</p>
                 <div className="w-full bg-gray-200 rounded-full h-2 max-w-xs mx-auto">
                   <div 
                     className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-300" 
@@ -827,7 +827,7 @@ export default function OptimizedImgurUpload({
       <div className="text-center">
         <p className="text-xs text-gray-400">
           🌐 Fotos hospedadas no <strong>Imgur.com</strong> • 
-          Links permanentes • Integração automática com o feed global
+          Links permanentes • {user ? 'Salvamento automático no seu álbum' : 'Compartilhamento no feed global'}
         </p>
       </div>
     </div>

@@ -41,6 +41,7 @@
 - 💬 **Real-time Chat** - Instant messaging system
 - 🎤 **Voice Assistant** - AI-powered interaction (Orky)
 - 📸 **Media Gallery** - Photo sharing and management
+- 🎨 **Photo Albums** - Personal album with Imgur integration
 - 📱 **Mobile Responsive** - Optimized for all screen sizes
 
 ---
@@ -101,6 +102,8 @@
 - **Friend System** - Connection requests and management
 - **Communities** - Group-based interactions
 - **Media Gallery** - Photo upload and organization
+- **Photo Albums** - Personal albums with automatic Imgur link storage
+- **Global Photo Feed** - Community photo sharing with user information
 - **Real-time Chat** - Instant messaging system
 
 #### 🎙️ **AI Integration**

@@ -18,6 +18,7 @@ import Link from 'next/link'
 import PostImagesIntegration from '@/components/PostImagesIntegration'
 import ImgurUpload from '@/components/ImgurUpload'
 import ImgurUploadWithFeed from '@/components/ImgurUploadWithFeed'
+import GlobalPhotosFeed from '@/components/GlobalPhotosFeed'
 
 // Manter imports antigos como fallback
 import PostImageUpload from '@/src/components/PostImageUpload'
@@ -256,6 +257,17 @@ export default function PhotosPage() {
             <PostImageGallery key={galleryKey} />
           </>
         )}
+        
+        {/* Separador */}
+        <div className="my-12 border-t border-gray-200"></div>
+        
+        {/* Feed Global de Fotos */}
+        <GlobalPhotosFeed 
+          className="mb-8"
+          showHeader={true}
+          itemsPerPage={16}
+        />
+        
       </div>
 
       <Footer />

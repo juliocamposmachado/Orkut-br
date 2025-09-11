@@ -180,13 +180,20 @@ export default function OptimizedImgurUpload({
         onUploadComplete(newUploadedImages)
       }
       
-      // Auto-salvar no feed se habilitado E usuário logado
+  // Auto-salvar no feed se habilitado E usuário logado
       if (autoSaveToFeed && newUploadedImages.length > 0 && user && session) {
         toast.info('Salvando fotos no feed global...')
         for (const image of newUploadedImages) {
           await saveToFeedOptimized(image.id, false) // false = não mostrar toast individual
         }
-        toast.success(`${newUploadedImages.length} foto(s) adicionada(s) ao feed!`)
+        
+        // Salvar também no álbum pessoal do usuário
+        toast.info('Salvando no seu álbum pessoal...')
+        for (const image of newUploadedImages) {
+          await saveToAlbum(image, false) // false = não mostrar toast individual
+        }
+        
+        toast.success(`${newUploadedImages.length} foto(s) adicionada(s) ao feed e álbum!`)
       } else if (autoSaveToFeed && newUploadedImages.length > 0 && (!user || !session)) {
         toast.info('🔑 Faça login para salvar automaticamente no feed e galeria!')
       }
@@ -206,6 +213,92 @@ export default function OptimizedImgurUpload({
     } finally {
       setIsUploading(false)
       setUploadProgress(0)
+    }
+  }
+
+  const saveToAlbum = async (image: UploadedImage, showToast: boolean = true) => {
+    if (!user || !session) {
+      if (showToast) {
+        toast.error('Faça login para salvar no seu álbum pessoal')
+      }
+      return
+    }
+
+    // Marcar como salvando no álbum
+    setUploadedImages(prev =>
+      prev.map(img =>
+        img.id === image.id
+          ? { ...img, saving_to_gallery: true }
+          : img
+      )
+    )
+
+    try {
+      const albumData = {
+        imgur_link: image.direct_url,
+        titulo: image.title || image.original_filename,
+        descricao: image.description || '',
+        is_public: true,
+        user_token: session.access_token
+      }
+
+      const response = await fetch('/api/photos/save-album', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(albumData)
+      })
+
+      const result = await response.json()
+
+      if (!result.success) {
+        // Se já existe, não é erro grave
+        if (response.status === 409) {
+          if (showToast) {
+            toast.info('Esta foto já está no seu álbum!')
+          }
+        } else {
+          throw new Error(result.error || 'Erro ao salvar no álbum')
+        }
+      }
+
+      // Atualizar estado da imagem
+      setUploadedImages(prev =>
+        prev.map(img =>
+          img.id === image.id
+            ? { 
+                ...img, 
+                is_saved_to_user_gallery: true, 
+                user_photo_id: result.data?.id,
+                saving_to_gallery: false
+              }
+            : img
+        )
+      )
+
+      if (showToast) {
+        toast.success('Foto salva no seu álbum!')
+      }
+      
+      console.log('✅ Salvo no álbum pessoal:', result.data)
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+      
+      // Resetar estado de salvamento
+      setUploadedImages(prev =>
+        prev.map(img =>
+          img.id === image.id
+            ? { ...img, saving_to_gallery: false }
+            : img
+        )
+      )
+      
+      if (showToast) {
+        toast.error(errorMessage)
+      }
+      console.error('❌ Erro ao salvar no álbum:', errorMessage)
     }
   }
 
@@ -573,17 +666,27 @@ export default function OptimizedImgurUpload({
                   size="sm"
                   variant="outline"
                   onClick={async () => {
-                    // Se usuário estiver logado, salvar na galeria pessoal
+                    // Se usuário estiver logado, salvar na galeria pessoal e álbum
                     if (user && session) {
-                      toast.info('Salvando fotos na sua galeria...')
+                      toast.info('Salvando fotos na sua galeria e álbum...')
+                      
+                      // Salvar na galeria antiga (user_photos)
                       for (const image of uploadedImages) {
                         if (!image.is_saved_to_user_gallery && !image.saving_to_gallery) {
                           await saveToUserGallery(image.id, false)
                         }
                       }
+                      
+                      // Salvar no novo álbum (album_fotos)
+                      for (const image of uploadedImages) {
+                        if (!image.saving_to_gallery) {
+                          await saveToAlbum(image, false)
+                        }
+                      }
+                      
                       const savedToGallery = uploadedImages.filter(img => !img.is_saved_to_user_gallery).length
                       if (savedToGallery > 0) {
-                        toast.success(`${savedToGallery} foto(s) salva(s) na sua galeria!`)
+                        toast.success(`${savedToGallery} foto(s) salva(s) na sua galeria e álbum!`)
                       }
                     }
                     // Atualizar o feed global

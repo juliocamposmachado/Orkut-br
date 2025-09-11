@@ -20,6 +20,7 @@ import ImgurUpload from '@/components/ImgurUpload'
 import ImgurUploadWithFeed from '@/components/ImgurUploadWithFeed'
 import OptimizedImgurUpload from '@/components/OptimizedImgurUpload'
 import GlobalPhotosFeed, { GlobalPhotosFeedRef } from '@/components/GlobalPhotosFeed'
+import AlbumPhotos from '@/components/AlbumPhotos'
 
 // Manter imports antigos como fallback
 import PostImageUpload from '@/src/components/PostImageUpload'
@@ -275,6 +276,21 @@ export default function PhotosPage() {
         
         {/* Separador */}
         <div className="my-12 border-t border-gray-200"></div>
+        
+        {/* Meu Álbum de Fotos */}
+        {user && (
+          <>
+            <AlbumPhotos 
+              className="mb-12"
+              showHeader={true}
+              itemsPerPage={12}
+              viewMode="grid"
+            />
+            
+            {/* Separador */}
+            <div className="my-12 border-t border-gray-200"></div>
+          </>
+        )}
         
         {/* Feed Global de Fotos */}
         <GlobalPhotosFeed 

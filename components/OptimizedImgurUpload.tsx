@@ -41,6 +41,9 @@ interface UploadedImage {
   is_saved_to_feed?: boolean
   feed_id?: string
   saving_to_feed?: boolean
+  is_saved_to_user_gallery?: boolean
+  user_photo_id?: string
+  saving_to_gallery?: boolean
 }
 
 interface OptimizedImgurUploadProps {
@@ -158,7 +161,9 @@ export default function OptimizedImgurUpload({
           description: quickDescription || '',
           tags: quickTags ? quickTags.split(',').map(t => t.trim()).filter(t => t) : [],
           is_saved_to_feed: false,
-          saving_to_feed: false
+          saving_to_feed: false,
+          is_saved_to_user_gallery: false,
+          saving_to_gallery: false
         }
         
         newUploadedImages.push(uploadedImage)
@@ -175,13 +180,15 @@ export default function OptimizedImgurUpload({
         onUploadComplete(newUploadedImages)
       }
       
-      // Auto-salvar no feed se habilitado
-      if (autoSaveToFeed && newUploadedImages.length > 0) {
+      // Auto-salvar no feed se habilitado E usuário logado
+      if (autoSaveToFeed && newUploadedImages.length > 0 && user && session) {
         toast.info('Salvando fotos no feed global...')
         for (const image of newUploadedImages) {
           await saveToFeedOptimized(image.id, false) // false = não mostrar toast individual
         }
         toast.success(`${newUploadedImages.length} foto(s) adicionada(s) ao feed!`)
+      } else if (autoSaveToFeed && newUploadedImages.length > 0 && (!user || !session)) {
+        toast.info('🔑 Faça login para salvar automaticamente no feed e galeria!')
       }
       
       // Limpar campos de edição rápida
@@ -199,6 +206,97 @@ export default function OptimizedImgurUpload({
     } finally {
       setIsUploading(false)
       setUploadProgress(0)
+    }
+  }
+
+  const saveToUserGallery = async (imageId: string, showToast: boolean = true) => {
+    if (!user || !session) {
+      if (showToast) {
+        toast.error('Faça login para salvar na sua galeria pessoal')
+      }
+      return
+    }
+
+    const image = uploadedImages.find(img => img.id === imageId)
+    if (!image || image.is_saved_to_user_gallery) return
+
+    // Marcar como salvando na galeria
+    setUploadedImages(prev =>
+      prev.map(img =>
+        img.id === imageId
+          ? { ...img, saving_to_gallery: true }
+          : img
+      )
+    )
+
+    try {
+      const galleryData = {
+        imgur_id: image.id,
+        imgur_url: image.direct_url,
+        imgur_page_url: image.page_url,
+        imgur_delete_url: image.delete_url,
+        width: image.width,
+        height: image.height,
+        file_size: image.file_size,
+        mime_type: 'image/jpeg', // Imgur converte para JPEG
+        original_filename: image.original_filename,
+        title: image.title || image.original_filename,
+        description: image.description || null,
+        category: 'imgur',
+        is_public: true,
+        user_token: session.access_token
+      }
+
+      const response = await fetch('/api/photos/save-user-photo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(galleryData)
+      })
+
+      const result = await response.json()
+
+      if (!result.success) {
+        throw new Error(result.error || 'Erro ao salvar na galeria')
+      }
+
+      // Atualizar estado da imagem
+      setUploadedImages(prev =>
+        prev.map(img =>
+          img.id === imageId
+            ? { 
+                ...img, 
+                is_saved_to_user_gallery: true, 
+                user_photo_id: result.data.id,
+                saving_to_gallery: false
+              }
+            : img
+        )
+      )
+
+      if (showToast) {
+        toast.success('Foto salva na sua galeria!')
+      }
+      
+      console.log('✅ Salvo na galeria pessoal:', result.data)
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+      
+      // Resetar estado de salvamento
+      setUploadedImages(prev =>
+        prev.map(img =>
+          img.id === imageId
+            ? { ...img, saving_to_gallery: false }
+            : img
+        )
+      )
+      
+      if (showToast) {
+        toast.error(errorMessage)
+      }
+      console.error('❌ Erro ao salvar na galeria:', errorMessage)
     }
   }
 
@@ -474,11 +572,27 @@ export default function OptimizedImgurUpload({
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={onFeedUpdate}
+                  onClick={async () => {
+                    // Se usuário estiver logado, salvar na galeria pessoal
+                    if (user && session) {
+                      toast.info('Salvando fotos na sua galeria...')
+                      for (const image of uploadedImages) {
+                        if (!image.is_saved_to_user_gallery && !image.saving_to_gallery) {
+                          await saveToUserGallery(image.id, false)
+                        }
+                      }
+                      const savedToGallery = uploadedImages.filter(img => !img.is_saved_to_user_gallery).length
+                      if (savedToGallery > 0) {
+                        toast.success(`${savedToGallery} foto(s) salva(s) na sua galeria!`)
+                      }
+                    }
+                    // Atualizar o feed global
+                    onFeedUpdate()
+                  }}
                   className="ml-2"
                 >
                   <RefreshCw className="w-3 h-3 mr-1" />
-                  Atualizar Feed
+                  {user ? 'Salvar na Galeria + Atualizar' : 'Atualizar Feed'}
                 </Button>
               )}
             </h4>

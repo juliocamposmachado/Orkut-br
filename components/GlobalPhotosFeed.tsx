@@ -30,6 +30,7 @@ import {
 import Image from 'next/image'
 import Link from 'next/link'
 import PhotosSkeleton from './PhotosSkeleton'
+import RichLinkPreview from './RichLinkPreview'
 
 interface PhotoFeedItem {
   id: string
@@ -74,7 +75,7 @@ interface FeedResponse {
   error?: string
 }
 
-type ViewMode = 'grid' | 'list'
+type ViewMode = 'grid' | 'list' | 'rich'
 type SortMode = 'recent' | 'popular' | 'oldest'
 
 interface GlobalPhotosFeedProps {
@@ -326,6 +327,14 @@ const GlobalPhotosFeed = forwardRef<GlobalPhotosFeedRef, GlobalPhotosFeedProps>(
             >
               <List className="w-3 h-3" />
             </Button>
+            <Button
+              size="sm"
+              variant={viewMode === 'rich' ? 'default' : 'outline'}
+              onClick={() => setViewMode('rich')}
+              className="text-xs"
+            >
+              📝 Rich
+            </Button>
           </div>
         </div>
       </div>
@@ -394,14 +403,85 @@ const GlobalPhotosFeed = forwardRef<GlobalPhotosFeedRef, GlobalPhotosFeedProps>(
         </div>
       )}
 
-      {/* Photos Grid/List */}
+      {/* Photos Grid/List/Rich */}
       {!isLoading && !error && filteredPhotos.length > 0 && (
         <div className={
           viewMode === 'grid' 
             ? 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6'
+            : viewMode === 'rich'
+            ? 'grid grid-cols-1 lg:grid-cols-2 gap-6'
             : 'space-y-6'
         }>
-          {filteredPhotos.map((photo) => (
+          {filteredPhotos.map((photo) => {
+            // Modo Rich - usa RichLinkPreview
+            if (viewMode === 'rich') {
+              return (
+                <div key={photo.id} className="space-y-4">
+                  {/* User Info */}
+                  <div className="flex items-center space-x-2 px-2">
+                    <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs">
+                      {photo.user_avatar ? (
+                        <Image src={photo.user_avatar} alt={photo.user_name} width={32} height={32} className="rounded-full" />
+                      ) : (
+                        <User className="w-4 h-4" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-700">{photo.user_name}</p>
+                      <p className="text-xs text-gray-500">{formatDate(photo.created_at)}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Rich Link Preview */}
+                  <RichLinkPreview
+                    url={photo.imgur_url}
+                    onClick={() => {
+                      incrementView(photo.id)
+                      window.open(photo.imgur_page_url, '_blank')
+                    }}
+                  />
+                  
+                  {/* Tags */}
+                  {photo.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 px-2">
+                      {photo.tags.slice(0, 4).map((tag, index) => (
+                        <span key={index} className="inline-flex items-center text-xs bg-purple-50 text-purple-600 px-2 py-1 rounded-full">
+                          <Hash className="w-2 h-2 mr-1" />
+                          {tag}
+                        </span>
+                      ))}
+                      {photo.tags.length > 4 && (
+                        <span className="text-xs text-gray-400">+{photo.tags.length - 4}</span>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Stats */}
+                  <div className="flex items-center justify-between px-2 pt-2 border-t">
+                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                      <div className="flex items-center space-x-1">
+                        <Heart className="w-4 h-4" />
+                        <span>{photo.likes_count}</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <MessageCircle className="w-4 h-4" />
+                        <span>{photo.comments_count}</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Eye className="w-4 h-4" />
+                        <span>{photo.views_count}</span>
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {photo.width} × {photo.height} • {formatFileSize(photo.file_size)}
+                    </div>
+                  </div>
+                </div>
+              )
+            }
+            
+            // Modos Grid e List - renderização original
+            return (
             <div 
               key={photo.id} 
               className={`bg-white rounded-lg border hover:shadow-lg transition-all duration-200 ${
@@ -526,7 +606,8 @@ const GlobalPhotosFeed = forwardRef<GlobalPhotosFeedRef, GlobalPhotosFeedProps>(
                 </div>
               </div>
             </div>
-          ))}
+            )
+          })}
         </div>
       )}
 

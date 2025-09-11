@@ -17,21 +17,6 @@ export default function PhotosPage() {
   const { user } = useAuth()
   const feedRef = useRef<GlobalPhotosFeedRef>(null)
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <Camera className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Faça login para ver as fotos</h2>
-          <p className="text-gray-600 mb-4">Conecte-se para explorar a galeria da comunidade</p>
-          <Button asChild>
-            <Link href="/login">Fazer Login</Link>
-          </Button>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
       <Navbar />

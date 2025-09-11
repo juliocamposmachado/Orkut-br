@@ -180,22 +180,31 @@ export default function OptimizedImgurUpload({
         onUploadComplete(newUploadedImages)
       }
       
-  // Auto-salvar no feed se habilitado E usuário logado
-      if (autoSaveToFeed && newUploadedImages.length > 0 && user && session) {
-        toast.info('Salvando fotos no feed global...')
-        for (const image of newUploadedImages) {
-          await saveToFeedOptimized(image.id, false) // false = não mostrar toast individual
+      // Auto-salvar no feed global e álbum sempre que possível
+      if (autoSaveToFeed && newUploadedImages.length > 0) {
+        if (user && session) {
+          // Usuário logado - salvar no feed e álbum
+          toast.info('Salvando suas fotos no Orkut...')
+          
+          // Salvar no feed global
+          for (const image of newUploadedImages) {
+            await saveToFeedOptimized(image.id, false)
+          }
+          
+          // Salvar no álbum pessoal  
+          for (const image of newUploadedImages) {
+            await saveToAlbum(image, false)
+          }
+          
+          toast.success(`✅ ${newUploadedImages.length} foto(s) salva(s) no feed e seu álbum!`)
+        } else {
+          // Usuário não logado - apenas salvar no feed como anônimo
+          toast.info('Salvando fotos no feed global...')
+          for (const image of newUploadedImages) {
+            await saveToFeedOptimized(image.id, false)
+          }
+          toast.success(`✅ ${newUploadedImages.length} foto(s) salva(s) no feed global!`)
         }
-        
-        // Salvar também no álbum pessoal do usuário
-        toast.info('Salvando no seu álbum pessoal...')
-        for (const image of newUploadedImages) {
-          await saveToAlbum(image, false) // false = não mostrar toast individual
-        }
-        
-        toast.success(`${newUploadedImages.length} foto(s) adicionada(s) ao feed e álbum!`)
-      } else if (autoSaveToFeed && newUploadedImages.length > 0 && (!user || !session)) {
-        toast.info('🔑 Faça login para salvar automaticamente no feed e galeria!')
       }
       
       // Limpar campos de edição rápida
@@ -217,10 +226,9 @@ export default function OptimizedImgurUpload({
   }
 
   const saveToAlbum = async (image: UploadedImage, showToast: boolean = true) => {
+    // Se não tem usuário logado, retorna silenciosamente
     if (!user || !session) {
-      if (showToast) {
-        toast.error('Faça login para salvar no seu álbum pessoal')
-      }
+      console.log('⚠️ Usuário não logado - pulando salvamento no álbum')
       return
     }
 
@@ -523,14 +531,16 @@ export default function OptimizedImgurUpload({
           <div>
             <h3 className="text-lg font-semibold text-gray-800">Upload Otimizado Imgur</h3>
             <p className="text-sm text-gray-600">
-              {autoSaveToFeed ? '🎯 Auto-salvamento no feed habilitado' : '📷 Upload manual para o feed'}
+              {autoSaveToFeed ? (
+                user ? '🎤 Salvamento automático no feed e álbum' : '🌍 Salvamento automático no feed global'
+              ) : '📷 Upload manual para o feed'}
             </p>
           </div>
         </div>
         <div className="text-xs text-gray-500 space-y-1">
           <p>✨ Upload direto para Imgur.com - Links permanentes</p>
-          <p>🚀 Salvamento automático no banco de dados</p>
-          <p>🌍 Aparece instantaneamente no feed global</p>
+          <p>🚀 Salvamento automático no Orkut</p>
+          <p>🌍 Feed global + {user ? '📸 Álbum pessoal' : 'Apenas feed público'}</p>
         </div>
       </div>
 

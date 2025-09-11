@@ -203,9 +203,9 @@ export default function OptimizedImgurUpload({
   }
 
   const saveToFeedOptimized = async (imageId: string, showToast: boolean = true) => {
+    // Permitir salvamento mesmo sem login - será salvo como usuário anônimo
     if (!user || !session) {
-      toast.error('Usuário não autenticado')
-      return
+      console.log('⚠️ Salvando no feed como usuário anônimo')
     }
 
     const image = uploadedImages.find(img => img.id === imageId)
@@ -235,7 +235,7 @@ export default function OptimizedImgurUpload({
         description: image.description || null,
         tags: image.tags || [],
         is_public: true,
-        user_token: session.access_token
+        ...(session?.access_token && { user_token: session.access_token })
       }
 
       const response = await fetch('/api/photos/save-feed', {

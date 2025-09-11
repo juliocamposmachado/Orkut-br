@@ -30,8 +30,8 @@ interface SavePhotoFeedRequest {
   tags?: string[]
   is_public?: boolean
   
-  // Token do usuário para autenticação
-  user_token: string
+  // Token do usuário para autenticação (opcional para usuários anônimos)
+  user_token?: string
 }
 
 /**
@@ -64,10 +64,10 @@ export async function POST(request: NextRequest) {
   try {
     const body: SavePhotoFeedRequest = await request.json()
 
-    // Validar dados obrigatórios
+    // Validar dados obrigatórios (user_token é opcional para usuários anônimos)
     const requiredFields = [
       'imgur_id', 'imgur_url', 'width', 'height', 
-      'file_size', 'original_filename', 'user_token'
+      'file_size', 'original_filename'
     ]
 
     for (const field of requiredFields) {
@@ -79,26 +79,31 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Verificar autenticação via token
-    console.log('🔐 [Save Feed] Verificando autenticação...')
+    // Verificar autenticação via token (opcional)
+    let user = null
+    let isAnonymous = false
     
-    const { data: { user }, error: authError } = await supabase.auth.getUser(body.user_token)
-    
-    if (authError || !user) {
-      console.error('❌ [Save Feed] Erro de autenticação:', authError)
-      return NextResponse.json({
-        success: false,
-        error: 'Token de usuário inválido ou expirado'
-      }, { status: 401 })
+    if (body.user_token) {
+      console.log('🔐 [Save Feed] Verificando autenticação...')
+      const { data: { user: authenticatedUser }, error: authError } = await supabase.auth.getUser(body.user_token)
+      
+      if (authError || !authenticatedUser) {
+        console.warn('⚠️ [Save Feed] Token inválido, salvando como anônimo:', authError?.message)
+        isAnonymous = true
+      } else {
+        user = authenticatedUser
+        console.log('✅ [Save Feed] Usuário autenticado:', user.email)
+      }
+    } else {
+      console.log('👤 [Save Feed] Salvando como usuário anônimo')
+      isAnonymous = true
     }
-
-    console.log('✅ [Save Feed] Usuário autenticado:', user.email)
 
     // Preparar dados para inserção
     const photoFeedData = {
-      user_id: user.id,
-      user_name: user.user_metadata?.name || user.email?.split('@')[0] || 'Usuário',
-      user_avatar: user.user_metadata?.avatar_url || null,
+      user_id: user?.id || null,
+      user_name: user?.user_metadata?.name || user?.email?.split('@')[0] || 'Usuário Anônimo',
+      user_avatar: user?.user_metadata?.avatar_url || null,
       
       // Dados da imagem
       imgur_id: body.imgur_id,

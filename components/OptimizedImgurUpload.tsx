@@ -17,10 +17,13 @@ import {
   Trash2,
   Globe,
   Camera,
-  RefreshCw
+  RefreshCw,
+  HardDrive,
+  CloudUpload
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { useOfflineGallery } from '@/components/photos/OfflineGalleryManager'
 
 interface UploadedImage {
   id: string
@@ -66,13 +69,29 @@ export default function OptimizedImgurUpload({
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
   const [error, setError] = useState<string>('')
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [isOnline, setIsOnline] = useState(navigator.onLine)
   const { user, session } = useAuth()
+  const { addPhoto } = useOfflineGallery()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Estados para edição rápida
   const [quickTitle, setQuickTitle] = useState('')
   const [quickDescription, setQuickDescription] = useState('')
   const [quickTags, setQuickTags] = useState('')
+
+  // Monitor status de conexão
+  React.useEffect(() => {
+    const handleOnline = () => setIsOnline(true)
+    const handleOffline = () => setIsOnline(false)
+
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
+  }, [])
 
   const handleDragEnter = (e: React.DragEvent) => {
     e.preventDefault()
@@ -168,6 +187,32 @@ export default function OptimizedImgurUpload({
         
         newUploadedImages.push(uploadedImage)
         console.log(`✅ [Upload ${i + 1}/${files.length}] Concluído:`, uploadedImage.url)
+        
+        // Salvar localmente primeiro (offline-first)
+        try {
+          console.log(`💾 [Local ${i + 1}/${files.length}] Salvando localmente:`, uploadedImage.url)
+          await addPhoto({
+            imgur_id: uploadedImage.id,
+            imgur_url: uploadedImage.direct_url,
+            imgur_page_url: uploadedImage.page_url,
+            imgur_delete_url: uploadedImage.delete_url,
+            width: uploadedImage.width,
+            height: uploadedImage.height,
+            file_size: uploadedImage.file_size,
+            mime_type: 'image/jpeg',
+            original_filename: uploadedImage.original_filename,
+            title: uploadedImage.title || uploadedImage.original_filename,
+            description: uploadedImage.description || null,
+            category: 'imgur',
+            tags: uploadedImage.tags || [],
+            is_public: true,
+            user_id: user?.id || null
+          })
+          console.log(`✅ [Local ${i + 1}/${files.length}] Salvo localmente:`, uploadedImage.id)
+        } catch (localError) {
+          console.warn(`⚠️ [Local ${i + 1}/${files.length}] Erro salvando localmente:`, localError)
+          // Não falha o processo se não conseguir salvar localmente
+        }
         
         // Atualizar progresso
         setUploadProgress(((i + 1) / files.length) * 100)
@@ -539,8 +584,8 @@ export default function OptimizedImgurUpload({
         </div>
         <div className="text-xs text-gray-500 space-y-1">
           <p>✨ Upload direto para Imgur.com - Links permanentes</p>
-          <p>🚀 Salvamento automático no Orkut</p>
-          <p>🌍 {user ? 'Feed global + Álbum pessoal 📸' : 'Salvamento apenas no feed público'}</p>
+          <p>💾 Salvamento local primeiro (offline-first)</p>
+          <p>{isOnline ? '�︱ Online' : '🔄 Offline'} • {user ? '🌍 Feed global + 📸 Álbum pessoal' : '🌍 Salvamento no feed público'}</p>
         </div>
       </div>
 
@@ -749,6 +794,12 @@ export default function OptimizedImgurUpload({
                     <div className="text-xs text-gray-500 mb-2">
                       {image.width} × {image.height} px • {(image.file_size / 1024).toFixed(1)} KB
                     </div>
+                    {/* Indicador de salvamento local */}
+                    <div className="flex items-center space-x-1 mb-1">
+                      <HardDrive className="w-3 h-3 text-blue-600" />
+                      <span className="text-xs text-blue-600">Salvo localmente</span>
+                    </div>
+                    
                     {image.is_saved_to_feed && (
                       <div className="flex items-center space-x-1">
                         <Globe className="w-3 h-3 text-green-500" />

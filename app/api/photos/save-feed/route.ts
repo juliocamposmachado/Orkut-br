@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import fs from 'fs/promises'
+import path from 'path'
 
 // Cliente Supabase com service role para inserir dados
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -11,6 +13,36 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
     autoRefreshToken: false
   }
 })
+
+// Arquivo para armazenar fotos localmente como backup
+const PHOTOS_FILE = path.join(process.cwd(), 'data', 'photos-feed.json')
+
+// Função para garantir que a pasta data existe
+async function ensureDataDir() {
+  const dataDir = path.dirname(PHOTOS_FILE)
+  try {
+    await fs.access(dataDir)
+  } catch {
+    await fs.mkdir(dataDir, { recursive: true })
+  }
+}
+
+// Função para carregar fotos do arquivo local
+async function loadPhotos() {
+  try {
+    await ensureDataDir()
+    const data = await fs.readFile(PHOTOS_FILE, 'utf-8')
+    return JSON.parse(data)
+  } catch (error) {
+    return []
+  }
+}
+
+// Função para salvar fotos no arquivo local
+async function savePhotos(photos: any[]) {
+  await ensureDataDir()
+  await fs.writeFile(PHOTOS_FILE, JSON.stringify(photos, null, 2))
+}
 
 interface SavePhotoFeedRequest {
   // Dados da imagem Imgur
@@ -135,29 +167,64 @@ export async function POST(request: NextRequest) {
       updated_at: new Date().toISOString()
     }
 
-    console.log('💾 [Save Feed] Inserindo no banco de dados...')
+    console.log('💾 [Save Feed] Tentando salvar no banco de dados...')
 
-    // Inserir no banco de dados
-    const { data: savedPhoto, error: dbError } = await supabase
-      .from('photos_feed')
-      .insert(photoFeedData)
-      .select(`
-        *,
-        profiles:user_id (
-          name,
-          avatar_url,
-          username
-        )
-      `)
-      .single()
+    let savedPhoto: any = null
+    let usedLocalStorage = false
 
-    if (dbError) {
-      console.error('❌ [Save Feed] Erro no banco:', dbError)
-      return NextResponse.json({
-        success: false,
-        error: 'Erro ao salvar no banco de dados',
-        details: dbError.message
-      }, { status: 500 })
+    // Tentar salvar no banco Supabase primeiro
+    try {
+      const { data, error: dbError } = await supabase
+        .from('photos_feed')
+        .insert(photoFeedData)
+        .select('*')
+        .single()
+
+      if (dbError) {
+        throw new Error(`Supabase error: ${dbError.message}`)
+      }
+      
+      savedPhoto = data
+      console.log('✅ [Save Feed] Salvo no Supabase com sucesso')
+      
+    } catch (supabaseError) {
+      console.warn('⚠️ [Save Feed] Erro no Supabase, usando armazenamento local:', supabaseError)
+      
+      // Se Supabase falhar, usar arquivo local como backup
+      try {
+        const existingPhotos = await loadPhotos()
+        
+        // Criar ID único para foto
+        const timestamp = Date.now()
+        const photoId = `local_${timestamp}_${Math.random().toString(36).substring(7)}`
+        
+        const localPhotoData = {
+          ...photoFeedData,
+          id: photoId
+        }
+        
+        // Adicionar no início da lista
+        existingPhotos.unshift(localPhotoData)
+        
+        // Manter apenas as últimas 500 fotos
+        if (existingPhotos.length > 500) {
+          existingPhotos.splice(500)
+        }
+        
+        await savePhotos(existingPhotos)
+        
+        savedPhoto = localPhotoData
+        usedLocalStorage = true
+        console.log('✅ [Save Feed] Salvo localmente como backup')
+        
+      } catch (localError) {
+        console.error('❌ [Save Feed] Erro tanto no Supabase quanto no armazenamento local:', localError)
+        return NextResponse.json({
+          success: false,
+          error: 'Erro ao salvar foto (Supabase e local falharam)',
+          details: `Supabase: ${supabaseError}; Local: ${localError}`
+        }, { status: 500 })
+      }
     }
 
     const processingTime = Date.now() - startTime
@@ -171,14 +238,17 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Foto salva no feed com sucesso!',
+      message: usedLocalStorage 
+        ? 'Foto salva no feed com sucesso! (armazenamento local como backup)'
+        : 'Foto salva no feed com sucesso!',
       data: {
         id: savedPhoto.id,
         imgur_url: savedPhoto.imgur_url,
         title: savedPhoto.title,
         user_name: savedPhoto.user_name,
         created_at: savedPhoto.created_at,
-        processing_time_ms: processingTime
+        processing_time_ms: processingTime,
+        storage_method: usedLocalStorage ? 'local_backup' : 'supabase'
       }
     })
 

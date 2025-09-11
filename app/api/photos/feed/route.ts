@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import fs from 'fs/promises'
+import path from 'path'
 
 // Cliente Supabase com service role para ler dados
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
@@ -11,6 +13,19 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
     autoRefreshToken: false
   }
 })
+
+// Arquivo local de backup
+const PHOTOS_FILE = path.join(process.cwd(), 'data', 'photos-feed.json')
+
+// Função para carregar fotos do arquivo local
+async function loadLocalPhotos() {
+  try {
+    const data = await fs.readFile(PHOTOS_FILE, 'utf-8')
+    return JSON.parse(data)
+  } catch (error) {
+    return []
+  }
+}
 
 /**
  * GET /api/photos/feed - Buscar fotos do feed global
@@ -75,22 +90,70 @@ export async function GET(request: NextRequest) {
     // Aplicar paginação
     query = query.range(offset, offset + limit - 1)
 
-    const { data: photos, error: photosError } = await query
+    let photos: any[] = []
+    let totalPhotos = 0
+    let dataSource = 'supabase'
 
-    if (photosError) {
-      console.error('❌ [Feed API] Erro ao buscar fotos:', photosError)
-      return NextResponse.json({
-        success: false,
-        error: 'Erro ao buscar fotos do feed',
-        details: photosError.message
-      }, { status: 500 })
+    try {
+      const { data, error: photosError } = await query
+
+      if (photosError) {
+        throw new Error(`Supabase error: ${photosError.message}`)
+      }
+
+      photos = data || []
+      
+      // Buscar total de fotos para meta informação
+      const { count } = await supabase
+        .from('photos_feed')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_public', true)
+        
+      totalPhotos = count || 0
+      console.log('✅ [Feed API] Dados carregados do Supabase')
+      
+    } catch (supabaseError) {
+      console.warn('⚠️ [Feed API] Erro no Supabase, usando arquivo local:', supabaseError)
+      
+      // Se Supabase falhar, usar arquivo local
+      try {
+        const localPhotos = await loadLocalPhotos()
+        
+        if (localPhotos && Array.isArray(localPhotos)) {
+          // Aplicar ordenação
+          let sortedPhotos = [...localPhotos]
+          switch (sort) {
+            case 'popular':
+              sortedPhotos.sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0))
+              break
+            case 'oldest':
+              sortedPhotos.sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+              break
+            case 'recent':
+            default:
+              sortedPhotos.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+              break
+          }
+          
+          // Aplicar paginação
+          photos = sortedPhotos.slice(offset, offset + limit)
+          totalPhotos = sortedPhotos.length
+          dataSource = 'local_backup'
+          console.log(`✅ [Feed API] ${photos.length} fotos carregadas do arquivo local`)
+        } else {
+          photos = []
+          totalPhotos = 0
+        }
+        
+      } catch (localError) {
+        console.error('❌ [Feed API] Erro tanto no Supabase quanto no arquivo local:', localError)
+        return NextResponse.json({
+          success: false,
+          error: 'Erro ao buscar fotos (Supabase e local falharam)',
+          details: `Supabase: ${supabaseError}; Local: ${localError}`
+        }, { status: 500 })
+      }
     }
-
-    // Buscar total de fotos para meta informação
-    const { count: totalPhotos } = await supabase
-      .from('photos_feed')
-      .select('*', { count: 'exact', head: true })
-      .eq('is_public', true)
 
     const processingTime = Date.now() - startTime
 
@@ -109,7 +172,8 @@ export async function GET(request: NextRequest) {
           has_prev: page > 1
         },
         sort,
-        processing_time_ms: processingTime
+        processing_time_ms: processingTime,
+        data_source: dataSource
       }
     })
 

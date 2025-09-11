@@ -25,12 +25,19 @@ import {
   SortAsc,
   SortDesc,
   TrendingUp,
-  Clock
-} from 'lucide-react'
+  Clock,
+  Database,
+  Upload,
+  RefreshCw,
+  Sync
+}
 import Image from 'next/image'
 import Link from 'next/link'
 import PhotosSkeleton from './PhotosSkeleton'
 import RichLinkPreview from './RichLinkPreview'
+import { OptimisticPhoto, useOptimisticPhotos } from '@/hooks/useOptimisticPhotos'
+import { useNotifications } from './NotificationSystem'
+import { cn } from '@/lib/utils'
 
 interface PhotoFeedItem {
   id: string
@@ -53,6 +60,8 @@ interface PhotoFeedItem {
   views_count: number
   created_at: string
   updated_at: string
+  // Propriedade opcional para fotos otimistas
+  _sync_status?: 'optimistic' | 'syncing' | 'synced' | 'error'
 }
 
 interface PaginationInfo {
@@ -84,6 +93,7 @@ interface GlobalPhotosFeedProps {
   itemsPerPage?: number
   autoRefresh?: boolean // Auto-atualizar quando houver mudanças
   refreshInterval?: number // Intervalo em ms para auto-refresh
+  enableOptimistic?: boolean // Habilitar renderização otimista de fotos locais
 }
 
 export interface GlobalPhotosFeedRef {
@@ -96,7 +106,8 @@ const GlobalPhotosFeed = forwardRef<GlobalPhotosFeedRef, GlobalPhotosFeedProps>(
   showHeader = true,
   itemsPerPage = 12,
   autoRefresh = false,
-  refreshInterval = 30000
+  refreshInterval = 30000,
+  enableOptimistic = true
 }, ref) => {
   const [photos, setPhotos] = useState<PhotoFeedItem[]>([])
   const [pagination, setPagination] = useState<PaginationInfo | null>(null)
@@ -106,7 +117,18 @@ const GlobalPhotosFeed = forwardRef<GlobalPhotosFeedRef, GlobalPhotosFeedProps>(
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState('')
-  const { user } = useAuth()
+  const [showingOptimistic, setShowingOptimistic] = useState(false)
+  const { user, session } = useAuth()
+  
+  // Hooks para otimismo e notificações
+  const { 
+    optimisticPhotos, 
+    syncPhotoToServer, 
+    retryFailedSync,
+    syncAllPending,
+    getPendingSyncCount
+  } = useOptimisticPhotos()
+  const { notifyPhotoSync, notifyPhotoSynced, notifyPhotoError } = useNotifications()
 
   const fetchPhotos = async (page: number = 1, sort: SortMode = 'recent') => {
     setIsLoading(true)
@@ -198,12 +220,68 @@ const GlobalPhotosFeed = forwardRef<GlobalPhotosFeedRef, GlobalPhotosFeedProps>(
     }
   }
 
-  const filteredPhotos = photos.filter(photo => 
+  // Converter fotos otimistas para o formato do feed
+  const optimisticFeedItems: PhotoFeedItem[] = enableOptimistic ? optimisticPhotos
+    .filter(photo => photo.sync_status !== 'synced') // Não mostrar fotos já sincronizadas
+    .map(optimisticToFeedItem) : []
+
+  // Filtrar fotos do banco de dados
+  const filteredDbPhotos = photos.filter(photo => 
     searchQuery === '' || 
     photo.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     photo.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     photo.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
   )
+  
+  // Filtrar fotos otimistas
+  const filteredOptimisticPhotos = optimisticFeedItems.filter(photo => 
+    searchQuery === '' || 
+    photo.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    photo.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    photo.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+  )
+  
+  // Combinação de ambos os conjuntos de fotos
+  const filteredPhotos = enableOptimistic
+    ? [...filteredOptimisticPhotos, ...filteredDbPhotos]
+    : filteredDbPhotos
+
+  // Função para converter foto otimista para formato do feed
+  function optimisticToFeedItem(photo: OptimisticPhoto): PhotoFeedItem {
+    return {
+      id: photo.id,
+      user_id: photo.user_id || '',
+      user_name: photo.user_name,
+      user_avatar: photo.user_avatar,
+      imgur_id: photo.imgur_id,
+      imgur_url: photo.imgur_url,
+      imgur_page_url: photo.imgur_page_url,
+      width: photo.width,
+      height: photo.height,
+      file_size: photo.file_size,
+      original_filename: photo.original_filename,
+      title: photo.title,
+      description: photo.description,
+      tags: photo.tags,
+      likes_count: photo.likes_count,
+      comments_count: photo.comments_count,
+      shares_count: photo.shares_count,
+      views_count: photo.views_count,
+      created_at: photo.created_at,
+      updated_at: photo.updated_at,
+      // Propriedade extra para identificar status de sincronização
+      _sync_status: photo.sync_status
+    }
+  }
+  
+  // Função para sincronizar todas as fotos pendentes
+  const syncPendingPhotos = async () => {
+    if (getPendingSyncCount() > 0) {
+      console.log('🔄 [Feed] Sincronizando fotos pendentes...')
+      await syncAllPending(session?.access_token)
+      fetchPhotos(currentPage, sortMode)
+    }
+  }
 
   // Expor funções via ref
   useImperativeHandle(ref, () => ({
@@ -215,12 +293,18 @@ const GlobalPhotosFeed = forwardRef<GlobalPhotosFeedRef, GlobalPhotosFeedProps>(
       console.log('🔄 [Feed] Refresh para primeira página solicitado externamente')
       // Forçar ordenação "recent" para mostrar as fotos mais novas primeiro
       setSortMode('recent')
+      setShowingOptimistic(true)
       await fetchPhotos(1, 'recent')
     }
-  }), [currentPage, sortMode, fetchPhotos])
+  }), [currentPage, sortMode, fetchPhotos, session?.access_token, syncAllPending])
 
   useEffect(() => {
     fetchPhotos(1, sortMode)
+    // Sincronizar fotos pendentes ao carregar o componente
+    if (enableOptimistic && getPendingSyncCount() > 0) {
+      console.log(`🔄 [Feed] ${getPendingSyncCount()} fotos pendentes de sincronização encontradas`)
+      setShowingOptimistic(true)
+    }
   }, [])
 
   // Auto-refresh se habilitado
@@ -251,13 +335,36 @@ const GlobalPhotosFeed = forwardRef<GlobalPhotosFeedRef, GlobalPhotosFeedProps>(
             <div>
               <h2 className="text-xl font-bold text-gray-800">Feed Global de Fotos</h2>
               <p className="text-sm text-gray-600">
-                {pagination ? `${pagination.total} fotos compartilhadas` : 'Carregando...'}
+                {pagination ? (
+                  <>
+                    {pagination.total} fotos compartilhadas
+                    {enableOptimistic && getPendingSyncCount() > 0 && (
+                      <span className="ml-2 text-purple-600">
+                        + {getPendingSyncCount()} local
+                      </span>
+                    )}
+                  </>
+                ) : 'Carregando...'}
               </p>
             </div>
           </div>
 
-          {/* Search */}
+          {/* Search e ações */}
           <div className="flex items-center space-x-2">
+            {/* Botão de sincronização se tiver fotos pendentes */}
+            {enableOptimistic && getPendingSyncCount() > 0 && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={syncPendingPhotos}
+                className="text-xs h-8 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+              >
+                <Sync className="w-3 h-3 mr-1" />
+                Sincronizar {getPendingSyncCount()} {getPendingSyncCount() === 1 ? 'foto' : 'fotos'}
+              </Button>
+            )}
+            
+            {/* Busca */}
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <Input
@@ -482,10 +589,16 @@ const GlobalPhotosFeed = forwardRef<GlobalPhotosFeedRef, GlobalPhotosFeedProps>(
             
             // Modos Grid e List - renderização original
             return (
-            <div 
+              <div 
               key={photo.id} 
               className={`bg-white rounded-lg border hover:shadow-lg transition-all duration-200 ${
                 viewMode === 'list' ? 'flex space-x-4 p-4' : 'overflow-hidden'
+              } ${
+                (photo as any)._sync_status ? (
+                  (photo as any)._sync_status === 'optimistic' ? 'ring-2 ring-purple-300' :
+                  (photo as any)._sync_status === 'syncing' ? 'ring-2 ring-blue-300' :
+                  (photo as any)._sync_status === 'error' ? 'ring-2 ring-red-300' : ''
+                ) : ''
               }`}
             >
               {/* Image */}
@@ -517,8 +630,47 @@ const GlobalPhotosFeed = forwardRef<GlobalPhotosFeedRef, GlobalPhotosFeedProps>(
                 </div>
               </div>
 
-              {/* Content */}
+                {/* Content */}
               <div className={`${viewMode === 'grid' ? 'p-4' : 'flex-1'} space-y-3`}>
+                {/* Status Badge - para fotos otimistas */}
+                {(photo as any)._sync_status && (
+                  <div className={cn(
+                    "text-xs px-2 py-0.5 rounded-full inline-flex items-center space-x-1 mb-1",
+                    (photo as any)._sync_status === 'optimistic' ? 'bg-purple-100 text-purple-700' :
+                    (photo as any)._sync_status === 'syncing' ? 'bg-blue-100 text-blue-700' :
+                    (photo as any)._sync_status === 'error' ? 'bg-red-100 text-red-700' : ''
+                  )}>
+                    {(photo as any)._sync_status === 'optimistic' && (
+                      <>
+                        <Upload className="w-3 h-3" />
+                        <span>Local</span>
+                      </>
+                    )}
+                    {(photo as any)._sync_status === 'syncing' && (
+                      <>
+                        <Database className="w-3 h-3" />
+                        <span>Sincronizando...</span>
+                      </>
+                    )}
+                    {(photo as any)._sync_status === 'error' && (
+                      <>
+                        <AlertCircle className="w-3 h-3" />
+                        <span>Erro</span>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-5 p-0 ml-1 text-red-700 hover:text-red-900 hover:bg-red-50"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            retryFailedSync(photo.id, session?.access_token);
+                          }}
+                        >
+                          <RefreshCw className="w-3 h-3" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                )}
                 {/* User Info */}
                 <div className="flex items-center space-x-2">
                   <div className="w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs">

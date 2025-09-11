@@ -24,6 +24,8 @@ import {
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { useOfflineGallery } from '@/components/photos/OfflineGalleryManager'
+import { useOptimisticPhotos } from '@/hooks/useOptimisticPhotos'
+import { useNotifications } from './NotificationSystem'
 
 interface UploadedImage {
   id: string
@@ -73,6 +75,8 @@ export default function OptimizedImgurUpload({
   const { user, session } = useAuth()
   const { addPhoto } = useOfflineGallery()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const { addOptimisticPhoto, syncPhotoToServer } = useOptimisticPhotos()
+  const { notifyPhotoUpload, notifyPhotoSync, notifyPhotoSynced, notifyPhotoError } = useNotifications()
 
   // Estados para edição rápida
   const [quickTitle, setQuickTitle] = useState('')
@@ -138,6 +142,7 @@ export default function OptimizedImgurUpload({
     setUploadProgress(0)
     
     const newUploadedImages: UploadedImage[] = []
+    const localIds: string[] = [] // Armazenar os IDs locais para sincronização
     
     try {
       for (let i = 0; i < files.length; i++) {
@@ -188,7 +193,31 @@ export default function OptimizedImgurUpload({
         newUploadedImages.push(uploadedImage)
         console.log(`✅ [Upload ${i + 1}/${files.length}] Concluído:`, uploadedImage.url)
         
-        // Salvar localmente primeiro (offline-first)
+        // 1) Adicionar no Feed Global imediatamente (estado otimista)
+        const localId = addOptimisticPhoto({
+          imgur_id: uploadedImage.id,
+          imgur_url: uploadedImage.direct_url,
+          imgur_page_url: uploadedImage.page_url,
+          imgur_delete_url: uploadedImage.delete_url,
+          user_id: user?.id || null,
+          user_name: user?.user_metadata?.name || user?.email?.split('@')[0] || 'Usuário Anônimo',
+          user_avatar: user?.user_metadata?.avatar_url || null,
+          width: uploadedImage.width,
+          height: uploadedImage.height,
+          file_size: uploadedImage.file_size,
+          original_filename: uploadedImage.original_filename,
+          title: uploadedImage.title || uploadedImage.original_filename,
+          description: uploadedImage.description || null,
+          tags: uploadedImage.tags || []
+        })
+        
+        // Armazenar o ID local para sincronização posterior
+        localIds.push(localId)
+
+        // Notificação: upload concluído, iniciando sync
+        const n1 = notifyPhotoSync(uploadedImage.title || uploadedImage.original_filename, localId)
+        
+        // 2) Salvar localmente primeiro (offline-first)
         try {
           console.log(`💾 [Local ${i + 1}/${files.length}] Salvando localmente:`, uploadedImage.url)
           await addPhoto({
@@ -225,30 +254,23 @@ export default function OptimizedImgurUpload({
         onUploadComplete(newUploadedImages)
       }
       
-      // Auto-salvar no feed global e álbum sempre que possível
-      if (autoSaveToFeed && newUploadedImages.length > 0) {
-        if (user && session) {
-          // Usuário logado - salvar no feed e álbum
-          toast.info('Salvando suas fotos no Orkut...')
-          
-          // Salvar no feed global
-          for (const image of newUploadedImages) {
-            await saveToFeedOptimized(image.id, false)
+      // 3) Iniciar sincronização com Supabase em background (sem bloquear a UI)
+      if (localIds.length > 0) {
+        // Sincronizar todas as fotos em background usando os IDs locais coletados
+        for (const localId of localIds) {
+          try {
+            await syncPhotoToServer(localId, session?.access_token)
+          } catch (e) {
+            // Erros já são tratados no hook via notifications
+            console.error('Erro na sincronização:', e)
           }
-          
-          // Salvar no álbum pessoal  
-          for (const image of newUploadedImages) {
-            await saveToAlbum(image, false)
-          }
-          
-          toast.success(`✅ ${newUploadedImages.length} foto(s) salva(s) no feed e seu álbum!`)
-        } else {
-          // Usuário não logado - apenas salvar no feed como anônimo
-          toast.info('Salvando fotos no feed global...')
-          for (const image of newUploadedImages) {
-            await saveToFeedOptimized(image.id, false)
-          }
-          toast.success(`✅ ${newUploadedImages.length} foto(s) salva(s) no feed global!`)
+        }
+      }
+      
+      // 4) Auto-salvar no álbum pessoal (somente se logado), em background
+      if (user && session && newUploadedImages.length > 0) {
+        for (const image of newUploadedImages) {
+          await saveToAlbum(image, false)
         }
       }
       

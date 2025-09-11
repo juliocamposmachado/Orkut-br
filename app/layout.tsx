@@ -15,6 +15,7 @@ import { IdleOverlay } from '@/components/idle-overlay';
 import { CallManager } from '@/components/calls/call-manager';
 import { EdgeCompatibility } from '@/components/edge-compatibility';
 import { PWAInstaller } from '@/components/PWAInstaller';
+import { NotificationProvider } from '@/components/NotificationSystem';
 // Import polyfills to fix runtime errors
 import '@/lib/polyfills';
 // WebRTC diagnostics moved to developer dashboard
@@ -170,22 +171,24 @@ export default function RootLayout({
         <EdgeCompatibility />
         <ThemeProvider>
           <AuthProvider>
-            <RadioProvider>
-              <OnlineStatusProvider>
-                <WebRTCProvider>
-                  <VoiceProvider>
-                    <FriendsProvider>
-                      {children}
-                      {/* Sistema de chamadas - notificações, modais e controles */}
-                      <CallManager />
-                      {/* WebRTC diagnostics moved to developer dashboard */}
-                      {/* <EventListenerMonitor /> */}
-                      <Toaster />
-                    </FriendsProvider>
-                  </VoiceProvider>
-                </WebRTCProvider>
-              </OnlineStatusProvider>
-            </RadioProvider>
+            <NotificationProvider>
+              <RadioProvider>
+                <OnlineStatusProvider>
+                  <WebRTCProvider>
+                    <VoiceProvider>
+                      <FriendsProvider>
+                        {children}
+                        {/* Sistema de chamadas - notificações, modais e controles */}
+                        <CallManager />
+                        {/* WebRTC diagnostics moved to developer dashboard */}
+                        {/* <EventListenerMonitor /> */}
+                        <Toaster />
+                      </FriendsProvider>
+                    </VoiceProvider>
+                  </WebRTCProvider>
+                </OnlineStatusProvider>
+              </RadioProvider>
+            </NotificationProvider>
           </AuthProvider>
         </ThemeProvider>
         {/* Overlay de pausa por inatividade */}

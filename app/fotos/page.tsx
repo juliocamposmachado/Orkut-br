@@ -11,7 +11,7 @@ import Link from 'next/link'
 // Componentes necessários - apenas Imgur
 import OptimizedImgurUpload from '@/components/OptimizedImgurUpload'
 import GlobalPhotosFeed, { GlobalPhotosFeedRef } from '@/components/GlobalPhotosFeed'
-import AlbumPhotos from '@/components/AlbumPhotos'
+// import AlbumPhotos from '@/components/AlbumPhotos' // REMOVIDO TEMPORARIAMENTE
 
 export default function PhotosPage() {
   const { user } = useAuth()
@@ -104,8 +104,8 @@ export default function PhotosPage() {
         {/* Separador */}
         <div className="my-12 border-t border-gray-200"></div>
         
-        {/* Meu Álbum de Fotos */}
-        {user && (
+        {/* Meu Álbum de Fotos - REMOVIDO TEMPORARIAMENTE POR GERAR ERRO */}
+        {/* {user && (
           <>
             <AlbumPhotos 
               className="mb-12"
@@ -115,9 +115,9 @@ export default function PhotosPage() {
             />
             
             {/* Separador */}
-            <div className="my-12 border-t border-gray-200"></div>
+            {/* <div className="my-12 border-t border-gray-200"></div>
           </>
-        )}
+        )} */}
         
         {/* Feed Global de Fotos */}
         <GlobalPhotosFeed 

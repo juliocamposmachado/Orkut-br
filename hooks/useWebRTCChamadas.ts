@@ -519,11 +519,33 @@ export function useWebRTCChamadas({ roomId, userId, isHost = false }: UseWebRTCP
 
   // Auto-initialize host when isHost=true
   useEffect(() => {
+    console.log('🔍 Host Effect Debug:', {
+      isHost,
+      callState,
+      hasLocalStream: !!localStream,
+      userId
+    });
+    
     if (isHost && callState === 'idle' && !localStream) {
       console.log('🎯 Auto-initializing host...');
       initializeHost();
     }
-  }, [isHost, callState, localStream, initializeHost]);
+  }, [isHost, callState, localStream, initializeHost, userId]);
+
+  // Additional effect to ensure host initialization on mount
+  useEffect(() => {
+    if (isHost) {
+      console.log('🎙️ Host detected on mount, initializing...');
+      // Small delay to ensure component is fully mounted
+      const timer = setTimeout(() => {
+        if (!localStream && callState === 'idle') {
+          initializeHost();
+        }
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isHost]); // Only depend on isHost to run once on mount
 
   // Cleanup on unmount
   useEffect(() => {

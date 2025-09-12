@@ -4,6 +4,7 @@ import { useRef, useEffect, useState } from 'react';
 import { useWebRTCChamadas } from '@/hooks/useWebRTCChamadas';
 import CallControlsOrkut from './CallControlsOrkut';
 import UserInvitePanel from './UserInvitePanel';
+import CallChat from './CallChat';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -35,6 +36,7 @@ export default function VideoCallOrkut({
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const [isInvitePanelOpen, setIsInvitePanelOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const {
     callState,
@@ -346,6 +348,13 @@ export default function VideoCallOrkut({
         callType={callType}
         isOpen={isInvitePanelOpen}
         onClose={() => setIsInvitePanelOpen(false)}
+      />
+      
+      {/* Chat da Sala */}
+      <CallChat
+        roomId={roomId}
+        isOpen={isChatOpen}
+        onToggle={() => setIsChatOpen(!isChatOpen)}
       />
     </div>
   );

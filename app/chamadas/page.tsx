@@ -4,9 +4,6 @@ import dynamic from 'next/dynamic';
 import { Navbar } from '@/components/layout/navbar';
 import { Video } from 'lucide-react';
 
-// Força rendering dinâmico para evitar erros SSR com WebRTC
-export const dynamic = 'force-dynamic';
-
 // Carrega o componente de chamadas apenas no client-side
 const ChamadasContent = dynamic(
   () => import('@/components/webrtc/ChamadasContent'),

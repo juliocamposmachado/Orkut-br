@@ -98,9 +98,9 @@ export function useCallNotifications() {
               console.log('⏰ Notificação criada em:', new Date(notificationTime))
               console.log('📊 Estado atual antes do processamento:', { incomingCall: !!incomingCall, isRinging, isInCall })
               
-              // CRITÉRIO RESTRITO: Só processar se a notificação foi criada APÓS o início desta sessão
-              // E se é muito recente (até 10 segundos para dar mais margem)
-              if (notificationTime >= startTime && timeDiff <= 10) {
+              // CRITÉRIO MELHORADO: Aceitar notificações até 30 segundos
+              // E sempre processar notificações desta sessão
+              if (notificationTime >= startTime && timeDiff <= 30) {
                 console.log('✅ Notificação NOVA E RECENTE - processando chamada')
                 
                 const incomingCallData = {
@@ -152,10 +152,10 @@ export function useCallNotifications() {
                 
               } else if (notificationTime < startTime) {
                 console.log('⚠️ Notificação ANTERIOR à sessão (' + timeDiff + 's) - ignorando')
-              } else if (timeDiff > 5) {
-                console.log('⚠️ Notificação TARDIA (' + timeDiff + 's) - ignorando')
+              } else if (timeDiff > 30) {
+                console.log('⚠️ Notificação TARDIA (' + timeDiff + 's) - mostrando como perdida')
                 // Para notificações tardias mas recentes, mostrar como perdida
-                if (timeDiff <= 60) {
+                if (timeDiff <= 120) {
                   toast.info(`📱 Chamada perdida de ${callData.from_user.display_name}`, {
                     duration: 5000,
                     action: {
@@ -549,6 +549,19 @@ export function useCallNotifications() {
     }
     return false
   }
+
+  // Log estados em tempo real para debug
+  useEffect(() => {
+    console.log('🔄 [useCallNotifications] Estados atuais:', {
+      hasIncomingCall: !!incomingCall,
+      callId: incomingCall?.callId,
+      fromUser: incomingCall?.fromUser?.display_name,
+      isRinging,
+      isInCall,
+      hasLocalStream: !!localStream,
+      hasRemoteStream: !!remoteStream
+    })
+  }, [incomingCall, isRinging, isInCall, localStream, remoteStream])
 
   return {
     incomingCall,

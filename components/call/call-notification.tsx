@@ -7,11 +7,13 @@ import { Badge } from '@/components/ui/badge'
 import { Phone, PhoneOff, Video, Mic } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useState } from 'react'
+import { useCallSounds } from '@/utils/call-sounds'
 
 export function CallNotification() {
   const { incomingCall, isRinging, acceptCall, rejectCall } = useCallNotifications()
   const [callDuration, setCallDuration] = useState(0)
   const [isResponding, setIsResponding] = useState(false)
+  const { startRingtone, stopRingtone, playSingleSound, requestAudioPermission } = useCallSounds()
 
   // Logging detalhado para debug
   console.log('🎦 [CallNotification] Renderizando:', {
@@ -25,6 +27,24 @@ export function CallNotification() {
     isResponding
   })
 
+  // Gerenciar sons de chamada
+  useEffect(() => {
+    if (isRinging && incomingCall) {
+      console.log('🔊 Iniciando toque de chamada')
+      // Solicitar permissão de áudio se necessário
+      requestAudioPermission().then(() => {
+        startRingtone()
+      })
+    } else {
+      console.log('🔇 Parando toque de chamada')
+      stopRingtone()
+    }
+    
+    return () => {
+      stopRingtone()
+    }
+  }, [isRinging, incomingCall, startRingtone, stopRingtone, requestAudioPermission])
+  
   // Timer para contagem de tempo da chamada
   useEffect(() => {
     let timer: NodeJS.Timeout | null = null
@@ -51,7 +71,10 @@ export function CallNotification() {
     if (!incomingCall || isResponding) return
     
     setIsResponding(true)
+    stopRingtone() // Parar toque
+    
     try {
+      await playSingleSound('call_connect') // Som de conexão
       await acceptCall(incomingCall)
     } finally {
       setIsResponding(false)
@@ -62,7 +85,10 @@ export function CallNotification() {
     if (!incomingCall || isResponding) return
     
     setIsResponding(true)
+    stopRingtone() // Parar toque
+    
     try {
+      await playSingleSound('call_end') // Som de encerramento
       await rejectCall(incomingCall.callId)
     } finally {
       setIsResponding(false)

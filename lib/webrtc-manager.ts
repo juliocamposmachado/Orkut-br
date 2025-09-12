@@ -28,6 +28,7 @@ export class WebRTCManager {
   private remoteStream: MediaStream | null = null
   private dataChannel: RTCDataChannel | null = null
   private callConfig: WebRTCCallConfig | null = null
+  private iceCandidateBuffer: RTCIceCandidateInit[] = []
   
   // Callbacks para eventos
   private onRemoteStreamCallback: ((stream: MediaStream) => void) | null = null
@@ -115,6 +116,9 @@ export class WebRTCManager {
       // Configurar offer remoto
       await this.peerConnection!.setRemoteDescription(offer)
       
+      // Processar ICE candidates em buffer
+      await this.processPendingIceCandidates()
+      
       // Criar answer
       const answer = await this.peerConnection!.createAnswer()
       await this.peerConnection!.setLocalDescription(answer)
@@ -140,17 +144,29 @@ export class WebRTCManager {
     }
     
     await this.peerConnection.setRemoteDescription(answer)
+    
+    // Processar ICE candidates em buffer
+    await this.processPendingIceCandidates()
+    
     console.log('✅ Answer processado')
   }
 
   /**
-   * Adicionar ICE candidate
+   * Adicionar ICE candidate com buffering
    */
   async addIceCandidate(candidate: RTCIceCandidateInit) {
     console.log('🧊 Adicionando ICE candidate:', candidate)
     
     if (!this.peerConnection) {
-      console.warn('⚠️ Peer connection não existe para ICE candidate')
+      console.warn('⚠️ Peer connection não existe, buffering ICE candidate')
+      this.iceCandidateBuffer.push(candidate)
+      return
+    }
+    
+    // Se não tem remote description ainda, armazenar para depois
+    if (!this.peerConnection.remoteDescription) {
+      console.log('⏳ Remote description não definida, buffering ICE candidate')
+      this.iceCandidateBuffer.push(candidate)
       return
     }
     
@@ -204,6 +220,29 @@ export class WebRTCManager {
     }
     
     console.log('✅ Peer connection criado')
+  }
+
+  /**
+   * Processar ICE candidates em buffer
+   */
+  private async processPendingIceCandidates() {
+    if (this.iceCandidateBuffer.length === 0) return
+    
+    console.log(`🧊 Processando ${this.iceCandidateBuffer.length} ICE candidates em buffer`)
+    
+    for (const candidate of this.iceCandidateBuffer) {
+      try {
+        if (this.peerConnection && this.peerConnection.remoteDescription) {
+          await this.peerConnection.addIceCandidate(candidate)
+          console.log('✅ ICE candidate do buffer adicionado')
+        }
+      } catch (error) {
+        console.error('❌ Erro ao processar ICE candidate do buffer:', error)
+      }
+    }
+    
+    // Limpar buffer
+    this.iceCandidateBuffer = []
   }
 
   /**

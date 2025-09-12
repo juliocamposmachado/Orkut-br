@@ -448,6 +448,10 @@ export default function HomePage() {
                     <MessageSquare className="h-5 w-5 text-purple-600" />
                     <span className="text-gray-700">Mensagens</span>
                   </Link>
+                  <Link href="/chamadas" className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-purple-50 transition-colors">
+                    <Video className="h-5 w-5 text-purple-600" />
+                    <span className="text-gray-700">Chamadas</span>
+                  </Link>
                 </div>
               </OrkutCardContent>
             </OrkutCard>
@@ -581,6 +585,10 @@ export default function HomePage() {
                     <Link href="/mensagens" className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-purple-50 transition-colors">
                       <MessageSquare className="h-5 w-5 text-purple-600" />
                       <span className="text-gray-700">Mensagens</span>
+                    </Link>
+                    <Link href="/chamadas" className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-purple-50 transition-colors">
+                      <Video className="h-5 w-5 text-purple-600" />
+                      <span className="text-gray-700">Chamadas</span>
                     </Link>
                   </div>
                 </OrkutCardContent>

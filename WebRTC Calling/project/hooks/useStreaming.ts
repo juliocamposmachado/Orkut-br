@@ -119,29 +119,105 @@ export function useStreaming({ roomId, hostId, hostName }: UseStreamingProps) {
   }, [roomId]);
 
   /**
-   * Get user media with specific quality settings
+   * Get user media with specific quality settings and better error handling
    */
   const getUserMedia = useCallback(async (quality: keyof typeof STREAM_QUALITIES) => {
     try {
-      const qualitySettings = STREAM_QUALITIES[quality];
-      console.log('Requesting stream with quality:', quality, qualitySettings);
+      // Check if browser supports getUserMedia
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('WebRTC não suportado neste navegador');
+      }
 
-      const constraints = {
-        audio: isAudioEnabled ? {
+      // Check if we're in a secure context (HTTPS or localhost)
+      if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+        throw new Error('WebRTC requer HTTPS ou localhost para funcionar');
+      }
+
+      const qualitySettings = STREAM_QUALITIES[quality];
+      console.log('🎥 Solicitando permissões de mídia...', { quality, settings: qualitySettings });
+      
+      // Start with basic constraints and progressively enhance
+      let constraints: MediaStreamConstraints = {};
+      
+      // Audio constraints - start simple
+      if (isAudioEnabled) {
+        constraints.audio = {
           echoCancellation: true,
           noiseSuppression: true,
           autoGainControl: true,
-          sampleRate: 44100,
-        } : false,
-        video: isVideoEnabled ? {
-          width: { ideal: qualitySettings.width },
-          height: { ideal: qualitySettings.height },
-          frameRate: { ideal: qualitySettings.frameRate },
-          facingMode: 'user',
-        } : false,
-      };
+        };
+      }
+      
+      // Video constraints - start with basic and fallback if needed
+      if (isVideoEnabled) {
+        constraints.video = {
+          width: { ideal: qualitySettings.width, min: 320 },
+          height: { ideal: qualitySettings.height, min: 240 },
+          frameRate: { ideal: qualitySettings.frameRate, min: 10 },
+          facingMode: { ideal: 'user' },
+        };
+      }
 
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      console.log('📋 Constraints:', constraints);
+      
+      let stream: MediaStream;
+      
+      try {
+        // Try with ideal constraints first
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        console.log('✅ Mídia obtida com constraints ideais');
+      } catch (idealError) {
+        console.warn('⚠️ Constraints ideais falharam, tentando fallback:', idealError);
+        
+        // Fallback to basic constraints
+        const fallbackConstraints: MediaStreamConstraints = {
+          audio: isAudioEnabled ? true : false,
+          video: isVideoEnabled ? {
+            width: { min: 320, ideal: 640, max: 1280 },
+            height: { min: 240, ideal: 480, max: 720 },
+            frameRate: { min: 10, ideal: 15, max: 30 }
+          } : false
+        };
+        
+        try {
+          stream = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
+          console.log('✅ Mídia obtida com constraints de fallback');
+        } catch (fallbackError) {
+          console.error('❌ Fallback também falhou:', fallbackError);
+          
+          // Final fallback - just audio or just video
+          if (isAudioEnabled && isVideoEnabled) {
+            console.log('🔄 Tentando apenas áudio...');
+            try {
+              stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+              console.log('✅ Obtido apenas áudio');
+            } catch {
+              console.log('🔄 Tentando apenas vídeo...');
+              stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: true });
+              console.log('✅ Obtido apenas vídeo');
+            }
+          } else {
+            throw fallbackError;
+          }
+        }
+      }
+
+      // Log successful stream info
+      const audioTracks = stream.getAudioTracks();
+      const videoTracks = stream.getVideoTracks();
+      
+      console.log('🎬 Stream obtido:', {
+        audio: audioTracks.length > 0,
+        video: videoTracks.length > 0,
+        audioTrack: audioTracks[0]?.label,
+        videoTrack: videoTracks[0]?.label
+      });
+      
+      if (videoTracks.length > 0) {
+        const videoTrack = videoTracks[0];
+        const settings = videoTrack.getSettings();
+        console.log('📐 Configurações de vídeo reais:', settings);
+      }
       
       // Configure video track bitrate if supported
       if (stream.getVideoTracks().length > 0) {

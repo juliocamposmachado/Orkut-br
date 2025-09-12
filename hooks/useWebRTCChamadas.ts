@@ -35,9 +35,10 @@ export type SignalingMessage = {
 interface UseWebRTCProps {
   roomId: string;
   userId: string;
+  isHost?: boolean;
 }
 
-export function useWebRTCChamadas({ roomId, userId }: UseWebRTCProps) {
+export function useWebRTCChamadas({ roomId, userId, isHost = false }: UseWebRTCProps) {
   const [callState, setCallState] = useState<CallState>('idle');
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
@@ -444,6 +445,26 @@ export function useWebRTCChamadas({ roomId, userId }: UseWebRTCProps) {
   }, [localStream]);
 
   /**
+   * Initialize host automatically with media
+   */
+  const initializeHost = useCallback(async () => {
+    try {
+      console.log('🎙️ Host initialization - setting up media...');
+      setupSignalingChannel();
+      
+      // Get local media for host (but don't create offer yet, just be online)
+      await getUserMedia(true, true);
+      
+      toast.success('📷 Você está online! Aguardando participantes...');
+    } catch (err) {
+      console.error('❌ Failed to initialize host:', err);
+      const errorMsg = err instanceof Error ? err.message : 'Falha ao inicializar transmissão';
+      setError(errorMsg);
+      toast.error(`❌ ${errorMsg}`);
+    }
+  }, [setupSignalingChannel, getUserMedia]);
+
+  /**
    * Toggle video mute
    */
   const toggleVideoMute = useCallback(() => {
@@ -495,6 +516,14 @@ export function useWebRTCChamadas({ roomId, userId }: UseWebRTCProps) {
     setIsVideoMuted(false);
     setError(null);
   }, [localStream]);
+
+  // Auto-initialize host when isHost=true
+  useEffect(() => {
+    if (isHost && callState === 'idle' && !localStream) {
+      console.log('🎯 Auto-initializing host...');
+      initializeHost();
+    }
+  }, [isHost, callState, localStream, initializeHost]);
 
   // Cleanup on unmount
   useEffect(() => {

@@ -29,6 +29,7 @@ export default function RoomPage() {
 
   const roomId = params?.roomId as string;
   const callType = (searchParams?.get('type') as 'individual' | 'group') || 'individual';
+  const isHost = searchParams?.get('host') === 'true';
 
   // Redirect to login if no user (optional, pode permitir guests)
   useEffect(() => {
@@ -56,6 +57,7 @@ export default function RoomPage() {
       userId={userId} 
       onLeaveRoom={handleLeaveRoom} 
       callType={callType}
+      isHost={isHost}
     />
   );
 }

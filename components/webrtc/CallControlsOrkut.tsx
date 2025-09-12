@@ -23,6 +23,7 @@ interface CallControlsOrkutProps {
   onHangup: () => void;
   onToggleAudioMute: () => void;
   onToggleVideoMute: () => void;
+  isHost?: boolean;
 }
 
 export default function CallControlsOrkut({
@@ -35,6 +36,7 @@ export default function CallControlsOrkut({
   onHangup,
   onToggleAudioMute,
   onToggleVideoMute,
+  isHost = false,
 }: CallControlsOrkutProps) {
   const renderCallActions = () => {
     switch (callState) {
@@ -46,7 +48,7 @@ export default function CallControlsOrkut({
             size="lg"
           >
             <PhoneCall className="h-5 w-5 mr-2" />
-            Iniciar Chamada
+            {isHost ? 'Começar Transmissão' : 'Entrar na Sala'}
           </Button>
         );
 
@@ -82,7 +84,7 @@ export default function CallControlsOrkut({
             size="lg"
           >
             <PhoneOff className="h-5 w-5 mr-2" />
-            Encerrar Chamada
+            {isHost ? 'Encerrar Transmissão' : 'Sair da Sala'}
           </Button>
         );
 

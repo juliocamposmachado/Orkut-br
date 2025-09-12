@@ -33,8 +33,8 @@ export default function ChamadasContent() {
       // Log da criação da sala
       console.log(`🎥 Criando sala ${type}: ${newRoomId}`);
       
-      // Navegar para a sala
-      router.push(`/chamadas/${newRoomId}?type=${type}`);
+      // Navegar para a sala como host
+      router.push(`/chamadas/${newRoomId}?type=${type}&host=true`);
       
       // Mostrar toast de sucesso
       toast.success(`${type === 'individual' ? '📞' : '👥'} Sala criada com sucesso!`, {
@@ -90,10 +90,10 @@ export default function ChamadasContent() {
             <div className="space-y-3">
               <h3 className="font-medium text-gray-800 flex items-center space-x-2">
                 <Phone className="h-4 w-4 text-green-600" />
-                <span>Chamada Individual</span>
+                <span>Transmissão Individual</span>
               </h3>
               <p className="text-sm text-gray-600">
-                Perfeita para conversas privadas com um amigo
+                Fique online e aguarde um amigo entrar na sua sala
               </p>
               <Button
                 onClick={() => handleCreateRoom('individual')}
@@ -102,7 +102,7 @@ export default function ChamadasContent() {
                 size="lg"
               >
                 <Phone className="h-4 w-4 mr-2" />
-                {isCreating ? 'Criando...' : 'Criar Chamada Individual'}
+                {isCreating ? 'Criando...' : 'Começar Transmissão'}
               </Button>
             </div>
 
@@ -111,10 +111,10 @@ export default function ChamadasContent() {
               <div className="space-y-3">
                 <h3 className="font-medium text-gray-800 flex items-center space-x-2">
                   <Users className="h-4 w-4 text-blue-600" />
-                  <span>Chamada em Grupo</span>
+                  <span>Streaming em Grupo</span>
                 </h3>
                 <p className="text-sm text-gray-600">
-                  Ideal para reuniões com vários amigos ao mesmo tempo
+                  Fique online e permita que vários amigos entrem na sala
                 </p>
                 <Button
                   onClick={() => handleCreateRoom('group')}
@@ -123,7 +123,7 @@ export default function ChamadasContent() {
                   size="lg"
                 >
                   <Users className="h-4 w-4 mr-2" />
-                  {isCreating ? 'Criando...' : 'Criar Chamada em Grupo'}
+                  {isCreating ? 'Criando...' : 'Iniciar Streaming'}
                 </Button>
               </div>
             </div>

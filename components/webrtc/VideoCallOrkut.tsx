@@ -22,13 +22,15 @@ interface VideoCallOrkutProps {
   userId: string;
   onLeaveRoom: () => void;
   callType?: 'individual' | 'group';
+  isHost?: boolean;
 }
 
 export default function VideoCallOrkut({ 
   roomId, 
   userId, 
   onLeaveRoom,
-  callType = 'individual' 
+  callType = 'individual',
+  isHost = false
 }: VideoCallOrkutProps) {
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -47,7 +49,7 @@ export default function VideoCallOrkut({
     hangup,
     toggleAudioMute,
     toggleVideoMute,
-  } = useWebRTCChamadas({ roomId, userId });
+  } = useWebRTCChamadas({ roomId, userId, isHost });
 
   // Attach local stream to video element
   useEffect(() => {
@@ -91,17 +93,17 @@ export default function VideoCallOrkut({
   const getCallStateMessage = () => {
     switch (callState) {
       case 'idle':
-        return 'Pronto para iniciar chamada';
+        return isHost ? 'Online - Aguardando participantes' : 'Pronto para entrar';
       case 'calling':
-        return 'Chamando...';
+        return isHost ? 'Aguardando participante...' : 'Entrando na sala...';
       case 'receiving':
-        return 'Chamada recebida';
+        return 'Participante quer entrar';
       case 'connecting':
         return 'Conectando...';
       case 'connected':
         return 'Conectado';
       case 'disconnected':
-        return 'Chamada encerrada';
+        return isHost ? 'Transmissão encerrada' : 'Desconectado da sala';
       case 'failed':
         return 'Falha na conexão';
       default:
@@ -243,10 +245,17 @@ export default function VideoCallOrkut({
                   </svg>
                 </div>
                 <p className="text-xl font-medium mb-2">
-                  {callState === 'idle' ? 'Aguardando conexão' : 'Sem vídeo remoto'}
+                  {callState === 'idle' ? 
+                    (isHost ? 'Você está online!' : 'Aguardando conexão') : 
+                    'Sem vídeo remoto'
+                  }
                 </p>
                 <p className="text-white/60 text-sm">
-                  {callState === 'idle' && 'Clique em "Iniciar Chamada" para começar'}
+                  {callState === 'idle' && (
+                    isHost ? 
+                      'Compartilhe o ID da sala para outros entrarem' : 
+                      'Clique em "Entrar na Sala" para começar'
+                  )}
                 </p>
               </div>
             </div>
@@ -326,6 +335,7 @@ export default function VideoCallOrkut({
           onHangup={hangup}
           onToggleAudioMute={toggleAudioMute}
           onToggleVideoMute={toggleVideoMute}
+          isHost={isHost}
         />
       </div>
       

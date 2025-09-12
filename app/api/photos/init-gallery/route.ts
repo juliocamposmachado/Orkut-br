@@ -105,10 +105,10 @@ export async function POST(request: NextRequest) {
 
     // Verificar se o usuário já tem o logo do Orkut na galeria
     const { data: existingLogo, error: checkError } = await supabase
-      .from('user_photos')
+      .from('album_fotos')
       .select('id')
       .eq('user_id', user.id)
-      .eq('title', 'Logo Oficial do Orkut BR')
+      .eq('titulo', 'Logo Oficial do Orkut BR')
       .single()
 
     if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
@@ -134,27 +134,17 @@ export async function POST(request: NextRequest) {
 
     // Inserir logo do Orkut como primeira foto na galeria do usuário
     const { data: logoPhoto, error: insertError } = await supabase
-      .from('user_photos')
+      .from('album_fotos')
       .insert({
         id: logoId,
         user_id: user.id,
-        url: '/logoorkut.png',
-        preview_url: '/logoorkut.png',
-        thumbnail_url: '/logoorkut.png',
-        title: 'Logo Oficial do Orkut BR',
-        description: 'Bem-vindo ao Orkut BR! Este é o logo oficial da nossa rede social. 🌈✨',
-        category: 'sistema',
-        file_size: 50000, // aproximado
-        width: 300,
-        height: 300,
-        mime_type: 'image/png',
-        file_path: '/logoorkut.png',
-        is_public: true,
-        is_processed: true,
-        is_deleted: false,
+        imgur_link: '/logoorkut.png',
+        titulo: 'Logo Oficial do Orkut BR',
+        descricao: 'Bem-vindo ao Orkut BR! Este é o logo oficial da nossa rede social. 🌈✨',
         likes_count: 1337,
         comments_count: 0,
         views_count: 1,
+        is_public: true,
         created_at: new Date('2024-01-01T00:00:00Z').toISOString() // Data fixa para sempre aparecer primeiro
       })
       .select()
@@ -167,20 +157,8 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Logo do Orkut adicionado com sucesso à galeria do usuário')
 
-    // Opcional: Adicionar uma curtida automática do próprio usuário no logo
-    try {
-      await supabase
-        .from('photo_likes')
-        .insert({
-          photo_id: logoId,
-          user_id: user.id,
-          created_at: new Date().toISOString()
-        })
-        
-      console.log('❤️ Curtida automática adicionada ao logo')
-    } catch (likeError) {
-      console.warn('Aviso: Não foi possível adicionar curtida automática:', likeError)
-    }
+    // Curtidas serão implementadas quando a tabela photo_likes for criada
+    console.log('💡 Sistema de curtidas será implementado futuramente')
 
     return NextResponse.json({
       success: true,
@@ -189,10 +167,9 @@ export async function POST(request: NextRequest) {
       photoId: logoId,
       data: {
         id: logoPhoto.id,
-        url: logoPhoto.url,
-        title: logoPhoto.title,
-        description: logoPhoto.description,
-        category: logoPhoto.category,
+        url: logoPhoto.imgur_link,
+        title: logoPhoto.titulo,
+        description: logoPhoto.descricao,
         likes_count: logoPhoto.likes_count
       }
     })
@@ -269,10 +246,10 @@ export async function GET(request: NextRequest) {
 
     // Verificar se tem logo do Orkut
     const { data: logoExists, error: checkError } = await supabase
-      .from('user_photos')
+      .from('album_fotos')
       .select('id, created_at, likes_count, views_count')
       .eq('user_id', user.id)
-      .eq('title', 'Logo Oficial do Orkut BR')
+      .eq('titulo', 'Logo Oficial do Orkut BR')
       .single()
 
     if (checkError && checkError.code !== 'PGRST116') {
@@ -281,10 +258,9 @@ export async function GET(request: NextRequest) {
 
     // Contar total de fotos do usuário
     const { count: totalPhotos } = await supabase
-      .from('user_photos')
+      .from('album_fotos')
       .select('*', { count: 'exact' })
       .eq('user_id', user.id)
-      .eq('is_deleted', false)
 
     return NextResponse.json({
       initialized: !!logoExists,

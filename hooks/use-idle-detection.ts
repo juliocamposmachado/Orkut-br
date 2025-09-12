@@ -9,7 +9,7 @@ interface UseIdleDetectionOptions {
 
 export function useIdleDetection(options: UseIdleDetectionOptions = {}) {
   const {
-    timeout = 60000, // 1 minuto por padrão
+    timeout = 1800000, // 30 minutos por padrão
     events = [
       'mousedown',
       'mousemove',

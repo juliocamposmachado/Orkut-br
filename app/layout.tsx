@@ -192,7 +192,7 @@ export default function RootLayout({
           </AuthProvider>
         </ThemeProvider>
         {/* Overlay de pausa por inatividade */}
-        <IdleOverlay timeout={60000} />
+        <IdleOverlay timeout={1800000} />
         {/* PWA Install Prompt */}
         <PWAInstaller />
       </body>

@@ -10,7 +10,7 @@ interface IdleOverlayProps {
   timeout?: number;
 }
 
-export function IdleOverlay({ timeout = 60000 }: IdleOverlayProps) {
+export function IdleOverlay({ timeout = 1800000 }: IdleOverlayProps) {
   const { isIdle, resume } = useIdleDetection({ timeout });
   const [showOverlay, setShowOverlay] = useState(false);
   const [fadeIn, setFadeIn] = useState(false);
@@ -91,7 +91,7 @@ export function IdleOverlay({ timeout = 60000 }: IdleOverlayProps) {
           {/* Informações técnicas */}
           <div className="pt-4 border-t border-gray-200">
             <p className="text-xs text-gray-500">
-              💡 <strong>Dica:</strong> O site pausa automaticamente após 1 minuto de inatividade
+              💡 <strong>Dica:</strong> O site pausa automaticamente após 30 minutos de inatividade
             </p>
           </div>
 

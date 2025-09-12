@@ -9,6 +9,7 @@ import { CallStatusIndicator } from '@/components/call/call-status-indicator'
 import { RealCallInterface } from '@/components/call/real-call-interface'
 import { MissedCallsHistory } from '@/components/call/missed-calls-history'
 import { useCallNotifications } from '@/hooks/use-call-notifications'
+import { CallDebug } from '@/components/call/call-debug'
 
 /**
  * Componente principal que gerencia todos os tipos de chamada
@@ -76,6 +77,9 @@ export function CallManager() {
       
       {/* Histórico de chamadas perdidas */}
       <MissedCallsHistory />
+      
+      {/* Debug - apenas em desenvolvimento */}
+      {process.env.NODE_ENV === 'development' && <CallDebug />}
     </>
   )
 }

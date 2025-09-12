@@ -36,8 +36,7 @@ import {
 import Link from 'next/link';
 import { getUserPhotos, getRecentPhotos, getDefaultPhotos } from '@/data/profile-photos';
 import { OnlineStatusToggle } from '@/components/profile/online-status-toggle';
-import { CallModal } from '@/components/call/call-modal';
-import { useCall } from '@/hooks/use-call';
+import { IntegratedCallButtons } from '@/components/calls/IntegratedCallButtons';
 import { BioEditor } from '@/components/profile/bio-editor';
 import { MessageModal } from '@/components/messages/message-modal';
 import { OnlineFriends } from '@/components/friends/online-friends'
@@ -115,7 +114,6 @@ interface GalleryItem {
 
 const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
   const { user: currentUser, profile: currentUserProfile } = useAuth();
-  const { callState, startVideoCall, startAudioCall, endCall } = useCall();
   const router = useRouter();
   
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -1337,36 +1335,20 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
                           Enviar Mensagem
                         </Button>
                         
-                        {/* Botões de Chamada do Sistema Orkut - mantidos originais */}
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          className="w-full border-blue-300 text-blue-700 hover:bg-blue-50"
-                          onClick={() => startAudioCall({
-                            id: profile.id,
-                            name: profile.display_name,
-                            photo: profile.photo_url || undefined,
-                            username: profile.username
-                          })}
-                        >
-                          <Phone className="h-4 w-4 mr-2" />
-                          Chamada de Áudio
-                        </Button>
-                        
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          className="w-full border-blue-300 text-blue-700 hover:bg-blue-50"
-                          onClick={() => startVideoCall({
-                            id: profile.id,
-                            name: profile.display_name,
-                            photo: profile.photo_url || undefined,
-                            username: profile.username
-                          })}
-                        >
-                          <Video className="h-4 w-4 mr-2" />
-                          Chamada de Vídeo
-                        </Button>
+                        {/* Botões de Chamada WebRTC Integrados */}
+                        <div className="w-full">
+                          <IntegratedCallButtons
+                            user={{
+                              id: profile.id,
+                              name: profile.display_name,
+                              photo: profile.photo_url || undefined,
+                              username: profile.username
+                            }}
+                            size="sm"
+                            showLabels={true}
+                            className="w-full"
+                          />
+                        </div>
                         
                       </>
                     )}
@@ -1839,7 +1821,6 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
             {/* Amigos Online */}
             <OnlineFriends 
               onOpenMessage={handleOpenMessage}
-              onStartAudioCall={startAudioCall}
             />
             
             {/* Redes Sociais - Component */}
@@ -1902,15 +1883,6 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
       
       <Footer />
       
-      {/* Modal de Chamada */}
-      {callState.isOpen && callState.targetUser && callState.callType && (
-        <CallModal
-          isOpen={callState.isOpen}
-          onClose={endCall}
-          callType={callState.callType}
-          targetUser={callState.targetUser}
-        />
-      )}
       
       {/* Modal de Mensagem */}
       {messageModalOpen && messageTarget && (

@@ -6,9 +6,10 @@ import { supabase } from '@/lib/supabase'
 import { OrkutCard, OrkutCardContent, OrkutCardHeader } from '@/components/ui/orkut-card'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Users, MessageCircle, Eye, Phone } from 'lucide-react'
+import { Users, MessageCircle, Eye, Phone, Video } from 'lucide-react'
 import Link from 'next/link'
 import { useRadio } from '@/contexts/RadioContext'
+import { IntegratedCallButtons } from '@/components/calls/IntegratedCallButtons'
 
 interface OnlineFriend {
   id: string
@@ -20,10 +21,9 @@ interface OnlineFriend {
 
 interface OnlineFriendsProps {
   onOpenMessage?: (user: { id: string; name: string; username: string; photo?: string; isOnline?: boolean }) => void
-  onStartAudioCall?: (user: any) => void
 }
 
-export function OnlineFriends({ onOpenMessage, onStartAudioCall }: OnlineFriendsProps) {
+export function OnlineFriends({ onOpenMessage }: OnlineFriendsProps) {
   const { user, profile } = useAuth()
   const { radioData } = useRadio()
   const [onlineFriends, setOnlineFriends] = useState<OnlineFriend[]>([])
@@ -229,25 +229,20 @@ export function OnlineFriends({ onOpenMessage, onStartAudioCall }: OnlineFriends
                       </Button>
                     )}
                     
-                    {onStartAudioCall && (
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="p-1.5 h-7 w-7 text-green-600 hover:bg-green-100 hover:scale-105 transition-all rounded-full"
-                        title="Chamada de áudio"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          onStartAudioCall({
-                            id: friend.id,
-                            name: friend.display_name,
-                            photo: friend.photo_url,
-                            username: friend.username
-                          })
+                    {/* Botões de chamada integrados */}
+                    <div className="flex space-x-1">
+                      <IntegratedCallButtons
+                        user={{
+                          id: friend.id,
+                          name: friend.display_name,
+                          photo: friend.photo_url || undefined,
+                          username: friend.username
                         }}
-                      >
-                        <Phone className="h-3.5 w-3.5" />
-                      </Button>
-                    )}
+                        size="sm"
+                        variant="compact"
+                        className=""
+                      />
+                    </div>
                     
                     <Link href={`/perfil/${friend.username}`}>
                       <Button 

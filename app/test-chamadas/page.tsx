@@ -30,8 +30,8 @@ export default function TestChamadasPage() {
   const [targetUserId, setTargetUserId] = useState('')
   const [userInfo, setUserInfo] = useState({
     id: 'user_1',
-    username: 'teste_user',
-    display_name: 'Usuário de Teste',
+    username: 'teste_user1',
+    display_name: 'Usuário de Teste 1',
     photo_url: undefined
   })
 
@@ -99,15 +99,33 @@ export default function TestChamadasPage() {
     audioCall.toggleMute()
   }
 
+  // Dados fictícios para testes
+  const testUsers = {
+    user_1: {
+      id: 'user_1',
+      username: 'teste_user1',
+      display_name: 'João Silva',
+      photo_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
+    },
+    user_2: {
+      id: 'user_2', 
+      username: 'teste_user2',
+      display_name: 'Maria Santos',
+      photo_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
+    },
+    user_3: {
+      id: 'user_3',
+      username: 'teste_user3', 
+      display_name: 'Pedro Costa',
+      photo_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face'
+    }
+  }
+
   // Mudar usuário atual (para testes)
   const switchUser = (userId: string) => {
+    const userData = testUsers[userId as keyof typeof testUsers]
     setCurrentUserId(userId)
-    setUserInfo({
-      id: userId,
-      username: `user_${userId.split('_')[1]}`,
-      display_name: `Usuário ${userId.split('_')[1]}`,
-      photo_url: undefined
-    })
+    setUserInfo(userData)
   }
 
   const onlineUsers = presence.getOnlineUsers()
@@ -139,16 +157,20 @@ export default function TestChamadasPage() {
             <div className="space-y-2">
               <Label>Usuário Atual</Label>
               <div className="flex space-x-2">
-                {['user_1', 'user_2', 'user_3'].map(userId => (
-                  <Button
-                    key={userId}
-                    variant={currentUserId === userId ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => switchUser(userId)}
-                  >
-                    {userId.replace('_', ' ')}
-                  </Button>
-                ))}
+                {['user_1', 'user_2', 'user_3'].map(userId => {
+                  const userData = testUsers[userId as keyof typeof testUsers]
+                  return (
+                    <Button
+                      key={userId}
+                      variant={currentUserId === userId ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => switchUser(userId)}
+                      className="flex items-center space-x-1"
+                    >
+                      <span>{userData.display_name}</span>
+                    </Button>
+                  )
+                })}
               </div>
             </div>
             

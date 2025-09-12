@@ -161,6 +161,7 @@ export function useUserPresence(currentUserId: string) {
             userId: currentUserId,
             username: userInfo?.username,
             display_name: userInfo?.display_name,
+            photo_url: userInfo?.photo_url,
             lastSeen: new Date().toISOString(),
             isAvailableForCalls: true,
             currentActivity: getCurrentActivity()
@@ -180,6 +181,7 @@ export function useUserPresence(currentUserId: string) {
             userId: currentUserId,
             username: userInfo?.username,
             display_name: userInfo?.display_name,
+            photo_url: userInfo?.photo_url,
             lastSeen: new Date().toISOString(),
             isAvailableForCalls: true,
             currentActivity: getCurrentActivity()
@@ -196,10 +198,35 @@ export function useUserPresence(currentUserId: string) {
    * Busca informações do usuário
    */
   const getUserInfo = async (userId: string) => {
+    // Dados fictícios para usuários de teste
+    const testUsers = {
+      user_1: {
+        username: 'teste_user1',
+        display_name: 'João Silva',
+        photo_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
+      },
+      user_2: {
+        username: 'teste_user2',
+        display_name: 'Maria Santos',
+        photo_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
+      },
+      user_3: {
+        username: 'teste_user3',
+        display_name: 'Pedro Costa',
+        photo_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face'
+      }
+    }
+
+    // Se for usuário de teste, retornar dados fictícios
+    if (userId.startsWith('user_') && testUsers[userId as keyof typeof testUsers]) {
+      return testUsers[userId as keyof typeof testUsers]
+    }
+
+    // Caso contrário, buscar no banco de dados
     try {
       const { data } = await supabase
         .from('profiles')
-        .select('username, display_name')
+        .select('username, display_name, photo_url')
         .eq('id', userId)
         .single()
       

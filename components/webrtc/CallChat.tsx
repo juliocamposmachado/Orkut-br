@@ -98,7 +98,7 @@ export default function CallChat({ roomId, isOpen, onToggle, className = '' }: C
         // Entrar na presença
         await channel.track({
           user_id: user.id,
-          user_name: profile?.name || 'Usuário',
+          user_name: profile?.display_name || profile?.username || 'Usuário',
           joined_at: new Date().toISOString(),
         });
       }
@@ -155,7 +155,7 @@ export default function CallChat({ roomId, isOpen, onToggle, className = '' }: C
         id: `${user.id}-${Date.now()}`,
         room_id: roomId,
         user_id: user.id,
-        user_name: profile.name || 'Usuário',
+        user_name: profile?.display_name || profile?.username || 'Usuário',
         user_avatar: profile.avatar_url,
         message: newMessage.trim(),
         created_at: new Date().toISOString(),

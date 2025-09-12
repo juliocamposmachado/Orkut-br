@@ -199,18 +199,79 @@ export function useWebRTCChamadas({ roomId, userId, isHost = false }: UseWebRTCP
   }, []);
 
   /**
-   * Create and send offer (caller side)
+   * Start streaming to participants (host creates offer)
+   */
+  const startStreaming = useCallback(async () => {
+    try {
+      console.log('📹 [HOST] Starting broadcast to participants...');
+      setCallState('calling');
+      setError(null);
+      toast.info('📞 Iniciando transmissão para participantes...');
+
+      const pc = initializePeerConnection();
+      
+      // Use existing stream or get new one
+      let stream = localStream;
+      if (!stream) {
+        stream = await getUserMedia(true, true);
+      }
+      
+      // Add tracks to peer connection for broadcasting
+      stream.getTracks().forEach((track) => {
+        console.log('📡 [HOST] Adding track for broadcast:', track.kind);
+        pc.addTrack(track, stream!);
+      });
+
+      // Create and set local description (offer) - host broadcasts
+      const offer = await pc.createOffer({
+        offerToReceiveAudio: false, // Host não precisa receber audio
+        offerToReceiveVideo: false, // Host não precisa receber video
+      });
+
+      await pc.setLocalDescription(offer);
+
+      // Send offer through signaling channel
+      if (channel.current) {
+        console.log('📤 [HOST] Broadcasting offer to all participants:', offer);
+        channel.current.send({
+          type: 'broadcast',
+          event: 'host-offer',
+          payload: {
+            type: 'host-offer',
+            payload: offer,
+            sender: userId,
+            isHost: true
+          },
+        });
+        toast.success('📡 Transmissão iniciada para todos!');
+      }
+    } catch (err) {
+      console.error('❌ Failed to start streaming:', err);
+      const errorMsg = err instanceof Error ? err.message : 'Falha ao iniciar transmissão';
+      setError(errorMsg);
+      setCallState('failed');
+      toast.error(`❌ ${errorMsg}`);
+    }
+  }, [initializePeerConnection, getUserMedia, userId, localStream]);
+
+  /**
+   * Create and send offer (legacy - for individual calls)
    */
   const createOffer = useCallback(async () => {
+    // For hosts, use streaming instead
+    if (isHost) {
+      return startStreaming();
+    }
+    
     try {
       setCallState('calling');
       setError(null);
-      toast.info('📞 Iniciando chamada...');
+      toast.info('📞 Entrando na sala...');
 
       const pc = initializePeerConnection();
       setupSignalingChannel();
 
-      // Get local media
+      // Participants get their own media to send back (optional)
       const stream = await getUserMedia(true, true);
       
       // Add tracks to peer connection
@@ -228,26 +289,27 @@ export function useWebRTCChamadas({ roomId, userId, isHost = false }: UseWebRTCP
 
       // Send offer through signaling channel
       if (channel.current) {
-        console.log('📤 Sending offer:', offer);
+        console.log('📤 [PARTICIPANT] Sending join request:', offer);
         channel.current.send({
           type: 'broadcast',
-          event: 'offer',
+          event: 'participant-offer',
           payload: {
-            type: 'offer',
+            type: 'participant-offer',
             payload: offer,
             sender: userId,
+            isHost: false
           },
         });
-        toast.info('📡 Oferta de chamada enviada!');
+        toast.info('📡 Solicitando entrada na sala...');
       }
     } catch (err) {
       console.error('❌ Failed to create offer:', err);
-      const errorMsg = err instanceof Error ? err.message : 'Falha ao criar chamada';
+      const errorMsg = err instanceof Error ? err.message : 'Falha ao entrar na sala';
       setError(errorMsg);
       setCallState('failed');
       toast.error(`❌ ${errorMsg}`);
     }
-  }, [initializePeerConnection, setupSignalingChannel, getUserMedia, userId]);
+  }, [initializePeerConnection, setupSignalingChannel, getUserMedia, userId, isHost, startStreaming]);
 
   /**
    * Handle incoming offer (receiver side)
@@ -445,17 +507,22 @@ export function useWebRTCChamadas({ roomId, userId, isHost = false }: UseWebRTCP
   }, [localStream]);
 
   /**
-   * Initialize host automatically with media
+   * Initialize host automatically with media - Host as streaming server
    */
   const initializeHost = useCallback(async () => {
     try {
-      console.log('🎙️ Host initialization - setting up media...');
+      console.log('🎙️ [STREAMING SERVER] Host initialization - setting up media...');
       setupSignalingChannel();
       
-      // Get local media for host (but don't create offer yet, just be online)
-      await getUserMedia(true, true);
+      // Get local media for host - sempre com alta qualidade para transmissão
+      const stream = await getUserMedia(true, true);
       
-      toast.success('📷 Você está online! Aguardando participantes...');
+      console.log('📹 [STREAMING SERVER] Host media initialized - ready to broadcast');
+      toast.success('📷 Transmissão iniciada! Você está no ar!');
+      
+      // Marcar como pronto para transmissão
+      setCallState('idle'); // Host fica idle mas com stream ativo
+      
     } catch (err) {
       console.error('❌ Failed to initialize host:', err);
       const errorMsg = err instanceof Error ? err.message : 'Falha ao inicializar transmissão';
@@ -526,26 +593,34 @@ export function useWebRTCChamadas({ roomId, userId, isHost = false }: UseWebRTCP
       userId
     });
     
-    if (isHost && callState === 'idle' && !localStream) {
+    if (isHost && callState === 'idle' && !localStream && userId) {
       console.log('🎯 Auto-initializing host...');
       initializeHost();
     }
-  }, [isHost, callState, localStream, initializeHost, userId]);
+  }, [isHost, callState, localStream, userId]);
 
   // Additional effect to ensure host initialization on mount
   useEffect(() => {
-    if (isHost) {
+    if (isHost && userId) {
       console.log('🎙️ Host detected on mount, initializing...');
-      // Small delay to ensure component is fully mounted
+      // Immediate initialization for hosts
+      if (!localStream && callState === 'idle') {
+        console.log('🚀 Immediate host initialization');
+        initializeHost();
+      }
+      
+      // Backup timer to ensure initialization
       const timer = setTimeout(() => {
+        console.log('⏰ Backup timer - checking host initialization');
         if (!localStream && callState === 'idle') {
+          console.log('🔄 Backup initialization triggered');
           initializeHost();
         }
-      }, 1000);
+      }, 500);
       
       return () => clearTimeout(timer);
     }
-  }, [isHost]); // Only depend on isHost to run once on mount
+  }, [isHost, userId]); // Only depend on isHost and userId to run once on mount
 
   // Cleanup on unmount
   useEffect(() => {

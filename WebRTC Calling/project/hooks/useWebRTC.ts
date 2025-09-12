@@ -70,7 +70,7 @@ export function useWebRTC({ roomId, userId }: UseWebRTCProps) {
           setCallState('failed');
           cleanup();
           break;
-        case 'connecting':
+        case 'checking':
           setCallState('connecting');
           break;
       }

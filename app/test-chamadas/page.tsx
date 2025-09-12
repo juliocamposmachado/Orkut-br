@@ -16,36 +16,53 @@ import {
   WifiOff,
   Activity,
   Clock,
-  Settings
+  Settings,
+  Video,
+  VideoIcon,
+  MicOff,
+  Mic
 } from 'lucide-react'
 
-import { useAudioCall } from '@/hooks/useAudioCall'
 import { useUserPresence } from '@/hooks/useUserPresence'
-import { AudioCallInterface } from '@/components/audio-call/AudioCallInterface'
-import { AudioCallNotification } from '@/components/audio-call/AudioCallNotification'
+import { useCallSystem } from '@/hooks/useCallSystem'
+import { CallInterface } from '@/components/calls/CallInterface'
+import { CallNotification } from '@/components/calls/CallNotification'
+import { CallButtons, SingleCallButton } from '@/components/calls/CallButtons'
 
 export default function TestChamadasPage() {
   // Estados para simulação
   const [currentUserId, setCurrentUserId] = useState('user_1')
   const [targetUserId, setTargetUserId] = useState('')
-  const [userInfo, setUserInfo] = useState({
-    id: 'user_1',
-    username: 'teste_user1',
-    display_name: 'Usuário de Teste 1',
-    photo_url: undefined
+  const [callType, setCallType] = useState<'audio' | 'video'>('audio')
+  const [showIncomingCallNotification, setShowIncomingCallNotification] = useState(false)
+  const [callerInfo, setCallerInfo] = useState({
+    name: '',
+    photo_url: '',
+    callType: 'audio' as 'audio' | 'video'
   })
-
+  
   // Hooks principais
-  const audioCall = useAudioCall(currentUserId)
   const presence = useUserPresence(currentUserId)
+  const callSystem = useCallSystem(currentUserId)
 
-  // Configurar callback para chamadas recebidas
+  // Configurar efeitos para chamadas recebidas
   useEffect(() => {
-    audioCall.onIncomingCall((call) => {
-      console.log('📞 Chamada recebida no componente:', call)
-      // A notificação será mostrada automaticamente
-    })
-  }, [audioCall])
+    // Monitorar estado da chamada para detectar chamadas recebidas
+    if (callSystem.callState.isIncomingCall && callSystem.callState.remoteUserId) {
+      const remoteUser = callSystem.callState.remoteUserInfo
+      console.log('📞 Chamada recebida de:', remoteUser)
+      
+      setCallerInfo({
+        name: remoteUser?.name || callSystem.callState.remoteUserId,
+        photo_url: remoteUser?.photo_url || '',
+        callType: callSystem.callState.callType || 'audio'
+      })
+      
+      setShowIncomingCallNotification(true)
+    } else {
+      setShowIncomingCallNotification(false)
+    }
+  }, [callSystem.callState])
 
   // Iniciar uma chamada
   const handleStartCall = async () => {
@@ -55,8 +72,8 @@ export default function TestChamadasPage() {
     }
 
     try {
-      await audioCall.startCall(targetUserId, userInfo)
-      console.log('✅ Chamada iniciada com sucesso')
+      await callSystem.initiateCall(targetUserId, callType)
+      console.log(`✅ Chamada de ${callType} iniciada com sucesso`)
     } catch (error) {
       console.error('❌ Erro ao iniciar chamada:', error)
       alert('Erro ao iniciar chamada: ' + error)
@@ -66,7 +83,8 @@ export default function TestChamadasPage() {
   // Aceitar chamada recebida
   const handleAcceptCall = async () => {
     try {
-      await audioCall.acceptCall()
+      await callSystem.acceptCall()
+      setShowIncomingCallNotification(false)
       console.log('✅ Chamada aceita')
     } catch (error) {
       console.error('❌ Erro ao aceitar chamada:', error)
@@ -75,9 +93,10 @@ export default function TestChamadasPage() {
   }
 
   // Rejeitar chamada recebida
-  const handleRejectCall = async () => {
+  const handleRejectCall = () => {
     try {
-      await audioCall.rejectCall()
+      callSystem.rejectCall()
+      setShowIncomingCallNotification(false)
       console.log('✅ Chamada rejeitada')
     } catch (error) {
       console.error('❌ Erro ao rejeitar chamada:', error)
@@ -85,9 +104,9 @@ export default function TestChamadasPage() {
   }
 
   // Encerrar chamada
-  const handleEndCall = async () => {
+  const handleEndCall = () => {
     try {
-      await audioCall.endCall()
+      callSystem.endCall()
       console.log('✅ Chamada encerrada')
     } catch (error) {
       console.error('❌ Erro ao encerrar chamada:', error)
@@ -96,7 +115,12 @@ export default function TestChamadasPage() {
 
   // Toggle mute
   const handleToggleMute = () => {
-    audioCall.toggleMute()
+    callSystem.toggleMute()
+  }
+  
+  // Toggle video
+  const handleToggleVideo = () => {
+    callSystem.toggleVideo()
   }
 
   // Dados fictícios para testes
@@ -104,28 +128,26 @@ export default function TestChamadasPage() {
     user_1: {
       id: 'user_1',
       username: 'teste_user1',
-      display_name: 'João Silva',
-      photo_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face'
+      display_name: 'Ana Silva',
+      photo_url: 'https://i.pravatar.cc/150?img=1'
     },
     user_2: {
       id: 'user_2', 
       username: 'teste_user2',
-      display_name: 'Maria Santos',
-      photo_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face'
+      display_name: 'Carlos Santos',
+      photo_url: 'https://i.pravatar.cc/150?img=2'
     },
     user_3: {
       id: 'user_3',
       username: 'teste_user3', 
-      display_name: 'Pedro Costa',
-      photo_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face'
+      display_name: 'Marina Costa',
+      photo_url: 'https://i.pravatar.cc/150?img=3'
     }
   }
 
   // Mudar usuário atual (para testes)
   const switchUser = (userId: string) => {
-    const userData = testUsers[userId as keyof typeof testUsers]
     setCurrentUserId(userId)
-    setUserInfo(userData)
   }
 
   const onlineUsers = presence.getOnlineUsers()
@@ -176,12 +198,31 @@ export default function TestChamadasPage() {
             
             <div className="space-y-2">
               <Label htmlFor="target-user">Usuário de Destino</Label>
-              <Input
-                id="target-user"
-                value={targetUserId}
-                onChange={(e) => setTargetUserId(e.target.value)}
-                placeholder="user_2"
-              />
+              <div className="flex space-x-2">
+                <Input
+                  id="target-user"
+                  value={targetUserId}
+                  onChange={(e) => setTargetUserId(e.target.value)}
+                  placeholder="user_2"
+                  className="flex-grow"
+                />
+                <Button
+                  size="sm"
+                  variant={callType === 'audio' ? 'default' : 'secondary'}
+                  onClick={() => setCallType('audio')}
+                  className="w-10"
+                >
+                  <Phone className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant={callType === 'video' ? 'default' : 'secondary'}
+                  onClick={() => setCallType('video')}
+                  className="w-10"
+                >
+                  <Video className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
             
             <div className="space-y-2">
@@ -204,11 +245,15 @@ export default function TestChamadasPage() {
 
           <Button 
             onClick={handleStartCall}
-            disabled={!targetUserId.trim() || audioCall.callState.status !== 'idle'}
+            disabled={!targetUserId.trim() || callSystem.callState.isCallActive || callSystem.callState.isOutgoingCall || callSystem.callState.isIncomingCall}
             className="w-full"
           >
-            <Phone className="w-4 h-4 mr-2" />
-            Iniciar Chamada
+            {callType === 'audio' ? (
+              <Phone className="w-4 h-4 mr-2" />
+            ) : (
+              <Video className="w-4 h-4 mr-2" />
+            )}
+            Iniciar Chamada de {callType === 'audio' ? 'Áudio' : 'Vídeo'}
           </Button>
         </CardContent>
       </Card>
@@ -228,47 +273,57 @@ export default function TestChamadasPage() {
                 <span className="text-sm text-gray-600">Status:</span>
                 <Badge
                   variant={
-                    audioCall.callState.status === 'connected' ? 'default' :
-                    audioCall.callState.status === 'idle' ? 'secondary' :
+                    callSystem.callState.isCallActive ? 'default' :
+                    !callSystem.callState.isCallActive && !callSystem.callState.isIncomingCall && !callSystem.callState.isOutgoingCall ? 'secondary' :
                     'destructive'
                   }
                 >
-                  {audioCall.callState.status}
+                  {callSystem.callState.isCallActive ? 'connected' :
+                   callSystem.callState.isIncomingCall ? 'incoming' :
+                   callSystem.callState.isOutgoingCall ? 'outgoing' :
+                   callSystem.callState.isConnecting ? 'connecting' : 'idle'}
                 </Badge>
               </div>
               
               <div className="flex justify-between">
-                <span className="text-sm text-gray-600">Call ID:</span>
-                <span className="text-sm font-mono">
-                  {audioCall.callState.callId?.slice(-8) || 'N/A'}
-                </span>
+                <span className="text-sm text-gray-600">Tipo de Chamada:</span>
+                <Badge variant={callSystem.callState.callType === 'video' ? 'default' : 'secondary'}>
+                  {callSystem.callState.callType || 'N/A'}
+                </Badge>
               </div>
               
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Usuário Remoto:</span>
                 <span className="text-sm">
-                  {audioCall.callState.remoteUserId || 'N/A'}
+                  {callSystem.callState.remoteUserInfo?.name || callSystem.callState.remoteUserId || 'N/A'}
                 </span>
               </div>
               
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Conexão WebRTC:</span>
-                <span className="text-sm">
-                  {audioCall.callState.connectionState || 'N/A'}
-                </span>
+                <Badge variant={callSystem.connectionState === 'connected' ? 'default' : 'secondary'}>
+                  {callSystem.connectionState}
+                </Badge>
               </div>
               
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Microfone:</span>
-                <Badge variant={audioCall.callState.isMuted ? "destructive" : "default"}>
-                  {audioCall.callState.isMuted ? 'Silenciado' : 'Ativo'}
+                <Badge variant={callSystem.isMuted ? "destructive" : "default"}>
+                  {callSystem.isMuted ? 'Silenciado' : 'Ativo'}
+                </Badge>
+              </div>
+              
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-600">Vídeo:</span>
+                <Badge variant={!callSystem.isVideoEnabled ? "destructive" : "default"}>
+                  {callSystem.isVideoEnabled ? 'Ativo' : 'Desativado'}
                 </Badge>
               </div>
             </div>
 
-            {audioCall.callState.error && (
+            {callSystem.callState.error && (
               <div className="p-3 bg-red-50 border border-red-200 rounded">
-                <p className="text-sm text-red-700">{audioCall.callState.error}</p>
+                <p className="text-sm text-red-700">{callSystem.callState.error}</p>
               </div>
             )}
           </CardContent>
@@ -320,13 +375,24 @@ export default function TestChamadasPage() {
                         {user.currentActivity}
                       </Badge>
                       {user.isAvailableForCalls && user.userId !== currentUserId && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setTargetUserId(user.userId)}
-                        >
-                          <Phone className="w-3 h-3" />
-                        </Button>
+                        <div className="flex space-x-1">
+                          <CallButtons
+                            targetUserId={user.userId}
+                            onAudioCall={(userId) => {
+                              setTargetUserId(userId)
+                              setCallType('audio')
+                              handleStartCall()
+                            }}
+                            onVideoCall={(userId) => {
+                              setTargetUserId(userId)
+                              setCallType('video')
+                              handleStartCall()
+                            }}
+                            disabled={callSystem.callState.isCallActive || callSystem.callState.isOutgoingCall}
+                            size="sm"
+                            variant="compact"
+                          />
+                        </div>
                       )}
                     </div>
                   </div>
@@ -338,26 +404,31 @@ export default function TestChamadasPage() {
       </div>
 
       {/* Interface de Chamada (quando há uma chamada ativa) */}
-      {audioCall.callState.status !== 'idle' && (
+      {(callSystem.callState.isCallActive || callSystem.callState.isOutgoingCall || callSystem.callState.isConnecting) && (
         <div className="flex justify-center">
-          <AudioCallInterface
-            callState={audioCall.callState}
+          <CallInterface
+            callState={callSystem.callState}
+            localVideoRef={callSystem.localVideoRef}
+            remoteVideoRef={callSystem.remoteVideoRef}
+            onAccept={handleAcceptCall}
+            onReject={handleRejectCall}
             onEndCall={handleEndCall}
             onToggleMute={handleToggleMute}
-            remoteUserInfo={
-              audioCall.callState.remoteUserId ? {
-                username: audioCall.callState.remoteUserId,
-                display_name: `Usuário ${audioCall.callState.remoteUserId}`,
-                photo_url: undefined
-              } : undefined
-            }
+            onToggleVideo={handleToggleVideo}
+            isMuted={callSystem.isMuted}
+            isVideoEnabled={callSystem.isVideoEnabled}
+            connectionState={callSystem.connectionState}
+            remoteUserInfo={callSystem.callState.remoteUserInfo}
           />
         </div>
       )}
 
       {/* Notificação de Chamada Recebida */}
-      <AudioCallNotification
-        incomingCall={audioCall.incomingCall}
+      <CallNotification
+        show={showIncomingCallNotification && callSystem.callState.isIncomingCall}
+        callerName={callerInfo.name}
+        callerPhoto={callerInfo.photo_url}
+        callType={callerInfo.callType}
         onAccept={handleAcceptCall}
         onReject={handleRejectCall}
       />
@@ -373,9 +444,14 @@ export default function TestChamadasPage() {
             <div>Presence Online: {presence.isOnline ? 'Yes' : 'No'}</div>
             <div>Online Users: {onlineUsers.length}</div>
             <div>Available Users: {availableUsers.length}</div>
-            <div>Call Status: {audioCall.callState.status}</div>
-            <div>Has Local Stream: {audioCall.callState.localStream ? 'Yes' : 'No'}</div>
-            <div>Has Remote Stream: {audioCall.callState.remoteStream ? 'Yes' : 'No'}</div>
+            <div>Call Type: {callSystem.callState.callType || 'None'}</div>
+            <div>Call Active: {callSystem.callState.isCallActive ? 'Yes' : 'No'}</div>
+            <div>Call Incoming: {callSystem.callState.isIncomingCall ? 'Yes' : 'No'}</div>
+            <div>Call Outgoing: {callSystem.callState.isOutgoingCall ? 'Yes' : 'No'}</div>
+            <div>Has Local Stream: {callSystem.callState.localStream ? 'Yes' : 'No'}</div>
+            <div>Has Remote Stream: {callSystem.callState.remoteStream ? 'Yes' : 'No'}</div>
+            <div>Remote User: {callSystem.callState.remoteUserId || 'None'}</div>
+            <div>Connection State: {callSystem.connectionState}</div>
           </div>
         </CardContent>
       </Card>

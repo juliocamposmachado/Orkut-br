@@ -5,6 +5,9 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/enhanced-auth-context';
 import VideoCallOrkut from '@/components/webrtc/VideoCallOrkut';
 
+// Força rendering dinâmico para evitar erros SSR com WebRTC
+export const dynamic = 'force-dynamic';
+
 export default function RoomPage() {
   const params = useParams();
   const router = useRouter();

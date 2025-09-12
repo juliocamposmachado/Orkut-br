@@ -66,13 +66,15 @@ export default function VideoCallOrkut({
   };
 
   const copyRoomLink = () => {
-    const link = `${window.location.origin}/chamadas/${roomId}`;
-    navigator.clipboard.writeText(link);
-    toast.success('📋 Link da sala copiado!');
+    if (typeof window !== 'undefined') {
+      const link = `${window.location.origin}/chamadas/${roomId}`;
+      navigator.clipboard.writeText(link);
+      toast.success('📋 Link da sala copiado!');
+    }
   };
 
   const shareRoom = () => {
-    if (navigator.share) {
+    if (typeof window !== 'undefined' && navigator.share) {
       navigator.share({
         title: 'Orkut - Chamada de Vídeo',
         text: 'Junte-se à minha chamada de vídeo no Orkut!',

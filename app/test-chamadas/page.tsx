@@ -272,7 +272,7 @@ export default function TestChamadasPage() {
                   <div key={user.userId} className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <Avatar className="w-8 h-8">
-                        <AvatarImage src={user.photo_url} />
+                        <AvatarImage src={user.photo_url || undefined} />
                         <AvatarFallback>
                           {user.display_name?.[0] || '?'}
                         </AvatarFallback>
@@ -288,7 +288,6 @@ export default function TestChamadasPage() {
                     </div>
                     <div className="flex items-center space-x-2">
                       <Badge
-                        size="sm"
                         variant={
                           user.currentActivity === 'active' ? 'default' :
                           user.currentActivity === 'away' ? 'secondary' :

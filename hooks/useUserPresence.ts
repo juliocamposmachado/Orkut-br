@@ -8,6 +8,7 @@ export interface UserPresence {
   userId: string
   username?: string
   display_name?: string
+  photo_url?: string
   isOnline: boolean
   lastSeen: string
   isAvailableForCalls: boolean
@@ -93,6 +94,7 @@ export function useUserPresence(currentUserId: string) {
               userId,
               username: presence.username,
               display_name: presence.display_name,
+              photo_url: presence.photo_url,
               isOnline: true,
               lastSeen: presence.lastSeen || new Date().toISOString(),
               isAvailableForCalls: presence.isAvailableForCalls || true,
@@ -113,6 +115,7 @@ export function useUserPresence(currentUserId: string) {
               userId: key,
               username: presence.username,
               display_name: presence.display_name,
+              photo_url: presence.photo_url,
               isOnline: true,
               lastSeen: presence.lastSeen || new Date().toISOString(),
               isAvailableForCalls: presence.isAvailableForCalls || true,

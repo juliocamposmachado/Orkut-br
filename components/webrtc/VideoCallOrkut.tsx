@@ -1,8 +1,9 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useWebRTCChamadas } from '@/hooks/useWebRTCChamadas';
 import CallControlsOrkut from './CallControlsOrkut';
+import UserInvitePanel from './UserInvitePanel';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -11,7 +12,8 @@ import {
   Share2, 
   Users, 
   User,
-  AlertTriangle 
+  AlertTriangle,
+  UserPlus 
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -30,6 +32,7 @@ export default function VideoCallOrkut({
 }: VideoCallOrkutProps) {
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const [isInvitePanelOpen, setIsInvitePanelOpen] = useState(false);
 
   const {
     callState,
@@ -177,6 +180,16 @@ export default function VideoCallOrkut({
 
           <div className="flex items-center space-x-2">
             <Button
+              onClick={() => setIsInvitePanelOpen(true)}
+              variant="outline"
+              size="sm"
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              Convidar
+            </Button>
+            
+            <Button
               onClick={copyRoomLink}
               variant="outline"
               size="sm"
@@ -315,6 +328,15 @@ export default function VideoCallOrkut({
           onToggleVideoMute={toggleVideoMute}
         />
       </div>
+      
+      {/* User Invite Panel */}
+      <UserInvitePanel
+        roomId={roomId}
+        userId={userId}
+        callType={callType}
+        isOpen={isInvitePanelOpen}
+        onClose={() => setIsInvitePanelOpen(false)}
+      />
     </div>
   );
 }

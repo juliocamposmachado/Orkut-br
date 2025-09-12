@@ -172,8 +172,10 @@ export async function POST(request: NextRequest) {
     
     console.log('✅ Notificação criada com sucesso:', notificationData)
     
-    // Tentar enviar via realtime também para garantir
+    // Tentar enviar via realtime também para garantir entrega imediata
     try {
+      console.log('📡 Enviando broadcast realtime para:', targetUserId)
+      
       const realtimePayload = {
         type: 'incoming_call',
         call_id: callId,
@@ -184,44 +186,38 @@ export async function POST(request: NextRequest) {
           display_name: callerProfile.display_name,
           photo_url: callerProfile.photo_url
         },
+        offer: offer,
         timestamp: new Date().toISOString()
       }
       
+      // Criar e subscrever ao canal temporariamente para envio
+      const realtimeChannel = supabase.channel(`call_notifications_${targetUserId}_${Date.now()}`)
+      
+      await realtimeChannel.subscribe()
+      
+      // Aguardar um momento para garantir que o canal está ativo
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
       // Broadcast via realtime channel
-      await supabase.channel(`call_notifications_${targetUserId}`).send({
+      const broadcastResult = await realtimeChannel.send({
         type: 'broadcast',
         event: 'incoming_call',
         payload: realtimePayload
       })
       
-      console.log('✅ Sinal realtime enviado')
+      console.log('✅ Broadcast realtime enviado:', broadcastResult)
+      
+      // Limpar canal
+      setTimeout(() => {
+        realtimeChannel.unsubscribe()
+      }, 1000)
+      
     } catch (realtimeError) {
       console.warn('⚠️ Erro no realtime (não crítico):', realtimeError)
     }
 
-    // Criar registro da chamada na tabela call_signals para WebRTC
-    const { error: signalError } = await supabase
-      .from('call_signals')
-      .insert({
-        from_user_id: user.id,
-        to_user_id: targetUserId,
-        signal_type: 'call_offer',
-        signal_data: {
-          call_id: callId,
-          call_type: callType,
-          offer: offer,
-          caller_info: {
-            id: callerProfile.id,
-            username: callerProfile.username,
-            display_name: callerProfile.display_name,
-            photo_url: callerProfile.photo_url
-          }
-        }
-      })
-
-    if (signalError) {
-      console.error('Erro ao criar sinal de chamada:', signalError)
-    }
+    // TODO: Criar registro da chamada na tabela call_signals quando ela existir
+    console.log('💡 call_signals table ainda não implementada - usando apenas notificações')
 
     return NextResponse.json({
       success: true,
@@ -309,24 +305,8 @@ export async function PUT(request: NextRequest) {
 
     const callerUserId = notificationData.payload.from_user.id
 
-    // Criar sinal de resposta
-    const { error: signalError } = await supabase
-      .from('call_signals')
-      .insert({
-        from_user_id: user.id,
-        to_user_id: callerUserId,
-        signal_type: action === 'accept' ? 'call_accepted' : 'call_rejected',
-        signal_data: {
-          call_id: callId,
-          action,
-          answer: action === 'accept' ? answer : null,
-          timestamp: new Date().toISOString()
-        }
-      })
-
-    if (signalError) {
-      console.error('Erro ao criar sinal de resposta:', signalError)
-    }
+    // TODO: Criar sinal de resposta na tabela call_signals quando ela existir
+    console.log(`💡 Resposta de chamada (${action}) registrada apenas via notificação`)
 
     // Marcar notificação como lida
     const { error: updateError } = await supabase

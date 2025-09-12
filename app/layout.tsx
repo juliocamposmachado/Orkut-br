@@ -16,7 +16,7 @@ import { CallManager } from '@/components/calls/call-manager';
 import { EdgeCompatibility } from '@/components/edge-compatibility';
 import { PWAInstaller } from '@/components/PWAInstaller';
 import { NotificationProvider } from '@/components/NotificationSystem';
-import { CallProvider } from '@/contexts/CallContext';
+import { CallProviderWrapper } from '@/components/providers/call-provider-wrapper';
 // Import polyfills to fix runtime errors
 import '@/lib/polyfills';
 // WebRTC diagnostics moved to developer dashboard
@@ -177,7 +177,7 @@ export default function RootLayout({
                 <OnlineStatusProvider>
                   <WebRTCProvider>
                     <VoiceProvider>
-                      <CallProvider>
+                      <CallProviderWrapper>
                         <FriendsProvider>
                           {children}
                           {/* Sistema de chamadas - notificações, modais e controles */}
@@ -186,7 +186,7 @@ export default function RootLayout({
                           {/* <EventListenerMonitor /> */}
                           <Toaster />
                         </FriendsProvider>
-                      </CallProvider>
+                      </CallProviderWrapper>
                     </VoiceProvider>
                   </WebRTCProvider>
                 </OnlineStatusProvider>

@@ -34,7 +34,8 @@ import {
   Camera,
   Shield,
   Crown,
-  BookOpen
+  BookOpen,
+  Video
 } from 'lucide-react'
 import { useAuth } from '@/contexts/enhanced-auth-context'
 import { useVoice } from '@/contexts/voice-context'
@@ -55,6 +56,7 @@ export function Navbar() {
     { icon: Home, label: 'início', href: '/' },
     { icon: Users, label: 'amigos', href: '/amigos' },
     { icon: MessageCircle, label: 'mensagens', href: '/mensagens' },
+    { icon: Video, label: 'chamadas', href: '/chamadas' },
     { icon: Globe, label: 'comunidades', href: '/comunidades' },
     { icon: BookOpen, label: 'blog', href: '/blog' },
     { icon: Camera, label: 'fotos', href: '/fotos' },

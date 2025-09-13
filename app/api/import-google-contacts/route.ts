@@ -190,12 +190,18 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Detectar URL base dinamicamente
+    // Use consistent redirect URI for production
     const { headers } = request
     const host = headers.get('host') || 'localhost:3000'
-    const protocol = host.includes('localhost') ? 'http' : 'https'
-    const baseUrl = `${protocol}://${host}`
-    const redirectUri = `${baseUrl}/api/import-google-contacts/callback`
+    const isLocalhost = host.includes('localhost')
+    
+    let redirectUri
+    if (isLocalhost) {
+      redirectUri = `http://${host}/api/import-google-contacts/callback`
+    } else {
+      // Use the current production domain for consistent OAuth redirect
+      redirectUri = 'https://orkut-br-oficial.vercel.app/api/import-google-contacts/callback'
+    }
 
     // Validar presença das variáveis de ambiente
     if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
@@ -208,8 +214,6 @@ export async function GET(request: NextRequest) {
     
     console.log('🔧 Configurando OAuth:', {
       host,
-      protocol,
-      baseUrl,
       redirectUri,
       hasClientId: !!process.env.GOOGLE_CLIENT_ID,
       hasClientSecret: !!process.env.GOOGLE_CLIENT_SECRET

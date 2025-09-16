@@ -96,7 +96,10 @@
 ✨ **Resistência total** à censura governamental  
 ✨ **Build perfeito** sem erros críticos
 
-#### 🌟 **O Que é o PasteDatabase?**
+#### 
+
+
+✅ 🌟 **O Que é o PasteDatabase?** - [https://github.com/juliocamposmachado/Paste-Database](https://github.com/juliocamposmachado/Paste-Database)  
 
 Um sistema descentralizado que usa múltiplos serviços de **pastebin** como backend de dados, eliminando completamente a necessidade de PostgreSQL, MySQL ou qualquer banco tradicional.
 

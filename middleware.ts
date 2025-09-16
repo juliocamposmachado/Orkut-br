@@ -1,6 +1,6 @@
 import { createClient } from '@/utils/supabase/middleware'
 import { NextResponse, type NextRequest } from 'next/server'
-import { pasteDBMiddleware } from './middleware/pastedb-migration'
+// import { pasteDBMiddleware } from './middleware/pastedb-migration'
 
 export async function middleware(request: NextRequest) {
   try {
@@ -40,6 +40,8 @@ export async function middleware(request: NextRequest) {
     const useSupabaseForAuth = process.env.NEXT_PUBLIC_USE_SUPABASE_FOR_AUTH === 'true' || true
     
     // Se usar PasteDB apenas para dados, ainda processar PasteDB middleware para APIs
+    // Temporarily disabled for build compatibility
+    /*
     if (usePasteDBForData && pathname.startsWith('/api/') && !pathname.startsWith('/api/auth')) {
       const pasteDBResponse = await pasteDBMiddleware(request)
       if (pasteDBResponse.status !== 200 || pasteDBResponse.headers.get('x-pastedb-handled')) {
@@ -47,6 +49,7 @@ export async function middleware(request: NextRequest) {
         return pasteDBResponse
       }
     }
+    */
 
     // SEMPRE processar autenticação com Supabase (sistema híbrido)
     const { supabase, response } = createClient(request)

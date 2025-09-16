@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react'
-import { useAuth } from '@/contexts/local-auth-context'
+import { useAuth } from '@/contexts/auth-context'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { callLogger } from '@/lib/call-logger'
@@ -89,20 +89,32 @@ export function WebRTCProvider({ children }: { children: ReactNode }) {
   const [isVideoEnabled, setIsVideoEnabled] = useState(true)
   const [onlineUsers, setOnlineUsers] = useState<WebRTCUser[]>([])
   
-  // Initialize WebSocket connection for signaling
+  // Initialize WebSocket connection for signaling - DESABILITADO TEMPORARIAMENTE
   useEffect(() => {
     if (!user) return
     
-    try {
-      initializeSignaling()
-    } catch (error) {
-      console.error('Failed to connect to signaling server:', error)
-    }
+    console.log('✅ WebRTC: Modo simplificado ativado (sem signaling)')
+    
+    // Dados mock sem inicializar signaling real
+    setOnlineUsers([
+      {
+        id: 'demo1',
+        username: 'mariana_santos',
+        display_name: 'Mariana Santos',
+        photo_url: 'https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=100',
+        isOnline: true
+      },
+      {
+        id: 'demo2',
+        username: 'carlos_edu',
+        display_name: 'Carlos Eduardo',
+        photo_url: 'https://images.pexels.com/photos/1040880/pexels-photo-1040880.jpeg?auto=compress&cs=tinysrgb&w=100',
+        isOnline: true
+      }
+    ])
     
     return () => {
-      if (socketRef.current) {
-        socketRef.current.close()
-      }
+      console.log('🧧 WebRTC: Limpeza simplificada')
     }
   }, [user])
   

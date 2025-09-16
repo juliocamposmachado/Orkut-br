@@ -95,11 +95,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const initSupabaseAuth = async () => {
     console.log('🚀 [AUTH] Iniciando inicialização do Supabase auth...')
+    
+    let cleanup: (() => void) | undefined
+    
     try {
       // Get initial session
       const { data: { session }, error } = await supabase.auth.getSession()
       
-      console.log('📋 [AUTH] Sessão inicial obtida:', { session: !!session, error: !!error })
+      console.log('📋 [AUTH] Sessão inicial obtida:', { 
+        session: !!session, 
+        error: !!error, 
+        userId: session?.user?.id,
+        email: session?.user?.email 
+      })
       
       if (error) {
         console.error('❌ [AUTH] Erro ao obter sessão inicial:', error)
@@ -107,9 +115,40 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return
       }
 
-      // Se há sessão, processar usuário
+      // Listen for auth changes BEFORE processing initial user
+      console.log('🎧 [AUTH] Configurando listener de eventos de auth...')
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        console.log('🔄 [AUTH] Estado de autenticação mudou:', event, { 
+          session: !!session, 
+          userId: session?.user?.id,
+          email: session?.user?.email,
+          timestamp: new Date().toISOString()
+        })
+        
+        if (event === 'SIGNED_IN' && session?.user) {
+          console.log('✅ [AUTH] Usuário fez login, processando...')
+          setLoading(true) // Set loading while processing user
+          await handleSupabaseUser(session.user)
+          setLoading(false)
+        } else if (event === 'SIGNED_OUT') {
+          console.log('🚪 [AUTH] Usuário fez logout')
+          setUser(null)
+          setProfile(null)
+          setLoading(false)
+        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+          console.log('🔄 [AUTH] Token refreshado, atualizando usuário')
+          await handleSupabaseUser(session.user)
+        }
+      })
+      
+      cleanup = () => {
+        console.log('🧹 [AUTH] Limpando subscription')
+        subscription.unsubscribe()
+      }
+
+      // Se há sessão inicial, processar usuário
       if (session?.user) {
-        console.log('✅ [AUTH] Usuário encontrado na sessão inicial, processando...')
+        console.log('✅ [AUTH] Processando usuário da sessão inicial...')
         await handleSupabaseUser(session.user)
       } else {
         console.log('ℹ️ [AUTH] Nenhum usuário na sessão inicial')
@@ -117,33 +156,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setProfile(null)
       }
 
-      // Listen for auth changes
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-        console.log('🔄 [AUTH] Estado de autenticação mudou:', event, { session: !!session })
-        
-        if (event === 'SIGNED_IN' && session?.user) {
-          console.log('✅ [AUTH] Usuário fez login, processando...')
-          await handleSupabaseUser(session.user)
-        } else if (event === 'SIGNED_OUT') {
-          console.log('🚪 [AUTH] Usuário fez logout')
-          setUser(null)
-          setProfile(null)
-        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-          console.log('🔄 [AUTH] Token refreshado, atualizando usuário')
-          await handleSupabaseUser(session.user)
-        }
-      })
-
       console.log('✅ [AUTH] Inicialização concluída, definindo loading como false')
       setLoading(false)
       
-      return () => {
-        console.log('🧹 [AUTH] Limpando subscription')
-        subscription.unsubscribe()
-      }
+      return cleanup
     } catch (error) {
       console.error('❌ [AUTH] Erro na inicialização do Supabase auth:', error)
       console.log('🔄 [AUTH] Tentando modo fallback...')
+      setLoading(false)
+      
+      if (cleanup) cleanup()
       await initFallbackAuth()
     }
   }

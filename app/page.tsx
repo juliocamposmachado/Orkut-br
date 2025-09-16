@@ -108,29 +108,41 @@ export default function HomePage() {
       hasUser: !!user,
       hasProfile: !!profile,
       userEmail: user?.email,
-      profileUsername: profile?.username
+      profileUsername: profile?.username,
+      timestamp: new Date().toISOString()
     })
     
     // Aguardar o loading completo antes de redirecionar
     if (loading) {
-      console.log('⏳ [HOME PAGE] Ainda carregando, aguardando...')
+      console.log('⏳ [HOME PAGE] Ainda carregando auth context, aguardando...')
       return // Não fazer nada enquanto carregando
     }
     
-    // Só redirecionar para login se realmente não tiver usuário após loading
-    if (!user) {
-      console.log('🔄 [HOME PAGE] Usuário não encontrado após loading, redirecionando para login')
-      router.push('/login')
-      return
-    }
-
-    console.log('✅ [HOME PAGE] Usuário encontrado, carregando conteúdo')
-    // Se tem usuário, carregar conteúdo
+    // Dar um tempo extra para o contexto processar o usuário após callback
+    const timeoutId = setTimeout(() => {
+      console.log('🔄 [HOME PAGE] Verificando estado final após timeout:', {
+        hasUser: !!user,
+        hasProfile: !!profile,
+        userEmail: user?.email
+      })
+      
+      // Só redirecionar para login se realmente não tiver usuário
+      if (!user) {
+        console.log('🔄 [HOME PAGE] Nenhum usuário encontrado, redirecionando para login')
+        router.push('/login')
+      }
+    }, 1000) // Aguardar 1 segundo adicional
+    
+    // Se já tem usuário, cancelar timeout e carregar conteúdo
     if (user) {
+      console.log('✅ [HOME PAGE] Usuário já disponível, cancelando timeout e carregando conteúdo')
+      clearTimeout(timeoutId)
       loadFeed()
       loadCommunities()
       loadGmailUsers()
     }
+    
+    return () => clearTimeout(timeoutId)
   }, [user, loading, router])
 
   // useEffect para scroll automático para post específico

@@ -7,9 +7,14 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
+  console.log('='.repeat(80))
   console.log('🔄 [CALLBACK] Iniciando processamento do callback...')
   console.log('🔄 [CALLBACK] Request URL:', request.url)
   console.log('🔄 [CALLBACK] Timestamp:', new Date().toISOString())
+  console.log('🔄 [CALLBACK] Environment:', process.env.NODE_ENV)
+  console.log('🔄 [CALLBACK] Vercel Env:', process.env.VERCEL_ENV)
+  console.log('🔄 [CALLBACK] Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+  console.log('='.repeat(80))
   
   try {
     // Extrair URL e parâmetros de forma segura

@@ -3,7 +3,9 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { getOrkutDB, type OrkutPasteDBAdapter } from './orkut-pastedb-adapter'
 
 // Configuração do sistema de banco de dados
-const USE_PASTEDB = process.env.NEXT_PUBLIC_USE_PASTEDB === 'true' || true // Por padrão, usar PasteDB
+// IMPORTANTE: Usar Supabase para auth, PasteDB apenas para dados
+const USE_PASTEDB_FOR_DATA = process.env.NEXT_PUBLIC_USE_PASTEDB_FOR_DATA === 'true' || true
+const USE_SUPABASE_FOR_AUTH = process.env.NEXT_PUBLIC_USE_SUPABASE_FOR_AUTH === 'true' || true
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
 
@@ -123,9 +125,14 @@ const createPasteDBClient = (): SupabaseClient => {
     }
   })
   
+  // Criar cliente Supabase real para autenticação
+  const realSupabaseClient = (supabaseUrl && supabaseAnonKey) ? 
+    createClient(supabaseUrl, supabaseAnonKey) : null
+  
   return {
     from: (tableName: string) => createMockChain(tableName),
-    auth: {
+    // USAR SUPABASE REAL PARA AUTENTICAÇÃO
+    auth: realSupabaseClient ? realSupabaseClient.auth : {
       getSession: () => Promise.resolve({ data: { session: null }, error: null }),
       signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: null }),
       signInWithOAuth: () => Promise.resolve({ data: { user: null, session: null }, error: null }),
@@ -204,11 +211,11 @@ const createMockClient = (): SupabaseClient => {
   } as any
 }
 
-// 🚀 SISTEMA REVOLUCIONÁRIO: Criar cliente baseado na configuração
+// 🚀 SISTEMA HÍBRIDO: Supabase para Auth + PasteDB para Dados
 const createSupabaseClient = (): SupabaseClient => {
-  // Se PasteDB estiver habilitado, usar o adaptador revolucionário
-  if (USE_PASTEDB) {
-    console.log('🚀 Usando PasteDB como backend principal!')
+  // Se PasteDB estiver habilitado para dados, usar o adaptador híbrido
+  if (USE_PASTEDB_FOR_DATA && USE_SUPABASE_FOR_AUTH) {
+    console.log('🚀 Usando sistema híbrido: Supabase Auth + PasteDB Dados!')
     return createPasteDBClient()
   }
   
@@ -237,7 +244,7 @@ const createSupabaseClient = (): SupabaseClient => {
 export const supabase = createSupabaseClient()
 
 // Exportar também o adaptador PasteDB para uso direto
-export const pasteDB = USE_PASTEDB ? getOrkutDB() : null
+export const pasteDB = USE_PASTEDB_FOR_DATA ? getOrkutDB() : null
 
 // Função para alternar entre backends
 export const switchToSupabase = () => {
@@ -252,18 +259,22 @@ export const switchToPasteDB = () => {
 
 // Função para verificar qual backend está ativo
 export const getActiveBackend = () => {
-  return USE_PASTEDB ? 'PasteDB' : 'Supabase'
+  return USE_PASTEDB_FOR_DATA ? 'Híbrido (Supabase Auth + PasteDB Data)' : 'Supabase Completo'
 }
 
 // Função para inicializar sistema (chamada na inicialização da app)
 export const initializeDatabase = async () => {
-  if (USE_PASTEDB && pasteDB) {
+  if (USE_PASTEDB_FOR_DATA && pasteDB) {
     try {
       await pasteDB.initialize()
-      console.log('✅ PasteDB inicializado com sucesso!')
+      console.log('✅ PasteDB inicializado com sucesso para dados!')
     } catch (error) {
       console.error('❌ Erro ao inicializar PasteDB:', error)
     }
+  }
+  
+  if (USE_SUPABASE_FOR_AUTH) {
+    console.log('✅ Supabase configurado para autenticação!')
   }
 }
 

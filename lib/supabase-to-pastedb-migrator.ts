@@ -7,6 +7,12 @@
  */
 
 import { supabase, type Database } from './supabase'
+import { createClient } from '@supabase/supabase-js'
+
+// SUPABASE ANTIGO COM DADOS REAIS
+const oldSupabaseUrl = 'https://woyyikaztjrhqzgvbhmn.supabase.co'
+const oldSupabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndveXlpa2F6dGpyaHF6Z3ZiaG1uIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTU2NjUwOTUsImV4cCI6MjA3MTI0MTA5NX0.rXp7c0167cjPXfp6kYDNKq6s4RrD8E7C2-NzukKPQnQ'
+const oldSupabase = createClient(oldSupabaseUrl, oldSupabaseKey)
 import { getOrkutDB } from './orkut-pastedb-adapter'
 import fs from 'fs/promises'
 import path from 'path'
@@ -126,8 +132,8 @@ export class SupabaseToPasteDBMigrator {
     }
 
     try {
-      // Buscar dados da tabela
-      const { data, error, count } = await supabase
+      // Buscar dados da tabela DO SUPABASE ANTIGO
+      const { data, error, count } = await oldSupabase
         .from(tableName)
         .select('*', { count: 'exact' })
         .range(0, 10000) // Limitar para evitar timeout
@@ -251,8 +257,8 @@ export class SupabaseToPasteDBMigrator {
 
     for (const table of tables) {
       try {
-        // Contar registros no Supabase
-        const { count: supabaseCount } = await supabase
+        // Contar registros no Supabase ANTIGO
+        const { count: supabaseCount } = await oldSupabase
           .from(table as any)
           .select('*', { count: 'exact', head: true })
 
@@ -299,8 +305,8 @@ export class SupabaseToPasteDBMigrator {
         if (missingCount > 0) {
           this.log(`📋 Migrando ${missingCount} registros faltantes de ${table}`)
           
-          // Buscar apenas registros mais recentes
-          const { data, error } = await supabase
+          // Buscar apenas registros mais recentes DO SUPABASE ANTIGO
+          const { data, error } = await oldSupabase
             .from(table as any)
             .select('*')
             .order('created_at', { ascending: false })

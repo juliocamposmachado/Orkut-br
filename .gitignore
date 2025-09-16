@@ -95,3 +95,8 @@ postimage-api/temp-uploads/
 postimage-api/node_modules/
 postimage-api/.env
 postimage-api/.env.local
+
+# Banco de dados e repositórios embarcados
+Banco/Orkut-br/
+Banco/Paste-Database/
+*.git/

@@ -359,6 +359,43 @@ export class OrkutPasteDBAdapter {
     return this.profiles;
   }
 
+  async createProfile(profileData: any): Promise<boolean> {
+    try {
+      // Verificar se perfil já existe
+      const existingProfile = this.profiles.find(p => p.id === profileData.id);
+      if (existingProfile) {
+        console.log(`⚠️ Perfil ${profileData.id} já existe - pulando`);
+        return true; // Considerar como sucesso para não interromper migração
+      }
+
+      // Mapear dados do Supabase para formato PasteDB
+      const newProfile: OrkutProfile = {
+        id: profileData.id,
+        username: profileData.username,
+        display_name: profileData.display_name,
+        photo_url: profileData.photo_url || '',
+        email: profileData.email || `${profileData.username}@orkut.com`,
+        relationship: profileData.relationship || 'Não informado',
+        location: profileData.location || 'Não informado',
+        bio: profileData.bio || '',
+        fans_count: profileData.fans_count || 0,
+        posts_count: 0, // Será atualizado conforme posts são criados
+        birthday: profileData.birthday || null,
+        created_at: profileData.created_at || new Date().toISOString(),
+        updated_at: profileData.updated_at || new Date().toISOString()
+      };
+
+      this.profiles.push(newProfile);
+      this.cache.delete('all_profiles'); // Limpar cache
+      
+      console.log(`✅ Perfil ${newProfile.display_name} (@${newProfile.username}) criado no PasteDB`);
+      return true;
+    } catch (error) {
+      console.error(`❌ Erro ao criar perfil:`, error);
+      return false;
+    }
+  }
+
   async updateProfile(userId: string, profileData: Partial<OrkutProfile>): Promise<boolean> {
     try {
       // Encontrar perfil e atualizar

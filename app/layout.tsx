@@ -1,3 +1,7 @@
+// Forçar renderização dinâmica para todo o app
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 import './globals.css';
 import './globals-responsive.css';
 import type { Metadata } from 'next';

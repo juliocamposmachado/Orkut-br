@@ -33,16 +33,25 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {
-    // During build time, return safe defaults instead of throwing
-    if (typeof window === 'undefined') {
+    // Durante build time ou renderização no servidor, retornar defaults seguros
+    if (typeof window === 'undefined' || process.env.NODE_ENV === 'production') {
+      console.warn('[useAuth] Contexto não disponível durante build/SSR, usando defaults')
       return {
         user: null,
         profile: null,
         loading: false,
-        signIn: async () => {},
-        signUp: async () => {},
-        signOut: async () => {},
-        updateProfile: async () => {}
+        signIn: async () => {
+          throw new Error('Auth não disponível durante renderização servidor')
+        },
+        signUp: async () => {
+          throw new Error('Auth não disponível durante renderização servidor')
+        },
+        signOut: async () => {
+          throw new Error('Auth não disponível durante renderização servidor')
+        },
+        updateProfile: async () => {
+          throw new Error('Auth não disponível durante renderização servidor')
+        }
       }
     }
     throw new Error('useAuth must be used within an AuthProvider')

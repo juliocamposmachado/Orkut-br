@@ -18,7 +18,9 @@ const nextConfig = {
     // Enable server actions
     serverActions: true,
     // Configure server actions body size limit (Next.js 14+)
-    serverActionsBodySizeLimit: '10mb'
+    serverActionsBodySizeLimit: '10mb',
+    // Disable static optimization for auth-dependent pages
+    forceSwcTransforms: true
   },
   webpack: (config, { isServer, webpack }) => {
     // Fix potential browser API issues on server

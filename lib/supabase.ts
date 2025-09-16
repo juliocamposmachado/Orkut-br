@@ -1,11 +1,158 @@
 import { createClient } from '@supabase/supabase-js'
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { getOrkutDB, type OrkutPasteDBAdapter } from './orkut-pastedb-adapter'
 
-// Configurar Supabase apenas se as variáveis estiverem disponíveis
+// Configuração do sistema de banco de dados
+const USE_PASTEDB = process.env.NEXT_PUBLIC_USE_PASTEDB === 'true' || true // Por padrão, usar PasteDB
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
 
-// Cliente mock para quando Supabase não está configurado
+// 🚀 ADAPTADOR PASTEDB - Cliente revolucionário que intercepta calls do Supabase
+const createPasteDBClient = (): SupabaseClient => {
+  const orkutDB = getOrkutDB()
+  
+  // Interceptar e redirecionar operações para PasteDB
+  const createMockChain = (tableName: string) => ({
+    select: (columns?: string, options?: any) => ({
+      ...createMockChain(tableName),
+      eq: (column: string, value: any) => ({
+        ...createMockChain(tableName),
+        single: async () => {
+          try {
+            if (tableName === 'profiles') {
+              const profile = await orkutDB.getProfile(value)
+              return { data: profile, error: null }
+            }
+            if (tableName === 'posts' && column === 'id') {
+              const post = await orkutDB.getPost(value)
+              return { data: post, error: null }
+            }
+            return { data: null, error: null }
+          } catch (error) {
+            return { data: null, error: { message: 'PasteDB error: ' + error } }
+          }
+        },
+        limit: (count: number) => ({
+          ...createMockChain(tableName),
+          then: async (callback: Function) => {
+            try {
+              let data = []
+              if (tableName === 'posts') {
+                data = await orkutDB.getFeedPosts(count)
+              } else if (tableName === 'communities') {
+                data = await orkutDB.getCommunities(count)
+              }
+              callback({ data, error: null })
+            } catch (error) {
+              callback({ data: [], error: { message: 'PasteDB error: ' + error } })
+            }
+          }
+        })
+      }),
+      order: (column: string, options?: any) => createMockChain(tableName),
+      range: (from: number, to: number) => createMockChain(tableName),
+      limit: (count: number) => ({
+        ...createMockChain(tableName),
+        then: async (callback: Function) => {
+          try {
+            let data = []
+            if (tableName === 'posts') {
+              data = await orkutDB.getFeedPosts(count)
+            } else if (tableName === 'communities') {
+              data = await orkutDB.getCommunities(count)
+            }
+            callback({ data, error: null })
+          } catch (error) {
+            callback({ data: [], error: { message: 'PasteDB error: ' + error } })
+          }
+        }
+      })
+    }),
+    insert: (values: any) => ({
+      ...createMockChain(tableName),
+      select: () => ({
+        ...createMockChain(tableName),
+        single: async () => {
+          try {
+            let result = null
+            if (tableName === 'profiles') {
+              const success = await orkutDB.createProfile(values)
+              result = success ? values : null
+            } else if (tableName === 'posts') {
+              result = await orkutDB.createPost(values)
+            }
+            return { data: result, error: result ? null : { message: 'Insert failed' } }
+          } catch (error) {
+            return { data: null, error: { message: 'PasteDB insert error: ' + error } }
+          }
+        }
+      })
+    }),
+    update: (values: any) => ({
+      ...createMockChain(tableName),
+      eq: (column: string, value: any) => ({
+        ...createMockChain(tableName),
+        then: async (callback: Function) => {
+          try {
+            let success = false
+            if (tableName === 'profiles') {
+              success = await orkutDB.updateProfile(value, values)
+            }
+            callback({ data: success ? [values] : [], error: success ? null : { message: 'Update failed' } })
+          } catch (error) {
+            callback({ data: [], error: { message: 'PasteDB update error: ' + error } })
+          }
+        }
+      })
+    }),
+    delete: () => createMockChain(tableName),
+    upsert: (values: any) => createMockChain(tableName),
+    then: async (callback: Function) => {
+      // Fallback para operações gerais
+      try {
+        let data = []
+        if (tableName === 'posts') {
+          data = await orkutDB.getFeedPosts(20)
+        } else if (tableName === 'communities') {
+          data = await orkutDB.getCommunities(50)
+        }
+        callback({ data, error: null })
+      } catch (error) {
+        callback({ data: [], error: { message: 'PasteDB error: ' + error } })
+      }
+    }
+  })
+  
+  return {
+    from: (tableName: string) => createMockChain(tableName),
+    auth: {
+      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: null }),
+      signInWithOAuth: () => Promise.resolve({ data: { user: null, session: null }, error: null }),
+      signUp: () => Promise.resolve({ data: { user: null, session: null }, error: null }),
+      signOut: () => Promise.resolve({ error: null }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+      getUser: () => Promise.resolve({ data: { user: null }, error: null })
+    },
+    storage: {
+      from: () => ({
+        upload: () => Promise.resolve({ data: null, error: { message: 'Storage not implemented in PasteDB' } }),
+        getPublicUrl: () => ({ data: { publicUrl: '' } }),
+        download: () => Promise.resolve({ data: null, error: { message: 'Storage not implemented in PasteDB' } }),
+        remove: () => Promise.resolve({ data: null, error: null })
+      })
+    },
+    channel: () => ({
+      on: () => ({}),
+      subscribe: () => ({}),
+      unsubscribe: () => ({})
+    }),
+    removeChannel: () => {},
+    rpc: () => Promise.resolve({ data: null, error: { message: 'RPC not implemented in PasteDB' } })
+  } as any
+}
+
+// Cliente mock original para fallback
 const createMockClient = (): SupabaseClient => {
   const mockFunction = () => Promise.resolve({ data: null, error: { message: 'Supabase não configurado' } })
   const mockSuccessFunction = () => Promise.resolve({ data: [], error: null })
@@ -57,8 +204,15 @@ const createMockClient = (): SupabaseClient => {
   } as any
 }
 
-// Só criar cliente se as variáveis estiverem configuradas corretamente
+// 🚀 SISTEMA REVOLUCIONÁRIO: Criar cliente baseado na configuração
 const createSupabaseClient = (): SupabaseClient => {
+  // Se PasteDB estiver habilitado, usar o adaptador revolucionário
+  if (USE_PASTEDB) {
+    console.log('🚀 Usando PasteDB como backend principal!')
+    return createPasteDBClient()
+  }
+  
+  // Fallback para Supabase tradicional
   if (!supabaseUrl || !supabaseAnonKey || 
       supabaseUrl.includes('placeholder') || 
       supabaseUrl.includes('your_') ||
@@ -81,6 +235,37 @@ const createSupabaseClient = (): SupabaseClient => {
 }
 
 export const supabase = createSupabaseClient()
+
+// Exportar também o adaptador PasteDB para uso direto
+export const pasteDB = USE_PASTEDB ? getOrkutDB() : null
+
+// Função para alternar entre backends
+export const switchToSupabase = () => {
+  console.log('🔄 Alternando para backend Supabase...')
+  // TODO: Implementar troca dinâmica de backend
+}
+
+export const switchToPasteDB = () => {
+  console.log('🚀 Alternando para backend PasteDB...')
+  // TODO: Implementar troca dinâmica de backend
+}
+
+// Função para verificar qual backend está ativo
+export const getActiveBackend = () => {
+  return USE_PASTEDB ? 'PasteDB' : 'Supabase'
+}
+
+// Função para inicializar sistema (chamada na inicialização da app)
+export const initializeDatabase = async () => {
+  if (USE_PASTEDB && pasteDB) {
+    try {
+      await pasteDB.initialize()
+      console.log('✅ PasteDB inicializado com sucesso!')
+    } catch (error) {
+      console.error('❌ Erro ao inicializar PasteDB:', error)
+    }
+  }
+}
 
 export type Database = {
   public: {

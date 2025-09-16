@@ -156,7 +156,7 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Orkut 2025" />
+        <meta name="apple-mobile-web-app-title" content="Orkut BR" />
         
         {/* Developer and Company Info */}
         <meta name="author" content="Julio Campos Machado" />

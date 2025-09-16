@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/local-auth-context'
+import { useAuth } from '@/contexts/auth-context'
 import { Eye, EyeOff, User, Mail, Lock, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -121,14 +121,18 @@ const CadastroPage: React.FC = () => {
       const uniqueUsername = await generateUniqueUsername(formData.name);
       console.log('Username gerado:', uniqueUsername);
 
-      // Usa o contexto de auth para criar usuário (ele vai usar o trigger automático)
+      // Usa o contexto de auth para criar usuário com Supabase
       await signUp(formData.email, formData.password, {
         username: uniqueUsername,
         displayName: formData.name
       });
 
-      // Redireciona para o perfil do usuário criado
-      router.push(`/perfil/${uniqueUsername}`);
+      // Mostra mensagem de sucesso e redireciona
+      setError(null);
+      
+      // Supabase pode enviar email de confirmação dependendo da configuração
+      // Por enquanto, vamos redirecionar para a página inicial
+      router.push('/');
 
     } catch (error: any) {
       console.error('Erro no cadastro:', error);

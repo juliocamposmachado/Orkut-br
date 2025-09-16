@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useAuth } from '@/contexts/enhanced-auth-context'
+import { useAuth } from '@/contexts/local-auth-context';
 import { EmailVerificationBanner } from '@/components/auth/email-verification-banner'
 import { Navbar } from '@/components/layout/navbar'
 import { OrkyAssistant } from '@/components/voice/orky-assistant'

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { useAuth } from '@/contexts/enhanced-auth-context'
+import { useAuth } from '@/contexts/local-auth-context'
 import { Button } from '@/components/ui/button'
 import { OrkutCard, OrkutCardContent, OrkutCardHeader } from '@/components/ui/orkut-card'
 import { Badge } from '@/components/ui/badge'

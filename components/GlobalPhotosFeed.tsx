@@ -3,7 +3,7 @@
 import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useAuth } from '@/contexts/enhanced-auth-context'
+import { useAuth } from '@/contexts/local-auth-context'
 import { 
   Heart,
   MessageCircle, 

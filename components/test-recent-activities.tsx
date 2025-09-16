@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useAuth } from '@/contexts/enhanced-auth-context'
+import { useAuth } from '@/contexts/local-auth-context'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { RecentActivities } from '@/components/profile/recent-activities'

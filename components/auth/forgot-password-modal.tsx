@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
-import { useAuth } from '@/contexts/enhanced-auth-context'
+import { useAuth } from '@/contexts/local-auth-context'
 import { Mail, ArrowLeft } from 'lucide-react'
 import { toast } from 'sonner'
 

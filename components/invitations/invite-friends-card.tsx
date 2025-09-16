@@ -19,7 +19,7 @@ import {
   Heart,
   Users
 } from 'lucide-react'
-import { useAuth } from '@/contexts/enhanced-auth-context'
+import { useAuth } from '@/contexts/local-auth-context'
 import { toast } from 'sonner'
 
 interface InviteFriendsCardProps {

@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { useAuth } from '@/contexts/enhanced-auth-context';
+import { useAuth } from '@/contexts/local-auth-context';
 
 interface Subscription {
   id: string;

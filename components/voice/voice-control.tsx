@@ -17,7 +17,7 @@ import {
 } from 'lucide-react'
 import { useMediaPermissions } from '@/hooks/use-media-permissions'
 import { useVoice } from '@/contexts/voice-context'
-import { useAuth } from '@/contexts/enhanced-auth-context'
+import { useAuth } from '@/contexts/local-auth-context'
 
 interface VoiceControlProps {
   onVoiceEnabled?: (enabled: boolean) => void

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useWebRTC } from '@/contexts/webrtc-context'
-import { useAuth } from '@/contexts/enhanced-auth-context'
+import { useAuth } from '@/contexts/local-auth-context'
 import { useMediaPermissions } from '@/hooks/use-media-permissions-check'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'

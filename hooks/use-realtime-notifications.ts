@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useCallback, useRef } from 'react'
-import { useAuth } from '@/contexts/enhanced-auth-context'
+import { useAuth } from '@/contexts/local-auth-context'
 import { supabase } from '@/lib/supabase'
 import { notificationService } from '@/lib/notification-service'
 import { useNotificationSettings } from '@/hooks/use-notification-settings'

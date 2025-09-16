@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/enhanced-auth-context';
+import { useAuth } from '@/contexts/local-auth-context';
 import { OrkutCard, OrkutCardContent, OrkutCardHeader } from '@/components/ui/orkut-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

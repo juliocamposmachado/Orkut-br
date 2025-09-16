@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { MessageCircle, Heart, Star, Share2, Globe, Users, Flag } from "lucide-react"
-import { useAuth } from '@/contexts/enhanced-auth-context'
+import { useAuth } from '@/contexts/local-auth-context'
 import { toast } from 'sonner'
 import { soundManager } from '@/utils/soundManager'
 import ReportModal from '@/components/ReportModal'

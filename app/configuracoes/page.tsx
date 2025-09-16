@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/enhanced-auth-context'
+import { useAuth } from '@/contexts/local-auth-context'
 import { EditProfileForm } from '@/components/EditProfileForm';
 import { NotificationSettings } from '@/components/notifications/notification-settings';
 import { WhatsAppConfig } from '@/components/profile/whatsapp-config';

@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/contexts/enhanced-auth-context'
+import { useAuth } from '@/contexts/local-auth-context';
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
 import { OrkutCard, OrkutCardContent, OrkutCardHeader } from '@/components/ui/orkut-card';

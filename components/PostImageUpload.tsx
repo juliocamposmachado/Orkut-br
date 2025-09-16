@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { ImageUpload } from './ImageUpload'
-import { useAuth } from '@/contexts/enhanced-auth-context'
+import { useAuth } from '@/contexts/local-auth-context'
 
 interface PostImageUploadProps {
   onImageSelect?: (imageUrl: string) => void

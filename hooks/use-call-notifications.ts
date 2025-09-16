@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { useAuth } from '@/contexts/enhanced-auth-context'
+import { useAuth } from '@/contexts/local-auth-context'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { WebRTCManager, type WebRTCCallConfig } from '@/lib/webrtc-manager'

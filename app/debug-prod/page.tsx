@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useAuth } from '@/contexts/enhanced-auth-context'
+import { useAuth } from '@/contexts/local-auth-context'
 
 export default function DebugProdPage() {
   const { user, profile, loading } = useAuth()
@@ -43,7 +43,7 @@ export default function DebugProdPage() {
   const testGoogleLogin = async () => {
     try {
       console.log('🔍 Testando Google Login...')
-      const { signInWithGoogle } = await import('@/contexts/enhanced-auth-context')
+      const { signInWithGoogle } = await import('@/contexts/local-auth-context')
       // This won't work directly, but will show in console
       console.log('Google login function available:', typeof signInWithGoogle)
     } catch (error) {

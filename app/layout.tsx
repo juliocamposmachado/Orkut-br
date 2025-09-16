@@ -2,7 +2,7 @@ import './globals.css';
 import './globals-responsive.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { AuthProvider } from '@/contexts/enhanced-auth-context';
+import { AuthProvider } from '@/contexts/local-auth-context';
 import { VoiceProvider } from '@/contexts/voice-context';
 import { OnlineStatusProvider } from '@/contexts/OnlineStatusContext';
 import { WebRTCProvider } from '@/contexts/webrtc-context';

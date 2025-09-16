@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/contexts/enhanced-auth-context';
+import { useAuth } from '@/contexts/local-auth-context';
 import { useSubscription } from '@/hooks/use-subscription';
 import { toast } from 'sonner';
 import { Eye, EyeOff, ChevronDown, ChevronUp, BarChart3 } from 'lucide-react';

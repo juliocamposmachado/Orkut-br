@@ -2,8 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/contexts/enhanced-auth-context'
+import { useAuth } from '@/contexts/local-auth-context'
 import { Eye, EyeOff, User, Mail, Lock, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -23,46 +22,9 @@ const generateUsername = (name: string): string => {
   return `${cleanName}${randomSuffix}`;
 };
 
-// Função para verificar se username já existe
-const checkUsernameExists = async (username: string): Promise<boolean> => {
-  try {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('username')
-      .eq('username', username)
-      .limit(1);
-
-    if (error) {
-      console.error('Erro ao verificar username:', error);
-      return false;
-    }
-
-    return data && data.length > 0;
-  } catch (error) {
-    console.error('Erro ao verificar username:', error);
-    return false;
-  }
-};
-
-// Função para gerar username único garantido
-const generateUniqueUsername = async (name: string): Promise<string> => {
-  let attempts = 0;
-  const maxAttempts = 10;
-
-  while (attempts < maxAttempts) {
-    const username = generateUsername(name);
-    const exists = await checkUsernameExists(username);
-    
-    if (!exists) {
-      return username;
-    }
-    
-    attempts++;
-  }
-
-  // Se não conseguir gerar único, usa timestamp
-  const fallbackUsername = `user${Date.now()}`;
-  return fallbackUsername;
+// No sistema local, o backend verificará a unicidade do username
+const generateUniqueUsername = (name: string): string => {
+  return generateUsername(name);
 };
 
 const CadastroPage: React.FC = () => {

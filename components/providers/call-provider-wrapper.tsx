@@ -1,6 +1,6 @@
 "use client"
 
-import { useAuth } from '@/contexts/enhanced-auth-context'
+import { useAuth } from '@/contexts/local-auth-context'
 import { CallProvider } from '@/contexts/CallContext'
 import { ReactNode } from 'react'
 

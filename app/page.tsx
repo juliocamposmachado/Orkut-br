@@ -101,6 +101,20 @@ export default function HomePage() {
   const [gmailUsers, setGmailUsers] = useState<any[]>([])
   const [gmailUsersStats, setGmailUsersStats] = useState({ online: 0, total: 0 })
   const [loadingGmailUsers, setLoadingGmailUsers] = useState(true)
+  const [processingOAuth, setProcessingOAuth] = useState(false)
+
+  // useEffect para processar OAuth code
+  useEffect(() => {
+    const code = searchParams?.get('code')
+    if (code && !user && !processingOAuth) {
+      console.log('🔄 [OAUTH] Code encontrado na home page, processando...', { code: code.substring(0, 10) + '...' })
+      setProcessingOAuth(true)
+      
+      // Redirecionar para o callback real com o code
+      window.location.href = `/auth/callback?code=${code}`
+      return
+    }
+  }, [searchParams, user, processingOAuth])
 
   useEffect(() => {
     console.log('🏠 [HOME PAGE] Estado atual:', {
@@ -109,6 +123,7 @@ export default function HomePage() {
       hasProfile: !!profile,
       userEmail: user?.email,
       profileUsername: profile?.username,
+      processingOAuth,
       timestamp: new Date().toISOString()
     })
     

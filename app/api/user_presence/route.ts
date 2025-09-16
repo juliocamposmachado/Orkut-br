@@ -50,13 +50,13 @@ export async function POST(request: NextRequest) {
     
     // Verificar se o usuário está autenticado via token do header
     const authHeader = request.headers.get('authorization')
-    let user = null
+    let user: any = null
     
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.replace('Bearer ', '')
       const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(token)
       if (!authError && authUser) {
-        user = authUser
+        user = authUser || null
       }
     }
     
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     if (!user) {
       const { data: { user: sessionUser }, error: sessionError } = await supabase.auth.getUser()
       if (!sessionError && sessionUser) {
-        user = sessionUser
+        user = sessionUser || null
       }
     }
     

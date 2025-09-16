@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verificar autenticação via token
-    let user = null
+  let user: any = null
     
     if (body.user_token) {
       console.log('🔐 [Save Album] Verificando autenticação...')
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
         }, { status: 401 })
       }
       
-      user = authenticatedUser
+      user = authenticatedUser || null
       console.log('✅ [Save Album] Usuário autenticado:', user.email)
     } else {
       return NextResponse.json({

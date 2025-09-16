@@ -94,48 +94,57 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [])
 
   const initSupabaseAuth = async () => {
+    console.log('🚀 [AUTH] Iniciando inicialização do Supabase auth...')
     try {
       // Get initial session
       const { data: { session }, error } = await supabase.auth.getSession()
       
+      console.log('📋 [AUTH] Sessão inicial obtida:', { session: !!session, error: !!error })
+      
       if (error) {
-        console.error('Error getting session:', error)
+        console.error('❌ [AUTH] Erro ao obter sessão inicial:', error)
+        setLoading(false)
         return
       }
 
+      // Se há sessão, processar usuário
       if (session?.user) {
+        console.log('✅ [AUTH] Usuário encontrado na sessão inicial, processando...')
         await handleSupabaseUser(session.user)
+      } else {
+        console.log('ℹ️ [AUTH] Nenhum usuário na sessão inicial')
+        setUser(null)
+        setProfile(null)
       }
 
       // Listen for auth changes
       const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-        console.log('Auth state changed:', event)
+        console.log('🔄 [AUTH] Estado de autenticação mudou:', event, { session: !!session })
         
-        if (event === 'INITIAL_SESSION') {
-          // Para sessão inicial, aguardar processamento completo antes de marcar como não-loading
-          if (session?.user) {
-            await handleSupabaseUser(session.user)
-            setLoading(false)
-          } else {
-            setUser(null)
-            setProfile(null)
-            setLoading(false)
-          }
-        } else if (session?.user) {
-          // Para outros eventos, processar normalmente
+        if (event === 'SIGNED_IN' && session?.user) {
+          console.log('✅ [AUTH] Usuário fez login, processando...')
           await handleSupabaseUser(session.user)
-        } else {
+        } else if (event === 'SIGNED_OUT') {
+          console.log('🚪 [AUTH] Usuário fez logout')
           setUser(null)
           setProfile(null)
+        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+          console.log('🔄 [AUTH] Token refreshado, atualizando usuário')
+          await handleSupabaseUser(session.user)
         }
       })
 
-      return () => subscription.unsubscribe()
+      console.log('✅ [AUTH] Inicialização concluída, definindo loading como false')
+      setLoading(false)
+      
+      return () => {
+        console.log('🧹 [AUTH] Limpando subscription')
+        subscription.unsubscribe()
+      }
     } catch (error) {
-      console.error('Error initializing Supabase auth:', error)
+      console.error('❌ [AUTH] Erro na inicialização do Supabase auth:', error)
+      console.log('🔄 [AUTH] Tentando modo fallback...')
       await initFallbackAuth()
-    } finally {
-      setTimeout(() => setLoading(false), 1000)
     }
   }
 
@@ -172,7 +181,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       if (data) {
         // Tentar várias fontes para a foto do Google
-        let googlePhoto = null
+        let googlePhoto: string | null = null
         
         // Verificar múltiplas fontes de foto
         const photoSources = [
@@ -537,7 +546,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     
     try {
       // Tentar obter foto do Google para salvar no banco na criação
-      let googlePhoto = null
+      let googlePhoto: string | null = null
       
       // Verificar múltiplas fontes de foto do Google
       const photoSources = [

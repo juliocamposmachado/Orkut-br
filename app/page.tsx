@@ -103,17 +103,28 @@ export default function HomePage() {
   const [loadingGmailUsers, setLoadingGmailUsers] = useState(true)
 
   useEffect(() => {
+    console.log('🏠 [HOME PAGE] Estado atual:', {
+      loading,
+      hasUser: !!user,
+      hasProfile: !!profile,
+      userEmail: user?.email,
+      profileUsername: profile?.username
+    })
+    
     // Aguardar o loading completo antes de redirecionar
     if (loading) {
+      console.log('⏳ [HOME PAGE] Ainda carregando, aguardando...')
       return // Não fazer nada enquanto carregando
     }
     
     // Só redirecionar para login se realmente não tiver usuário após loading
     if (!user) {
+      console.log('🔄 [HOME PAGE] Usuário não encontrado após loading, redirecionando para login')
       router.push('/login')
       return
     }
 
+    console.log('✅ [HOME PAGE] Usuário encontrado, carregando conteúdo')
     // Se tem usuário, carregar conteúdo
     if (user) {
       loadFeed()
@@ -382,17 +393,41 @@ export default function HomePage() {
   }
 
   if (loading) {
+    console.log('⏳ [HOME PAGE] Mostrando tela de loading')
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
           <p className="text-purple-600">Carregando...</p>
+          <p className="text-sm text-purple-400 mt-2">Verificando autenticação...</p>
         </div>
       </div>
     )
   }
 
-  if (!user || !profile) return null
+  // Se não está carregando e não tem usuário, não renderizar nada (o useEffect vai redirecionar)
+  if (!user) {
+    console.log('❌ [HOME PAGE] Sem usuário, aguardando redirecionamento...')
+    return null
+  }
+  
+  // Se tem usuário mas não tem perfil, mostrar erro
+  if (!profile) {
+    console.log('⚠️ [HOME PAGE] Usuário sem perfil')
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-purple-600 mb-4">Erro ao carregar perfil</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
+          >
+            Tentar novamente
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
@@ -612,8 +647,7 @@ export default function HomePage() {
             {/* MOBILE: Cards adicionais */}
             <div className="lg:hidden space-y-4">
               <OnlineFriends 
-                onOpenMessage={() => router.push('/mensagens')} 
-                onStartAudioCall={(user) => startAudioCall(user)}
+                onOpenMessage={() => router.push('/mensagens')}
               />
               
               <CommunityNotifications className="shadow-sm" />
@@ -624,8 +658,7 @@ export default function HomePage() {
           <div className="space-y-4 lg:space-y-6 lg:sticky lg:top-4 order-3">
             {/* 1. Amigos Online */}
             <OnlineFriends 
-              onOpenMessage={() => router.push('/mensagens')} 
-              onStartAudioCall={(user) => startAudioCall(user)}
+              onOpenMessage={() => router.push('/mensagens')}
             />
 
             {/* 2. Central de Chamadas */}

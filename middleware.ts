@@ -8,6 +8,22 @@ export async function middleware(request: NextRequest) {
     // IMPORTANTE: Não interferir nas rotas de autenticação OAuth
     
     const pathname = request.nextUrl.pathname
+    const isProduction = process.env.VERCEL_ENV === 'production' || process.env.NODE_ENV === 'production'
+    
+    // Em produção, ser ainda mais permissivo com rotas de autenticação
+    if (isProduction) {
+      // Em produção, permitir passagem de TODAS as rotas de auth sem processamento
+      if (pathname.startsWith('/auth') || 
+          pathname.startsWith('/api/auth') ||
+          pathname.includes('supabase') ||
+          pathname.includes('oauth') ||
+          pathname.includes('callback') ||
+          pathname === '/login' ||
+          pathname === '/') {
+        console.log('🚀 [PROD] Permitindo passagem livre da rota:', pathname)
+        return NextResponse.next()
+      }
+    }
     
     // Verificar se é uma rota de callback de autenticação - NUNCA interceptar essas rotas
     if (pathname.startsWith('/auth/callback') || 
@@ -40,10 +56,10 @@ export async function middleware(request: NextRequest) {
     if (useSupabaseForAuth) {
       try {
         const { data: { user: authUser } } = await supabase.auth.getUser()
-        user = authUser
+        user = authUser || null
         
         if (user) {
-          console.log('✅ [AUTH] Usuário autenticado:', user.email)
+          console.log('✅ [AUTH] Usuário autenticado:', (user as any)?.email)
         }
       } catch (authError) {
         console.warn('⚠️ [AUTH] Erro ao verificar usuário:', authError)

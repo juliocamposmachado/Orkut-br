@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/contexts/local-auth-context';
+import { createClient } from '@/utils/supabase/client'
 import { useSubscription } from '@/hooks/use-subscription';
 import { toast } from 'sonner';
 import { Eye, EyeOff, ChevronDown, ChevronUp, BarChart3, Database, Shield } from 'lucide-react';
@@ -38,9 +38,21 @@ export default function LoginPage() {
   // Estados para UI
   const [showMoreInfo, setShowMoreInfo] = useState(false)
   
-  const { signIn } = useAuth()
+  // Cliente do Supabase
+  const supabase = createClient()
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  // Verificar se usuário já está logado
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        router.push('/')
+      }
+    }
+    checkUser()
+  }, [supabase, router])
 
 
 
@@ -54,13 +66,45 @@ export default function LoginPage() {
     router.push('/dashboard/project/orkut')
   }
 
+  // Função para login com Google OAuth (Supabase)
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true)
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent'
+          }
+        }
+      })
+      
+      if (error) throw error
+      
+      toast.success('🎉 Redirecionando para o Google...')
+    } catch (error: any) {
+      toast.error(error.message || 'Erro ao conectar com Google')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Função para login tradicional com email/senha (Supabase)
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email || !password) return
 
     setIsLoading(true)
     try {
-      await signIn(email, password)
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
+      
+      if (error) throw error
+      
       toast.success('Login realizado com sucesso!')
       router.push('/')
     } catch (error: any) {
@@ -68,6 +112,11 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  // Função para cadastro (Supabase)
+  const handleSignUp = async () => {
+    router.push('/cadastro')
   }
 
   return (
@@ -199,6 +248,28 @@ export default function LoginPage() {
                     {isLoading ? 'Entrando...' : 'Entrar'}
                   </Button>
                 </form>
+                
+                {/* Divisor */}
+                <div className="flex items-center space-x-4 my-4">
+                  <hr className="flex-1 border-gray-300" />
+                  <span className="text-gray-500 text-xs font-medium">ou continue com</span>
+                  <hr className="flex-1 border-gray-300" />
+                </div>
+                
+                {/* Botão Google OAuth */}
+                <Button
+                  onClick={handleGoogleSignIn}
+                  disabled={isLoading}
+                  variant="outline"
+                  className="w-full border-2 border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 py-3 font-medium"
+                >
+                  <div className="flex items-center justify-center gap-3">
+                    <div className="w-5 h-5 bg-gradient-to-r from-blue-500 via-red-500 to-yellow-500 rounded-sm flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">G</span>
+                    </div>
+                    <span>{isLoading ? 'Conectando...' : 'Entrar com Google'}</span>
+                  </div>
+                </Button>
               </TabsContent>
 
               <TabsContent value="signup" className="space-y-4 mt-4">

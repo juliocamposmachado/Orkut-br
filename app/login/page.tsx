@@ -99,9 +99,9 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
     try {
-      // Determine redirect URL based on environment
-      const redirectTo = process.env.NODE_ENV === 'development'
-        ? 'http://localhost:3000/auth/callback'
+      // Determine redirect URL - sempre usar o callback correto
+      const redirectTo = typeof window !== 'undefined'
+        ? `${window.location.origin}/auth/callback`
         : 'https://orkut-br-oficial.vercel.app/auth/callback'
         
       console.log('🔄 Iniciando Google OAuth com redirectTo:', redirectTo)

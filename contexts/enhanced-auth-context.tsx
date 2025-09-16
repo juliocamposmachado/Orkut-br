@@ -428,9 +428,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
       }
       
-      // Fallback: verificar NODE_ENV
+      // Fallback: usar origem atual mesmo em desenvolvimento
       if (process.env.NODE_ENV === 'development') {
-        const callbackUrl = 'http://localhost:3000/auth/callback'
+        const callbackUrl = `${window.location.origin}/auth/callback`
         console.log('🔍 [DEBUG] NODE_ENV development, usando callback:', callbackUrl)
         return callbackUrl
       }

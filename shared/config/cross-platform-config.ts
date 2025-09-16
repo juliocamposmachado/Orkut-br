@@ -166,8 +166,8 @@ export const redirectUrls = {
     logout: 'orkut:///',
   },
   desktop: {
-    login: 'http://localhost:3000/auth/callback',
-    logout: 'http://localhost:3000/',
+    login: `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/auth/callback`,
+    logout: `${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/`,
   },
 };
 

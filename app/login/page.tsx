@@ -43,15 +43,44 @@ export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  // Verificar se usuário já está logado
+  // Verificar se usuário já está logado e handle auth state changes
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        router.push('/')
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (user) {
+          console.log('✅ Usuário já logado, redirecionando:', user.email)
+          router.push('/')
+          return
+        }
+      } catch (error) {
+        console.error('❌ Erro ao verificar usuário:', error)
       }
     }
+    
+    // Check immediately
     checkUser()
+    
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('🔄 Auth state changed:', event, session?.user?.email)
+        
+        if (event === 'SIGNED_IN' && session?.user) {
+          console.log('✅ Usuário logado via OAuth, redirecionando...')
+          // Small delay to ensure session is properly set
+          setTimeout(() => {
+            router.push('/')
+          }, 500)
+        } else if (event === 'SIGNED_OUT') {
+          console.log('👋 Usuário deslogado')
+        }
+      }
+    )
+    
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [supabase, router])
 
 
@@ -70,21 +99,32 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
     try {
+      // Determine redirect URL based on environment
+      const redirectTo = process.env.NODE_ENV === 'development'
+        ? 'http://localhost:3000/auth/callback'
+        : 'https://orkut-br-oficial.vercel.app/auth/callback'
+        
+      console.log('🔄 Iniciando Google OAuth com redirectTo:', redirectTo)
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo,
           queryParams: {
             access_type: 'offline',
-            prompt: 'consent'
+            prompt: 'select_account'
           }
         }
       })
       
-      if (error) throw error
+      if (error) {
+        console.error('❌ Erro no OAuth:', error)
+        throw error
+      }
       
       toast.success('🎉 Redirecionando para o Google...')
     } catch (error: any) {
+      console.error('❌ Erro no Google Sign In:', error)
       toast.error(error.message || 'Erro ao conectar com Google')
     } finally {
       setIsLoading(false)

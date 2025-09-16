@@ -126,6 +126,23 @@ export default function HomePage() {
         userEmail: user?.email
       })
       
+      // Se tem usuário mas não tem perfil, mostrar erro específico
+      if (user && !profile) {
+        console.log('⚠️ [HOME PAGE] Usuário sem perfil, tentando criar...')
+        toast.error('Erro ao carregar perfil. Redirecionando...', {
+          description: 'Seu perfil será criado automaticamente.'
+        })
+        
+        // Tentar criar perfil via contexto (que já tem lógica para isso)
+        // Se ainda não funcionar, redirecionar para uma página de setup
+        setTimeout(() => {
+          if (!profile) {
+            router.push('/setup-profile')
+          }
+        }, 2000)
+        return
+      }
+      
       // Só redirecionar para login se realmente não tiver usuário
       if (!user) {
         console.log('🔄 [HOME PAGE] Nenhum usuário encontrado, redirecionando para login')

@@ -213,21 +213,23 @@ const createMockClient = (): SupabaseClient => {
 
 // 🚀 SISTEMA HÍBRIDO: Supabase para Auth + PasteDB para Dados
 const createSupabaseClient = (): SupabaseClient => {
+  // PRIMEIRO: Verificar se Supabase está configurado corretamente
+  if (!supabaseUrl || !supabaseAnonKey || 
+      supabaseUrl.includes('placeholder') || 
+      supabaseUrl.includes('your_') ||
+      !supabaseUrl.startsWith('https://')) {
+    console.warn('⚠️ Supabase não configurado - usando cliente mock')
+    return createMockClient()
+  }
+  
   // Se PasteDB estiver habilitado para dados, usar o adaptador híbrido
   if (USE_PASTEDB_FOR_DATA && USE_SUPABASE_FOR_AUTH) {
     console.log('🚀 Usando sistema híbrido: Supabase Auth + PasteDB Dados!')
     return createPasteDBClient()
   }
   
-  // Fallback para Supabase tradicional
-  if (!supabaseUrl || !supabaseAnonKey || 
-      supabaseUrl.includes('placeholder') || 
-      supabaseUrl.includes('your_') ||
-      !supabaseUrl.startsWith('https://')) {
-    console.warn('Supabase não configurado - usando cliente mock')
-    return createMockClient()
-  }
-  
+  // Fallback para Supabase tradicional (100% Supabase)
+  console.log('🔵 Usando Supabase tradicional completo!')
   return createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: true,

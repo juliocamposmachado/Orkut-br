@@ -4,55 +4,75 @@ import { pasteDBMiddleware } from './middleware/pastedb-migration'
 
 export async function middleware(request: NextRequest) {
   try {
-    // 🚀 SISTEMA REVOLUCIONÁRIO: Verificar se PasteDB está habilitado
-    const usePasteDB = process.env.NEXT_PUBLIC_USE_PASTEDB === 'true' || true
+    // 🔐 SISTEMA HÍBRIDO: Supabase Auth + PasteDB Data
+    // IMPORTANTE: Não interferir nas rotas de autenticação OAuth
     
-    if (usePasteDB) {
-      // Interceptar operações de banco de dados primeiro
+    const pathname = request.nextUrl.pathname
+    
+    // Verificar se é uma rota de callback de autenticação - NUNCA interceptar essas rotas
+    if (pathname.startsWith('/auth/callback') || 
+        pathname.startsWith('/api/auth') ||
+        pathname.includes('supabase') ||
+        pathname.includes('oauth') ||
+        pathname.includes('callback')) {
+      console.log('🔐 [AUTH] Permitindo passagem de rota de autenticação:', pathname)
+      return NextResponse.next()
+    }
+
+    // Verificar se PasteDB está habilitado apenas para DADOS (não para auth)
+    const usePasteDBForData = process.env.NEXT_PUBLIC_USE_PASTEDB_FOR_DATA === 'true'
+    const useSupabaseForAuth = process.env.NEXT_PUBLIC_USE_SUPABASE_FOR_AUTH === 'true' || true
+    
+    // Se usar PasteDB apenas para dados, ainda processar PasteDB middleware para APIs
+    if (usePasteDBForData && pathname.startsWith('/api/') && !pathname.startsWith('/api/auth')) {
       const pasteDBResponse = await pasteDBMiddleware(request)
       if (pasteDBResponse.status !== 200 || pasteDBResponse.headers.get('x-pastedb-handled')) {
-        console.log('🚀 Request processado pelo PasteDB middleware')
+        console.log('🚀 [DATA] Request processado pelo PasteDB middleware para:', pathname)
         return pasteDBResponse
       }
     }
 
-    // Continuar com autenticação tradicional para outras rotas
+    // SEMPRE processar autenticação com Supabase (sistema híbrido)
     const { supabase, response } = createClient(request)
 
-    // Refresh session se necessário (se não estiver usando PasteDB para auth)
+    // Verificar sessão do usuário
     let user = null
-    if (!usePasteDB) {
-      const { data: { user: authUser } } = await supabase.auth.getUser()
-      user = authUser
+    if (useSupabaseForAuth) {
+      try {
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+        user = authUser
+        
+        if (user) {
+          console.log('✅ [AUTH] Usuário autenticado:', user.email)
+        }
+      } catch (authError) {
+        console.warn('⚠️ [AUTH] Erro ao verificar usuário:', authError)
+      }
     }
 
-    // Se não houver usuário e a rota precisar de autenticação, redirecionar para login
+    // Rotas protegidas que exigem autenticação
     const protectedPaths = ['/dashboard', '/profile', '/messages', '/communities/create']
-    const isProtectedPath = protectedPaths.some(path => request.nextUrl.pathname.startsWith(path))
+    const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path))
     
-    if (isProtectedPath && !user && !usePasteDB) {
+    // Se rota protegida e usuário não autenticado, redirecionar para login
+    if (isProtectedPath && !user && useSupabaseForAuth) {
+      console.log('🚫 [AUTH] Rota protegida sem autenticação, redirecionando para login:', pathname)
       return NextResponse.redirect(new URL('/login', request.url))
     }
 
-    // Se o usuário estiver logado e tentar acessar a página de login, redirecionar para home
-    if (user && request.nextUrl.pathname === '/login' && !usePasteDB) {
+    // Se usuário autenticado tentar acessar login, redirecionar para home
+    if (user && pathname === '/login' && useSupabaseForAuth) {
+      console.log('✅ [AUTH] Usuário já autenticado tentando acessar login, redirecionando para home')
       return NextResponse.redirect(new URL('/', request.url))
     }
 
-    // Para PasteDB, permitir acesso livre (sistema descentralizado)
-    if (usePasteDB) {
-      console.log('🚀 PasteDB ativo - permitindo acesso livre')      
-      return NextResponse.next({
-        request: {
-          headers: request.headers,
-        },
-      })
-    }
-
+    // Para sistema híbrido, permitir acesso a rotas não protegidas
+    console.log('✅ [HYBRID] Permitindo acesso a:', pathname)
     return response
+    
   } catch (e) {
     // Se houver erro na autenticação, deixar passar (não bloquear o site)
-    console.warn('Middleware error:', e)
+    console.warn('⚠️ [MIDDLEWARE] Erro no middleware:', e)
     return NextResponse.next({
       request: {
         headers: request.headers,

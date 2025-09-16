@@ -2,7 +2,8 @@ import './globals.css';
 import './globals-responsive.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { AuthProvider } from '@/contexts/local-auth-context';
+import { AuthProvider } from '@/contexts/auth-context';
+import { PasteDBAuthProvider } from '@/contexts/pastedb-auth-context';
 import { VoiceProvider } from '@/contexts/voice-context';
 import { OnlineStatusProvider } from '@/contexts/OnlineStatusContext';
 import { WebRTCProvider } from '@/contexts/webrtc-context';
@@ -171,28 +172,30 @@ export default function RootLayout({
         <StructuredData />
         <EdgeCompatibility />
         <ThemeProvider>
-          <AuthProvider>
-            <NotificationProvider>
-              <RadioProvider>
-                <OnlineStatusProvider>
-                  <WebRTCProvider>
-                    <VoiceProvider>
-                      <CallProviderWrapper>
-                        <FriendsProvider>
-                          {children}
-                          {/* Sistema de chamadas - notificações, modais e controles */}
-                          <CallManager />
-                          {/* WebRTC diagnostics moved to developer dashboard */}
-                          {/* <EventListenerMonitor /> */}
-                          <Toaster />
-                        </FriendsProvider>
-                      </CallProviderWrapper>
-                    </VoiceProvider>
-                  </WebRTCProvider>
-                </OnlineStatusProvider>
-              </RadioProvider>
-            </NotificationProvider>
-          </AuthProvider>
+          <PasteDBAuthProvider>
+            <AuthProvider>
+              <NotificationProvider>
+                <RadioProvider>
+                  <OnlineStatusProvider>
+                    <WebRTCProvider>
+                      <VoiceProvider>
+                        <CallProviderWrapper>
+                          <FriendsProvider>
+                            {children}
+                            {/* Sistema de chamadas - notificações, modais e controles */}
+                            <CallManager />
+                            {/* WebRTC diagnostics moved to developer dashboard */}
+                            {/* <EventListenerMonitor /> */}
+                            <Toaster />
+                          </FriendsProvider>
+                        </CallProviderWrapper>
+                      </VoiceProvider>
+                    </WebRTCProvider>
+                  </OnlineStatusProvider>
+                </RadioProvider>
+              </NotificationProvider>
+            </AuthProvider>
+          </PasteDBAuthProvider>
         </ThemeProvider>
         {/* Overlay de pausa por inatividade */}
         <IdleOverlay timeout={1800000} />

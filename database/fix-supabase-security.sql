@@ -84,31 +84,39 @@ CREATE POLICY "Users can update their own conversations" ON public.conversations
 
 -- =========================================================================
 
--- Tabela: call_signals
-ALTER TABLE public.call_signals ENABLE ROW LEVEL SECURITY;
+-- =========================================================================
+-- VERIFICAR ESTRUTURA DA TABELA call_signals ANTES DE CONTINUAR
+-- Execute este comando primeiro para ver as colunas disponíveis:
+-- \d+ public.call_signals;
+-- OU
+-- SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'call_signals';
+-- =========================================================================
 
--- Política para call_signals - usuários podem ver sinais de chamadas onde estão envolvidos
+-- Tabela: call_signals (DESCOMENTE E AJUSTE APÓS VERIFICAR ESTRUTURA)
+-- ALTER TABLE public.call_signals ENABLE ROW LEVEL SECURITY;
+
+-- EXEMPLO de políticas (AJUSTE as colunas conforme sua estrutura real):
+-- Se as colunas são 'caller' e 'callee' (como na tabela calls):
+/*
 CREATE POLICY "Users can view call signals where they are involved" ON public.call_signals
     FOR SELECT USING (
-        caller_id = auth.uid() OR receiver_id = auth.uid()
+        caller = auth.uid() OR callee = auth.uid()
     );
 
--- Política para call_signals - usuários podem criar sinais de chamada onde são o caller
 CREATE POLICY "Users can create call signals as caller" ON public.call_signals
-    FOR INSERT WITH CHECK (caller_id = auth.uid());
+    FOR INSERT WITH CHECK (caller = auth.uid());
 
--- Política para call_signals - usuários podem atualizar sinais onde estão envolvidos
 CREATE POLICY "Users can update call signals where they are involved" ON public.call_signals
     FOR UPDATE USING (
-        caller_id = auth.uid() OR receiver_id = auth.uid()
+        caller = auth.uid() OR callee = auth.uid()
     )
     WITH CHECK (
-        caller_id = auth.uid() OR receiver_id = auth.uid()
+        caller = auth.uid() OR callee = auth.uid()
     );
 
--- Política para call_signals - usuários podem deletar seus próprios sinais
 CREATE POLICY "Users can delete their own call signals" ON public.call_signals
-    FOR DELETE USING (caller_id = auth.uid());
+    FOR DELETE USING (caller = auth.uid());
+*/
 
 -- =========================================================================
 

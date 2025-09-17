@@ -415,19 +415,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Mostrar toast indicando que está verificando
     toast.info('🔍 Verificando se você já tem conta...')
     
-    // Determinar a URL de redirect correta para o callback do Supabase
     const getRedirectUrl = () => {
-      // Verificar se estamos no browser e usar window.location
-      if (typeof window !== 'undefined') {
-        const currentUrl = window.location.origin
-        // Se estiver em localhost, sempre usar localhost
-        if (currentUrl.includes('localhost')) {
-          const callbackUrl = `${currentUrl}/auth/callback`
-          console.log('🔍 [DEBUG] Detectado localhost, usando callback:', callbackUrl)
-          return callbackUrl
-        }
-      }
-      
       // Fallback: usar origem atual mesmo em desenvolvimento
       if (process.env.NODE_ENV === 'development') {
         const callbackUrl = `${window.location.origin}/auth/callback`

@@ -14,66 +14,68 @@ const createPasteDBClient = (): SupabaseClient => {
   const orkutDB = getOrkutDB()
   
   // Interceptar e redirecionar operações para PasteDB
-  const createMockChain = (tableName: string) => ({
-    select: (columns?: string, options?: any) => ({
-      ...createMockChain(tableName),
-      eq: (column: string, value: any) => ({
-        ...createMockChain(tableName),
-        single: async () => {
-          try {
-            if (tableName === 'profiles') {
-              const profile = await orkutDB.getProfile(value)
-              return { data: profile, error: null }
-            }
-            if (tableName === 'posts' && column === 'id') {
-              const post = await orkutDB.getPost(value)
-              return { data: post, error: null }
-            }
-            return { data: null, error: null }
-          } catch (error) {
-            return { data: null, error: { message: 'PasteDB error: ' + error } }
-          }
-        },
-        limit: (count: number) => ({
-          ...createMockChain(tableName),
-          then: async (callback: Function) => {
+  const createMockChain = (tableName: string, chainData: any = {}) => {
+    const executeQuery = async () => {
+      try {
+        let data = []
+        if (tableName === 'posts') {
+          data = await orkutDB.getFeedPosts(chainData.limit || 20)
+        } else if (tableName === 'communities') {
+          data = await orkutDB.getCommunities(chainData.limit || 50)
+        } else if (tableName === 'profiles') {
+          // Para profiles, retornar array vazio se não há query específica
+          data = []
+        }
+        return { data, error: null }
+      } catch (error) {
+        return { data: [], error: { message: `PasteDB error: ${error}` } }
+      }
+    }
+
+    return {
+      select: (columns?: string, options?: any) => createMockChain(tableName, { ...chainData, columns }),
+      eq: (column: string, value: any) => {
+        const newChain = createMockChain(tableName, { ...chainData, eq: { column, value } })
+        return {
+          ...newChain,
+          single: async () => {
             try {
-              let data = []
-              if (tableName === 'posts') {
-                data = await orkutDB.getFeedPosts(count)
-              } else if (tableName === 'communities') {
-                data = await orkutDB.getCommunities(count)
+              if (tableName === 'profiles') {
+                const profile = await orkutDB.getProfile(value)
+                return { data: profile, error: null }
               }
-              callback({ data, error: null })
+              if (tableName === 'posts' && column === 'id') {
+                const post = await orkutDB.getPost(value)
+                return { data: post, error: null }
+              }
+              return { data: null, error: null }
             } catch (error) {
-              callback({ data: [], error: { message: 'PasteDB error: ' + error } })
+              return { data: null, error: { message: `PasteDB error: ${error}` } }
             }
-          }
-        })
-      }),
-      order: (column: string, options?: any) => createMockChain(tableName),
-      range: (from: number, to: number) => createMockChain(tableName),
-      limit: (count: number) => ({
-        ...createMockChain(tableName),
-        then: async (callback: Function) => {
-          try {
-            let data = []
-            if (tableName === 'posts') {
-              data = await orkutDB.getFeedPosts(count)
-            } else if (tableName === 'communities') {
-              data = await orkutDB.getCommunities(count)
-            }
-            callback({ data, error: null })
-          } catch (error) {
-            callback({ data: [], error: { message: 'PasteDB error: ' + error } })
           }
         }
-      })
-    }),
+      },
+      order: (column: string, options?: any) => createMockChain(tableName, { ...chainData, order: { column, options } }),
+      range: (from: number, to: number) => createMockChain(tableName, { ...chainData, range: { from, to } }),
+      limit: (count: number) => createMockChain(tableName, { ...chainData, limit: count }),
+      like: (column: string, pattern: string) => createMockChain(tableName, { ...chainData, like: { column, pattern } }),
+      in: (column: string, values: any[]) => createMockChain(tableName, { ...chainData, in: { column, values } }),
+      then: async (callback: Function) => {
+        const result = await executeQuery()
+        if (callback) callback(result)
+        return result
+      },
+      // Fazer com que seja awaitable
+      catch: (callback: Function) => {
+        return executeQuery().catch(callback)
+      }
+    }
+  }
+  
+  return {
+    from: (tableName: string) => createMockChain(tableName),
     insert: (values: any) => ({
-      ...createMockChain(tableName),
       select: () => ({
-        ...createMockChain(tableName),
         single: async () => {
           try {
             let result = null
@@ -85,15 +87,13 @@ const createPasteDBClient = (): SupabaseClient => {
             }
             return { data: result, error: result ? null : { message: 'Insert failed' } }
           } catch (error) {
-            return { data: null, error: { message: 'PasteDB insert error: ' + error } }
+            return { data: null, error: { message: `PasteDB insert error: ${error}` } }
           }
         }
       })
     }),
     update: (values: any) => ({
-      ...createMockChain(tableName),
       eq: (column: string, value: any) => ({
-        ...createMockChain(tableName),
         then: async (callback: Function) => {
           try {
             let success = false
@@ -102,28 +102,14 @@ const createPasteDBClient = (): SupabaseClient => {
             }
             callback({ data: success ? [values] : [], error: success ? null : { message: 'Update failed' } })
           } catch (error) {
-            callback({ data: [], error: { message: 'PasteDB update error: ' + error } })
+            callback({ data: [], error: { message: `PasteDB update error: ${error}` } })
           }
         }
       })
     }),
     delete: () => createMockChain(tableName),
-    upsert: (values: any) => createMockChain(tableName),
-    then: async (callback: Function) => {
-      // Fallback para operações gerais
-      try {
-        let data = []
-        if (tableName === 'posts') {
-          data = await orkutDB.getFeedPosts(20)
-        } else if (tableName === 'communities') {
-          data = await orkutDB.getCommunities(50)
-        }
-        callback({ data, error: null })
-      } catch (error) {
-        callback({ data: [], error: { message: 'PasteDB error: ' + error } })
-      }
-    }
-  })
+    upsert: (values: any) => createMockChain(tableName)
+  }
   
   // Criar cliente Supabase real para autenticação
   const realSupabaseClient = (supabaseUrl && supabaseAnonKey) ? 

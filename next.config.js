@@ -44,9 +44,8 @@ const nextConfig = {
     return config;
   },
   env: {
-    NEXT_PUBLIC_SOCKET_URL: process.env.NODE_ENV === 'production' 
-      ? 'https://orkut-br-oficial.vercel.app' 
-      : 'http://localhost:3000',
+    // Sempre usar URL de produção para evitar problemas de OAuth
+    NEXT_PUBLIC_SOCKET_URL: process.env.NEXT_PUBLIC_SITE_URL || 'https://orkut-br-oficial.vercel.app',
     NEXT_PUBLIC_GEMINI_API_KEY: process.env.NEXT_PUBLIC_GEMINI_API_KEY,
   },
   async headers() {

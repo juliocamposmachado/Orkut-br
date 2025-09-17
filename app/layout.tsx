@@ -29,13 +29,9 @@ import '@/lib/polyfills';
 
 const inter = Inter({ subsets: ['latin'] });
 
-// Função para determinar a URL base dinamicamente
+// Função para determinar a URL base dinamicamente - sempre produção para OAuth
 const getBaseUrl = () => {
-  // Em desenvolvimento, usar localhost
-  if (process.env.NODE_ENV === 'development') {
-    return 'http://localhost:3000'
-  }
-  // Em produção, usar a URL configurada ou padrão
+  // Sempre usar a URL de produção para evitar problemas de OAuth
   return process.env.NEXT_PUBLIC_SITE_URL || 'https://orkut-br-oficial.vercel.app'
 }
 

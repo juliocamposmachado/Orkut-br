@@ -31,10 +31,8 @@ export async function GET(request: Request) {
       allParams: Object.fromEntries(url.searchParams.entries())
     })
     
-    // Definir origem baseada no ambiente
-    const origin = process.env.NODE_ENV === 'development' 
-      ? 'http://localhost:3000'
-      : (process.env.NEXT_PUBLIC_SITE_URL || 'https://orkut-br-oficial.vercel.app')
+    // Definir origem sempre como produção para OAuth funcionar
+    const origin = process.env.NEXT_PUBLIC_SITE_URL || 'https://orkut-br-oficial.vercel.app'
       
     console.log('🏠 [CALLBACK] Origin URL:', origin)
 
@@ -97,10 +95,8 @@ export async function GET(request: Request) {
     console.error('❌ [CALLBACK] Erro inesperado no callback:', error)
     console.error('❌ [CALLBACK] Stack trace:', (error as Error).stack)
     
-    // Definir origem para fallback
-    const origin = process.env.NODE_ENV === 'development' 
-      ? 'http://localhost:3000'
-      : (process.env.NEXT_PUBLIC_SITE_URL || 'https://orkut-br-oficial.vercel.app')
+    // Definir origem para fallback - sempre produção
+    const origin = process.env.NEXT_PUBLIC_SITE_URL || 'https://orkut-br-oficial.vercel.app'
       
     return NextResponse.redirect(`${origin}/login?error=callback_exception&details=${encodeURIComponent((error as Error).message)}`)
   }

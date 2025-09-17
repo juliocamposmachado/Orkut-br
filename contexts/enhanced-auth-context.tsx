@@ -416,18 +416,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     toast.info('🔍 Verificando se você já tem conta...')
     
     const getRedirectUrl = () => {
-      // Fallback: usar origem atual mesmo em desenvolvimento
-      if (process.env.NODE_ENV === 'development') {
-        const callbackUrl = `${window.location.origin}/auth/callback`
-        console.log('🔍 [DEBUG] NODE_ENV development, usando callback:', callbackUrl)
-        return callbackUrl
-      }
-      
-      // Em produção, usar a URL configurada nas variáveis de ambiente
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://orkut-br-oficial.vercel.app'
-      const baseUrl = siteUrl.endsWith('/') ? siteUrl.slice(0, -1) : siteUrl
-      const callbackUrl = `${baseUrl}/auth/callback`
-      console.log('🔍 [DEBUG] Usando callback de produção:', callbackUrl)
+      // Sempre usar a origem atual, independente do ambiente
+      const callbackUrl = `${window.location.origin}/auth/callback`
+      console.log('🔍 [DEBUG] Usando callback dinâmico:', callbackUrl)
       return callbackUrl
     }
     

@@ -30,21 +30,10 @@ export async function GET(request: NextRequest) {
       return new Response(html, { status: 400, headers: { 'Content-Type': 'text/html; charset=utf-8' } })
     }
 
-    // Use consistent redirect URI for production
-    const { headers } = request
-    const host = headers.get('host') || 'localhost:3000'
-    const isLocalhost = host.includes('localhost')
-    
-    let redirectUri
-    if (isLocalhost) {
-      redirectUri = `http://${host}/api/import-google-contacts/callback`
-    } else {
-      // Use the current production domain for consistent OAuth redirect
-      redirectUri = 'https://orkut-br-oficial.vercel.app/api/import-google-contacts/callback'
-    }
+    // Sempre usar redirect URI de produção para evitar erros de OAuth
+    const redirectUri = process.env.GOOGLE_REDIRECT_URI || 'https://orkut-br-oficial.vercel.app/api/import-google-contacts/callback'
     
     console.log('🔧 Callback OAuth:', {
-      host,
       redirectUri,
       code: !!code,
       error

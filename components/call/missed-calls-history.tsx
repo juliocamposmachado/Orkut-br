@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/contexts/auth-context'
-import { supabase } from '@/lib/supabase'
+import { getCallHistory, type CallHistoryData } from '@/lib/seed-call-history'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -11,20 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
-interface MissedCall {
-  id: string
-  created_at: string
-  payload: {
-    call_id: string
-    call_type: 'audio' | 'video'
-    from_user: {
-      id: string
-      username: string
-      display_name: string
-      photo_url?: string
-    }
-  }
-}
+interface MissedCall extends CallHistoryData {}
 
 export function MissedCallsHistory() {
   const { user } = useAuth()
@@ -55,30 +42,22 @@ export function MissedCallsHistory() {
     try {
       console.log('📋 Carregando histórico de chamadas perdidas...')
       
-      // Buscar notificações de chamada não lidas dos últimos 7 dias
-      const sevenDaysAgo = new Date()
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+      // Usar o sistema híbrido que faz fallback automático
+      const allCalls = await getCallHistory(user.id)
+      
+      // Filtrar apenas chamadas perdidas
+      const missedOnly = allCalls.filter(call => 
+        call.type === 'missed_call' || 
+        (call.payload.status === 'missed' && !call.read)
+      )
 
-      const { data: notifications, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('profile_id', user.id)
-        .eq('type', 'incoming_call')
-        .eq('read', true) // Chamadas que foram "perdidas" (marcadas como lidas automaticamente)
-        .gte('created_at', sevenDaysAgo.toISOString())
-        .order('created_at', { ascending: false })
-        .limit(10)
-
-      if (error) {
-        console.error('❌ Erro ao carregar histórico:', error)
-        return
-      }
-
-      console.log('✅ Histórico carregado:', notifications?.length || 0, 'chamadas')
-      setMissedCalls(notifications || [])
+      console.log('✅ Histórico carregado:', missedOnly.length, 'chamadas perdidas')
+      setMissedCalls(missedOnly)
 
     } catch (error) {
       console.error('❌ Erro geral ao carregar histórico:', error)
+      // Fallback para dados vazios
+      setMissedCalls([])
     }
   }
 
@@ -86,19 +65,11 @@ export function MissedCallsHistory() {
     if (!user) return
 
     try {
-      const { error } = await supabase
-        .from('notifications')
-        .delete()
-        .eq('profile_id', user.id)
-        .eq('type', 'incoming_call')
-
-      if (error) {
-        console.error('❌ Erro ao limpar histórico:', error)
-        return
-      }
-
+      // Limpar histórico local
       setMissedCalls([])
-      console.log('✅ Histórico limpo')
+      console.log('✅ Histórico limpo (modo simulado)')
+      
+      // TODO: Implementar limpeza real no backend quando necessário
     } catch (error) {
       console.error('❌ Erro ao limpar histórico:', error)
     }

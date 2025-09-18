@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js'
 
 // Usar as credenciais do .env.local
-const supabaseUrl = 'https://wjglxlnbizbqwpkvihsy.supabase.co'
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndqZ2x4bG5iaXpicXdwa3ZpaHN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc3MTk4NDUsImV4cCI6MjA3MzI5NTg0NX0.d3xjt__Qv88opoNyjE_kvo2OGIKxG5giP_uQOaUEphQ'
+const supabaseUrl = 'https://nhguhmiopdzuckaswvmu.supabase.co'
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oZ3VobWlvcGR6dWNrYXN3dm11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTgwNTI0MjMsImV4cCI6MjA3MzYyODQyM30.Bm2uXGjDLigc1DwzPyr-pqEgAj8i2LdU8su_S5-G0_s'
 
 const supabase = createClient(supabaseUrl, supabaseKey)
 

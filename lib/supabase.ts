@@ -302,25 +302,34 @@ const createMockClient = (): SupabaseClient => {
 }
 
 // 🚀 SISTEMA HÍBRIDO: Supabase para Auth + PasteDB para Dados
+let supabaseInstance: SupabaseClient | null = null
+
 const createSupabaseClient = (): SupabaseClient => {
+  // Retornar instância existente se já foi criada (evitar múltiplas instâncias)
+  if (supabaseInstance) {
+    return supabaseInstance
+  }
+  
   // PRIMEIRO: Verificar se Supabase está configurado corretamente
   if (!supabaseUrl || !supabaseAnonKey || 
       supabaseUrl.includes('placeholder') || 
       supabaseUrl.includes('your_') ||
       !supabaseUrl.startsWith('https://')) {
-    console.warn('⚠️ Supabase não configurado - usando cliente mock')
-    return createMockClient()
+    console.warn('⚠️ [SUPABASE] Não configurado - usando cliente mock')
+    supabaseInstance = createMockClient()
+    return supabaseInstance
   }
   
   // Se PasteDB estiver habilitado para dados, usar o adaptador híbrido
   if (USE_PASTEDB_FOR_DATA && USE_SUPABASE_FOR_AUTH) {
-    console.log('🚀 Usando sistema híbrido: Supabase Auth + PasteDB Dados!')
-    return createPasteDBClient()
+    console.log('🚀 [SUPABASE] Usando sistema híbrido: Supabase Auth + PasteDB Dados!')
+    supabaseInstance = createPasteDBClient()
+    return supabaseInstance
   }
   
   // Fallback para Supabase tradicional (100% Supabase)
-  console.log('🔵 Usando Supabase tradicional completo!')
-  return createClient(supabaseUrl, supabaseAnonKey, {
+  console.log('🔵 [SUPABASE] Usando Supabase tradicional completo!')
+  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
@@ -331,6 +340,7 @@ const createSupabaseClient = (): SupabaseClient => {
       },
     },
   })
+  return supabaseInstance
 }
 
 export const supabase = createSupabaseClient()

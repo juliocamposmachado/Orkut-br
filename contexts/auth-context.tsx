@@ -87,60 +87,99 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Safety timeout to prevent infinite loading
-    const safetyTimeout = setTimeout(() => {
-      console.warn('Safety timeout triggered - forcing loading to stop')
-      setLoading(false)
-      
-      // If we have a user but no profile, create a minimal one
-      if (user && !profile) {
-        setProfile({
-          id: user.id,
-          username: `user_${user.id.slice(-8)}`,
-          display_name: 'Usuário',
-          created_at: new Date().toISOString(),
-          photo_url: null,
-          bio: null,
-          location: null,
-          birthday: null,
-          relationship: null,
-          fans_count: 0
-        })
-      }
-    }, 10000) // 10 seconds timeout
-
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      if (session?.user) {
-        loadProfile(session.user.id)
-      } else {
-        setLoading(false)
-        clearTimeout(safetyTimeout)
-      }
-    }).catch((error) => {
-      console.error('Error getting session:', error)
-      setLoading(false)
-      clearTimeout(safetyTimeout)
-    })
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setUser(session?.user ?? null)
-        if (session?.user) {
-          await loadProfile(session.user.id)
+    let mounted = true
+    
+    // Para simplificar e evitar erros, vamos assumir usuário deslogado por padrão
+    const initializeAuth = async () => {
+      try {
+        console.log('🔑 [AUTH] Inicializando sistema de autenticação...')
+        
+        // Tentar obter sessão atual
+        const { data: { session }, error } = await supabase.auth.getSession()
+        
+        if (error) {
+          console.warn('⚠️ [AUTH] Erro ao obter sessão, assumindo deslogado:', error.message)
+          if (mounted) {
+            setUser(null)
+            setProfile(null)
+            setLoading(false)
+          }
+          return
+        }
+        
+        if (session?.user && mounted) {
+          console.log('✅ [AUTH] Usuário encontrado:', session.user.email)
+          setUser(session.user)
+          // Criar perfil mínimo imediatamente
+          setProfile({
+            id: session.user.id,
+            username: session.user.email?.split('@')[0] || `user_${session.user.id.slice(-8)}`,
+            display_name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Usuário',
+            created_at: new Date().toISOString(),
+            photo_url: session.user.user_metadata?.avatar_url || null,
+            bio: null,
+            location: null,
+            birthday: null,
+            relationship: null,
+            fans_count: 0
+          })
         } else {
+          console.log('😴 [AUTH] Nenhum usuário logado')
+          if (mounted) {
+            setUser(null)
+            setProfile(null)
+          }
+        }
+        
+        if (mounted) {
+          setLoading(false)
+        }
+        
+      } catch (error) {
+        console.error('❌ [AUTH] Erro na inicialização:', error)
+        if (mounted) {
+          setUser(null)
           setProfile(null)
           setLoading(false)
         }
-        clearTimeout(safetyTimeout)
+      }
+    }
+    
+    // Inicializar imediatamente
+    initializeAuth()
+    
+    // Listener para mudanças de autenticação (simplificado)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!mounted) return
+        
+        console.log('🔄 [AUTH] Mudança de estado:', event)
+        
+        if (session?.user) {
+          setUser(session.user)
+          setProfile({
+            id: session.user.id,
+            username: session.user.email?.split('@')[0] || `user_${session.user.id.slice(-8)}`,
+            display_name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Usuário',
+            created_at: new Date().toISOString(),
+            photo_url: session.user.user_metadata?.avatar_url || null,
+            bio: null,
+            location: null,
+            birthday: null,
+            relationship: null,
+            fans_count: 0
+          })
+        } else {
+          setUser(null)
+          setProfile(null)
+        }
+        setLoading(false)
       }
     )
 
     return () => {
+      mounted = false
       subscription.unsubscribe()
-      clearTimeout(safetyTimeout)
     }
   }, [])
 

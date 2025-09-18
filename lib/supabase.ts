@@ -31,10 +31,12 @@ const createPasteDBClient = (): SupabaseClient => {
           data = []
           count = 0
         } else if (tableName === 'notifications') {
-          // Importar dinamicamente para evitar circular imports
-          const { getMockCallHistory } = await import('./seed-call-history')
-          data = getMockCallHistory(chainData.eq?.value || 'user_001')
-          count = data.length
+          // TODO: PAUSADO TEMPORARIAMENTE - Reativar quando estabilizado
+          // const { getMockCallHistory } = await import('./seed-call-history')
+          // data = getMockCallHistory(chainData.eq?.value || 'user_001')
+          console.log('📞 [PAUSADO] Sistema de notifications temporariamente desabilitado')
+          data = []
+          count = 0
         } else if (tableName === 'post_reports') {
           // Mock de dados de relatórios para página de transparência
           data = []

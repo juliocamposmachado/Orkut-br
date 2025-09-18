@@ -40,23 +40,22 @@ export function MissedCallsHistory() {
     if (!user) return
 
     try {
-      console.log('📋 Carregando histórico de chamadas perdidas...')
+      console.log('📋 [PAUSADO] Histórico de chamadas temporáriamente desabilitado')
       
-      // Usar o sistema híbrido que faz fallback automático
-      const allCalls = await getCallHistory(user.id)
+      // TODO: Reativar quando sistema estiver estabilizado
+      // const allCalls = await getCallHistory(user.id)
+      // const missedOnly = allCalls.filter(call => 
+      //   call.type === 'missed_call' || 
+      //   (call.payload.status === 'missed' && !call.read)
+      // )
+      // setMissedCalls(missedOnly)
       
-      // Filtrar apenas chamadas perdidas
-      const missedOnly = allCalls.filter(call => 
-        call.type === 'missed_call' || 
-        (call.payload.status === 'missed' && !call.read)
-      )
-
-      console.log('✅ Histórico carregado:', missedOnly.length, 'chamadas perdidas')
-      setMissedCalls(missedOnly)
+      // Por enquanto, manter vazio para evitar erros
+      setMissedCalls([])
+      console.log('✅ Histórico pausado com sucesso (0 chamadas)')
 
     } catch (error) {
-      console.error('❌ Erro geral ao carregar histórico:', error)
-      // Fallback para dados vazios
+      console.error('❌ Erro ao pausar histórico:', error)
       setMissedCalls([])
     }
   }

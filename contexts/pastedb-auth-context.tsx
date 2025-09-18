@@ -51,7 +51,48 @@ const PasteDBAuthContext = createContext<AuthContextType | undefined>(undefined)
 export function usePasteDBAuth() {
   const context = useContext(PasteDBAuthContext)
   if (context === undefined) {
-    throw new Error('usePasteDBAuth must be used within a PasteDBAuthProvider')
+    // Durante build time ou renderização no servidor, retornar defaults seguros
+    if (typeof window === 'undefined') {
+      console.warn('[usePasteDBAuth] Contexto não disponível durante SSR, usando defaults')
+      return {
+        user: null,
+        profile: null,
+        loading: false,
+        signIn: async () => {
+          throw new Error('PasteDB Auth não disponível durante renderização servidor')
+        },
+        signUp: async () => {
+          throw new Error('PasteDB Auth não disponível durante renderização servidor')
+        },
+        signOut: async () => {
+          throw new Error('PasteDB Auth não disponível durante renderização servidor')
+        },
+        updateProfile: async () => {
+          throw new Error('PasteDB Auth não disponível durante renderização servidor')
+        },
+        isAdmin: () => false
+      }
+    }
+    console.error('[usePasteDBAuth] Contexto não disponível - verifique se o componente está dentro de um PasteDBAuthProvider')
+    // Retornar defaults seguros também no cliente se o provider não estiver configurado
+    return {
+      user: null,
+      profile: null,
+      loading: false,
+      signIn: async () => {
+        throw new Error('PasteDB Auth Provider não configurado')
+      },
+      signUp: async () => {
+        throw new Error('PasteDB Auth Provider não configurado')
+      },
+      signOut: async () => {
+        throw new Error('PasteDB Auth Provider não configurado')
+      },
+      updateProfile: async () => {
+        throw new Error('PasteDB Auth Provider não configurado')
+      },
+      isAdmin: () => false
+    }
   }
   return context
 }
@@ -82,36 +123,50 @@ export function PasteDBAuthProvider({ children }: AuthProviderProps) {
     console.log('🚀 [PASTEDB AUTH] Inicializando autenticação PasteDB...')
     
     try {
-      const sessionToken = localStorage.getItem(SESSION_KEY)
+      let sessionToken: string | null = null
+      try {
+        sessionToken = localStorage.getItem(SESSION_KEY)
+      } catch (localStorageError) {
+        console.warn('Erro ao acessar localStorage:', localStorageError)
+      }
       
       if (sessionToken) {
         console.log('🔍 [PASTEDB AUTH] Token encontrado, validando sessão...')
         
         // Validar sessão no servidor
-        const response = await fetch(API_ENDPOINT, {
-          method: 'GET',
-          headers: {
-            'authorization': `Bearer ${sessionToken}`,
-            'content-type': 'application/json'
-          }
-        })
+        try {
+          const response = await fetch(API_ENDPOINT, {
+            method: 'GET',
+            headers: {
+              'authorization': `Bearer ${sessionToken}`,
+              'content-type': 'application/json'
+            }
+          })
         
-        if (response.ok) {
-          const data = await response.json()
-          if (data.success && data.user && data.profile) {
-            console.log('✅ [PASTEDB AUTH] Sessão válida, restaurando usuário:', data.profile.username)
-            setUser(data.user)
-            setProfile(data.profile)
-            
-            // Atualizar dados locais
-            localStorage.setItem(USER_KEY, JSON.stringify(data.user))
-            localStorage.setItem(PROFILE_KEY, JSON.stringify(data.profile))
+          if (response.ok) {
+            const data = await response.json()
+            if (data.success && data.user && data.profile) {
+              console.log('✅ [PASTEDB AUTH] Sessão válida, restaurando usuário:', data.profile.username)
+              setUser(data.user)
+              setProfile(data.profile)
+              
+              // Atualizar dados locais
+              try {
+                localStorage.setItem(USER_KEY, JSON.stringify(data.user))
+                localStorage.setItem(PROFILE_KEY, JSON.stringify(data.profile))
+              } catch (storageError) {
+                console.warn('Erro ao salvar dados no localStorage:', storageError)
+              }
+            } else {
+              console.log('❌ [PASTEDB AUTH] Sessão inválida, limpando dados')
+              clearAuthData()
+            }
           } else {
-            console.log('❌ [PASTEDB AUTH] Sessão inválida, limpando dados')
+            console.log('❌ [PASTEDB AUTH] Erro na validação da sessão')
             clearAuthData()
           }
-        } else {
-          console.log('❌ [PASTEDB AUTH] Erro na validação da sessão')
+        } catch (fetchError) {
+          console.warn('Erro na requisição de validação:', fetchError)
           clearAuthData()
         }
       } else {

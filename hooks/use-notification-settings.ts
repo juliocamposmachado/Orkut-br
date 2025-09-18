@@ -58,20 +58,21 @@ export function useNotificationSettings() {
       setIsLoading(true)
       
       // Primeiro tenta carregar do Supabase
-      const { data, error } = await supabase
-        .from('settings')
-        .select('*')
-        .eq('profile_id', user.id)
-        .single()
+      try {
+        const { data, error } = await supabase
+          .from('settings')
+          .select('*')
+          .eq('profile_id', user.id)
+          .single()
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
-        console.error('Error loading notification settings:', error)
-        // Fallback para localStorage
-        loadFromLocalStorage()
-        return
-      }
+        if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+          console.error('Error loading notification settings:', error)
+          // Fallback para localStorage
+          loadFromLocalStorage()
+          return
+        }
 
-      if (data) {
+        if (data) {
         // Converter os dados do Supabase para o formato esperado
         const notificationSettings: NotificationSettings = {
           likes: data.notifications_enabled ?? defaultSettings.likes,
@@ -98,7 +99,11 @@ export function useNotificationSettings() {
         } else {
           setSettings(notificationSettings)
         }
-      } else {
+        } else {
+          loadFromLocalStorage()
+        }
+      } catch (supabaseError) {
+        console.error('Error accessing Supabase:', supabaseError)
         loadFromLocalStorage()
       }
     } catch (error) {

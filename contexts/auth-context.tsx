@@ -34,8 +34,8 @@ export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {
     // Durante build time ou renderização no servidor, retornar defaults seguros
-    if (typeof window === 'undefined' || process.env.NODE_ENV === 'production') {
-      console.warn('[useAuth] Contexto não disponível durante build/SSR, usando defaults')
+    if (typeof window === 'undefined') {
+      console.warn('[useAuth] Contexto não disponível durante SSR, usando defaults')
       return {
         user: null,
         profile: null,
@@ -54,7 +54,25 @@ export function useAuth() {
         }
       }
     }
-    throw new Error('useAuth must be used within an AuthProvider')
+    console.error('[useAuth] Contexto não disponível - verifique se o componente está dentro de um AuthProvider')
+    // Retornar defaults seguros também no cliente se o provider não estiver configurado
+    return {
+      user: null,
+      profile: null,
+      loading: false,
+      signIn: async () => {
+        throw new Error('Auth Provider não configurado')
+      },
+      signUp: async () => {
+        throw new Error('Auth Provider não configurado')
+      },
+      signOut: async () => {
+        throw new Error('Auth Provider não configurado')
+      },
+      updateProfile: async () => {
+        throw new Error('Auth Provider não configurado')
+      }
+    }
   }
   return context
 }

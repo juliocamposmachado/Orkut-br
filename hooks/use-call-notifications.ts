@@ -98,18 +98,22 @@ export function useCallNotifications() {
       }
       
       // Marcar notificação como lida
-      const { data: { session } } = await supabase.auth.getSession()
-      await fetch('/api/call-notification', {
-        method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          ...(session?.access_token && { 'Authorization': `Bearer ${session.access_token}` })
-        },
-        body: JSON.stringify({
-          callId: callData.callId,
-          action: 'accept'
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        await fetch('/api/call-notification', {
+          method: 'PUT',
+          headers: { 
+            'Content-Type': 'application/json',
+            ...(session?.access_token && { 'Authorization': `Bearer ${session.access_token}` })
+          },
+          body: JSON.stringify({
+            callId: callData.callId,
+            action: 'accept'
+          })
         })
-      })
+      } catch (sessionError) {
+        console.warn('Erro ao obter sessão para marcar notificação:', sessionError)
+      }
       
       toast.success('Chamada aceita! Conectando...')
       
@@ -124,23 +128,28 @@ export function useCallNotifications() {
     
     try {
       // Enviar resposta de rejeição via API
-      const { data: { session } } = await supabase.auth.getSession()
-      const response = await fetch('/api/call-notification', {
-        method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          ...(session?.access_token && { 'Authorization': `Bearer ${session.access_token}` })
-        },
-        body: JSON.stringify({
-          callId,
-          action: 'reject'
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        const response = await fetch('/api/call-notification', {
+          method: 'PUT',
+          headers: { 
+            'Content-Type': 'application/json',
+            ...(session?.access_token && { 'Authorization': `Bearer ${session.access_token}` })
+          },
+          body: JSON.stringify({
+            callId,
+            action: 'reject'
+          })
         })
-      })
-
-      if (!response.ok) {
-        console.warn('Falha ao rejeitar chamada via API')
+        
+        if (!response.ok) {
+          console.warn('Falha ao rejeitar chamada via API')
+        }
+      } catch (sessionError) {
+        console.warn('Erro ao obter sessão para rejeitar chamada:', sessionError)
       }
 
+      
       setIncomingCall(null)
       setIsRinging(false)
       toast.info('Chamada rejeitada')
@@ -186,7 +195,8 @@ export function useCallNotifications() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.access_token) {
-        throw new Error('Não autenticado')
+        console.warn('Não autenticado para enviar sinal WebRTC')
+        return
       }
       
       const response = await fetch('/api/call-signaling', {
@@ -260,26 +270,31 @@ export function useCallNotifications() {
       }
       
       // Enviar notificação de chamada tradicional
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.access_token) {
-        throw new Error('Não autenticado')
-      }
-      
-      const response = await fetch('/api/call-notification', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify({
-          targetUserId,
-          callType,
-          offer
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session?.access_token) {
+          throw new Error('Não autenticado')
+        }
+        
+        const response = await fetch('/api/call-notification', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify({
+            targetUserId,
+            callType,
+            offer
+          })
         })
-      })
-      
-      if (!response.ok) {
-        throw new Error('Falha ao enviar notificação')
+        
+        if (!response.ok) {
+          throw new Error('Falha ao enviar notificação')
+        }
+      } catch (notificationError) {
+        console.warn('Erro ao enviar notificação de chamada:', notificationError)
+        // Continua mesmo com erro na notificação
       }
       
       setIsInCall(true)

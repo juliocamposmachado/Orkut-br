@@ -18,17 +18,40 @@ const createPasteDBClient = (): SupabaseClient => {
     const executeQuery = async () => {
       try {
         let data = []
+        let count = 0
+        
         if (tableName === 'posts') {
           data = await orkutDB.getFeedPosts(chainData.limit || 20)
+          count = data.length
         } else if (tableName === 'communities') {
           data = await orkutDB.getCommunities(chainData.limit || 50)
+          count = data.length
         } else if (tableName === 'profiles') {
           // Para profiles, retornar array vazio se não há query específica
           data = []
+          count = 0
+        } else if (tableName === 'post_reports') {
+          // Mock de dados de relatórios para página de transparência
+          data = []
+          count = 0
+        } else if (tableName === 'banned_users') {
+          // Mock de dados de usuários banidos para página de transparência
+          data = []
+          count = 0
+        } else {
+          // Para outras tabelas, retornar vazio
+          data = []
+          count = 0
         }
-        return { data, error: null }
+        
+        // Se options têm count: 'exact', retornar apenas count
+        if (chainData.columns && typeof chainData.columns === 'object' && chainData.columns.count === 'exact') {
+          return { data: null, error: null, count }
+        }
+        
+        return { data, error: null, count }
       } catch (error) {
-        return { data: [], error: { message: `PasteDB error: ${error}` } }
+        return { data: [], error: { message: `PasteDB error: ${error}` }, count: 0 }
       }
     }
 

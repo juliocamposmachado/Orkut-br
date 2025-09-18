@@ -11,8 +11,9 @@ import { NotificationSettings } from '@/components/notifications/notification-se
 import { WhatsAppConfig } from '@/components/profile/whatsapp-config';
 import { SocialConfig } from '@/components/profile/social-config';
 import { SoundSettings } from '@/components/profile/sound-settings';
-import { AppearanceCustomizer } from '@/components/ui/appearance-customizer';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
+// Temporarily disabled complex theme components
+// import { AppearanceCustomizer } from '@/components/ui/appearance-customizer';
+// import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { Settings, ArrowLeft, User, Bell, MessageSquare, Globe, Volume2, Palette } from 'lucide-react';
 import Link from 'next/link';
 
@@ -134,17 +135,18 @@ const ConfiguracoesPage: React.FC = () => {
                 <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
                   <div className="flex items-center justify-between mb-6">
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-800 mb-1">Seletor de Tema</h3>
-                      <p className="text-sm text-gray-600">Escolha o tema de cores do seu Orkut</p>
+                      <h3 className="text-lg font-semibold text-gray-800 mb-1">Tema Simplificado</h3>
+                      <p className="text-sm text-gray-600">Atualmente usando tema light padrão</p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <ThemeToggle />
+                      <div className="px-4 py-2 bg-gray-100 rounded-lg text-sm text-gray-600">
+                        Tema Light Ativo
+                      </div>
                     </div>
                   </div>
-                </div>
-                
-                <div className="bg-white rounded-xl shadow-lg">
-                  <AppearanceCustomizer className="p-6" />
+                  <p className="text-sm text-gray-500 mt-4">
+                    📝 Personalizações de tema foram temporariamente simplificadas para melhorar a estabilidade.
+                  </p>
                 </div>
               </div>
             )}

@@ -2,10 +2,10 @@ import { createClient } from '@supabase/supabase-js'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getOrkutDB, type OrkutPasteDBAdapter } from './orkut-pastedb-adapter'
 
-// Configuração do sistema de banco de dados
-// USANDO APENAS SUPABASE (sem PasteDB)
-const USE_PASTEDB_FOR_DATA = false // Desabilitado - usar apenas Supabase
-const USE_SUPABASE_FOR_AUTH = true  // Habilitado - usar Supabase para tudo
+// Configuração do sistema de banco de dados HÍBRIDO
+// USANDO SUPABASE (AUTH) + DPASTE (DADOS)
+const USE_PASTEDB_FOR_DATA = true  // ✅ Habilitado - usar DPaste.org para dados
+const USE_SUPABASE_FOR_AUTH = true // ✅ Habilitado - usar Supabase para autenticação
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
 

@@ -2,10 +2,10 @@
  * 🚀 ORKUT PASTEDB ADAPTER - Integração Next.js (Build Safe)
  * ========================================================= 
  * 
- * Adaptador para integrar o sistema PasteDatabase descentralizado
- * com o projeto Orkut em Next.js/TypeScript.
- * 
- * Versão atualizada que usa dados migrados e funciona no build.
+// Adaptador para integrar o DPaste.org como banco de dados descentralizado
+// com o projeto Orkut em Next.js/TypeScript.
+// 
+// Usa a API oficial do DPaste.org: https://dpaste.org/api/
  */
 
 // Tipos TypeScript para o Orkut

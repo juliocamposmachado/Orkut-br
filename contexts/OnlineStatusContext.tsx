@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/auth-context'
-// import { supabase } from '@/lib/supabase' // DESABILITADO temporariamente
+import { supabase } from '@/lib/supabase'
 
 interface OnlineUser {
   userId: string;
@@ -31,8 +31,13 @@ const updateUserPresence = async (
 ) => {
   try {
     // Usar nossa API REST confiável
-    const { data: { session } } = await supabase.auth.getSession();
-    const authToken = session?.access_token;
+    let authToken: string | null = null;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      authToken = session?.access_token || null;
+    } catch (sessionError) {
+      console.warn('Erro ao obter sessão:', sessionError);
+    }
     
     const response = await fetch('/api/user_presence', {
       method: 'POST',

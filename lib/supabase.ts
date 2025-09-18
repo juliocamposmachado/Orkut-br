@@ -72,26 +72,30 @@ const createPasteDBClient = (): SupabaseClient => {
     }
   }
   
-  return {
-    from: (tableName: string) => createMockChain(tableName),
-    insert: (values: any) => ({
-      select: () => ({
-        single: async () => {
-          try {
-            let result = null
-            if (tableName === 'profiles') {
-              const success = await orkutDB.createProfile(values)
-              result = success ? values : null
-            } else if (tableName === 'posts') {
-              result = await orkutDB.createPost(values)
-            }
-            return { data: result, error: result ? null : { message: 'Insert failed' } }
-          } catch (error) {
-            return { data: null, error: { message: `PasteDB insert error: ${error}` } }
+  // Wrapper de insert que pode chamar métodos do chain
+  const createInsertChain = (tableName: string, values: any) => ({
+    select: () => ({
+      single: async () => {
+        try {
+          let result = null
+          if (tableName === 'profiles') {
+            const success = await orkutDB.createProfile(values)
+            result = success ? values : null
+          } else if (tableName === 'posts') {
+            result = await orkutDB.createPost(values)
           }
+          return { data: result, error: result ? null : { message: 'Insert failed' } }
+        } catch (error) {
+          return { data: null, error: { message: `PasteDB insert error: ${error}` } }
         }
-      })
-    }),
+      }
+    })
+  })
+  
+  // Wrapper do from que inclui o insert
+  const createFromChain = (tableName: string) => ({
+    ...createMockChain(tableName),
+    insert: (values: any) => createInsertChain(tableName, values),
     update: (values: any) => ({
       eq: (column: string, value: any) => ({
         then: async (callback: Function) => {
@@ -109,24 +113,94 @@ const createPasteDBClient = (): SupabaseClient => {
     }),
     delete: () => createMockChain(tableName),
     upsert: (values: any) => createMockChain(tableName)
+  })
+  
+  // Criar cliente Supabase real para autenticação com verificações de segurança
+  let realSupabaseClient = null
+  try {
+    if (supabaseUrl && supabaseAnonKey && 
+        !supabaseUrl.includes('placeholder') && 
+        !supabaseUrl.includes('your_') &&
+        supabaseUrl.startsWith('https://')) {
+      realSupabaseClient = createClient(supabaseUrl, supabaseAnonKey)
+    }
+  } catch (error) {
+    console.warn('⚠️ Erro ao criar cliente Supabase:', error)
+    realSupabaseClient = null
   }
   
-  // Criar cliente Supabase real para autenticação
-  const realSupabaseClient = (supabaseUrl && supabaseAnonKey) ? 
-    createClient(supabaseUrl, supabaseAnonKey) : null
+  // Criar auth wrapper seguro
+  const safeAuth = realSupabaseClient ? {
+    getSession: async () => {
+      try {
+        return await realSupabaseClient.auth.getSession()
+      } catch (error) {
+        console.warn('⚠️ Erro ao obter sessão:', error)
+        return { data: { session: null }, error: null }
+      }
+    },
+    signInWithPassword: async (credentials: any) => {
+      try {
+        return await realSupabaseClient.auth.signInWithPassword(credentials)
+      } catch (error) {
+        console.warn('⚠️ Erro no signIn:', error)
+        return { data: { user: null, session: null }, error: { message: 'Erro de autenticação' } }
+      }
+    },
+    signInWithOAuth: async (options: any) => {
+      try {
+        return await realSupabaseClient.auth.signInWithOAuth(options)
+      } catch (error) {
+        console.warn('⚠️ Erro no OAuth:', error)
+        return { data: { user: null, session: null }, error: { message: 'Erro OAuth' } }
+      }
+    },
+    signUp: async (credentials: any) => {
+      try {
+        return await realSupabaseClient.auth.signUp(credentials)
+      } catch (error) {
+        console.warn('⚠️ Erro no signUp:', error)
+        return { data: { user: null, session: null }, error: { message: 'Erro no cadastro' } }
+      }
+    },
+    signOut: async () => {
+      try {
+        return await realSupabaseClient.auth.signOut()
+      } catch (error) {
+        console.warn('⚠️ Erro no signOut:', error)
+        return { error: null }
+      }
+    },
+    onAuthStateChange: (callback: any) => {
+      try {
+        return realSupabaseClient.auth.onAuthStateChange(callback)
+      } catch (error) {
+        console.warn('⚠️ Erro no onAuthStateChange:', error)
+        return { data: { subscription: { unsubscribe: () => {} } } }
+      }
+    },
+    getUser: async () => {
+      try {
+        return await realSupabaseClient.auth.getUser()
+      } catch (error) {
+        console.warn('⚠️ Erro ao obter usuário:', error)
+        return { data: { user: null }, error: null }
+      }
+    }
+  } : {
+    getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+    signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Auth não configurado' } }),
+    signInWithOAuth: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Auth não configurado' } }),
+    signUp: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Auth não configurado' } }),
+    signOut: () => Promise.resolve({ error: null }),
+    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+    getUser: () => Promise.resolve({ data: { user: null }, error: null })
+  }
   
   return {
-    from: (tableName: string) => createMockChain(tableName),
-    // USAR SUPABASE REAL PARA AUTENTICAÇÃO
-    auth: realSupabaseClient ? realSupabaseClient.auth : {
-      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
-      signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: null }),
-      signInWithOAuth: () => Promise.resolve({ data: { user: null, session: null }, error: null }),
-      signUp: () => Promise.resolve({ data: { user: null, session: null }, error: null }),
-      signOut: () => Promise.resolve({ error: null }),
-      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-      getUser: () => Promise.resolve({ data: { user: null }, error: null })
-    },
+    from: (tableName: string) => createFromChain(tableName),
+    // USAR AUTH WRAPPER SEGURO
+    auth: safeAuth,
     storage: {
       from: () => ({
         upload: () => Promise.resolve({ data: null, error: { message: 'Storage not implemented in PasteDB' } }),

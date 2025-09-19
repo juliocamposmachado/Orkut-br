@@ -17,36 +17,28 @@
   },
   "functions": {
     "pages/api/signaling.js": {
-      "maxDuration": 30,
-      "runtime": "nodejs18.x"
+      "maxDuration": 30
     },
     "app/api/orky/generate-post/route.ts": {
-      "maxDuration": 30,
-      "runtime": "nodejs18.x"
+      "maxDuration": 30
     },
     "app/api/orky/reply-comment/route.ts": {
-      "maxDuration": 20,
-      "runtime": "nodejs18.x"
+      "maxDuration": 20
     },
     "app/api/gemini/messages/route.ts": {
-      "maxDuration": 20,
-      "runtime": "nodejs18.x"
+      "maxDuration": 20
     },
     "app/api/bug-monitor/route.ts": {
-      "maxDuration": 30,
-      "runtime": "nodejs18.x"
+      "maxDuration": 30
     },
     "app/api/deploy-checker/route.ts": {
-      "maxDuration": 30,
-      "runtime": "nodejs18.x"
+      "maxDuration": 30
     },
     "app/api/bug-notifications/route.ts": {
-      "maxDuration": 15,
-      "runtime": "nodejs18.x"
+      "maxDuration": 15
     },
     "app/api/system-monitor/route.ts": {
-      "maxDuration": 60,
-      "runtime": "nodejs18.x"
+      "maxDuration": 60
     }
   },
   "headers": [

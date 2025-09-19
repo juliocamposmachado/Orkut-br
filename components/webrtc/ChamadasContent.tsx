@@ -1,5 +1,5 @@
 'use client';
-
+// Updated for Vercel deployment - 2025-09-19
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/enhanced-auth-context';

@@ -1,5 +1,5 @@
 'use client';
-
+// Updated for Vercel deployment - 2025-09-19
 import { useRef, useEffect, useState } from 'react';
 // import { useWebRTCChamadas } from '@/hooks/useWebRTCChamadas';
 // Simplified version for Vercel deployment

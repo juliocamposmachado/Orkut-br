@@ -39,7 +39,21 @@ yarn-error.log*
 
 # Documentation
 README.md
+README-SEED.md
 docs/
+
+# Build scripts (não necessários no Vercel)
+scripts/build-*.ps1
+scripts/test-*.ps1
+scripts/setup-*.ps1
+
+# Plataformas não web
+desktop/
+mobile/
+WebRTC*/
+
+# Dados grandes (gerados durante build)
+data/complete-database-backup.json
 
 # Temporary files
 temp/

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/vercel-build.js && next build",
     "start": "next start",
     "lint": "next lint",
     "deploy": "vercel --prod",
@@ -24,7 +24,12 @@
     "dev:desktop": "cd desktop && npm run dev",
     "dev:mobile": "cd mobile && npm start",
     "db:seed-photos": "node scripts/seed-photos.js",
-    "db:setup-photos": "echo 'Para usar Supabase: execute supabase/migrations/20250911_create_photos_feed.sql no SQL Editor' && node scripts/seed-photos.js"
+    "db:setup-photos": "echo 'Para usar Supabase: execute supabase/migrations/20250911_create_photos_feed.sql no SQL Editor' && node scripts/seed-photos.js",
+    "db:seed-complete": "node scripts/seed-complete-database.js",
+    "db:seed-local": "node -e \"require('./scripts/seed-complete-database.js').seedLocalBackup()\"",
+    "build:static": "powershell -ExecutionPolicy Bypass -File ./scripts/build-clean.ps1",
+    "test:build": "powershell -ExecutionPolicy Bypass -File ./scripts/test-build-deploy.ps1",
+    "pre-deploy": "npm run db:seed-local && npm run test:build"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

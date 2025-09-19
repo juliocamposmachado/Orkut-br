@@ -8,8 +8,18 @@ const nextConfig = {
   },
   images: { 
     unoptimized: true,
-    domains: ['images.pexels.com', 'nhguhmiopdzuckaswvmu.supabase.co', 'static2.mytuner.mobi']
+    domains: [
+      'images.pexels.com', 
+      'nhguhmiopdzuckaswvmu.supabase.co', 
+      'static2.mytuner.mobi',
+      'i.imgur.com',
+      'imgur.com',
+      'images.unsplash.com'
+    ]
   },
+  // Configuração para melhor performance
+  trailingSlash: true,
+  skipTrailingSlashRedirect: true,
   // Improve build performance and fix runtime issues
   swcMinify: true,
   experimental: {

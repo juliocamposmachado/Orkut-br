@@ -95,3 +95,5 @@ postimage-api/temp-uploads/
 postimage-api/node_modules/
 postimage-api/.env
 postimage-api/.env.local
+
+.vercel

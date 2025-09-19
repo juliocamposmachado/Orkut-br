@@ -3,7 +3,6 @@
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "framework": "nextjs",
-  "nodeVersion": "18.x",
   "installCommand": "npm install",
   "devCommand": "npm run dev",
   "regions": ["iad1"],
@@ -18,28 +17,36 @@
   },
   "functions": {
     "pages/api/signaling.js": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "runtime": "nodejs18.x"
     },
     "app/api/orky/generate-post/route.ts": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "runtime": "nodejs18.x"
     },
     "app/api/orky/reply-comment/route.ts": {
-      "maxDuration": 20
+      "maxDuration": 20,
+      "runtime": "nodejs18.x"
     },
     "app/api/gemini/messages/route.ts": {
-      "maxDuration": 20
+      "maxDuration": 20,
+      "runtime": "nodejs18.x"
     },
     "app/api/bug-monitor/route.ts": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "runtime": "nodejs18.x"
     },
     "app/api/deploy-checker/route.ts": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "runtime": "nodejs18.x"
     },
     "app/api/bug-notifications/route.ts": {
-      "maxDuration": 15
+      "maxDuration": 15,
+      "runtime": "nodejs18.x"
     },
     "app/api/system-monitor/route.ts": {
-      "maxDuration": 60
+      "maxDuration": 60,
+      "runtime": "nodejs18.x"
     }
   },
   "headers": [

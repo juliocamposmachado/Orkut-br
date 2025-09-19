@@ -1,36 +1,20 @@
-import { createClient } from '@/utils/supabase/middleware'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
   try {
-    // Criar cliente do Supabase para middleware
-    const { supabase, response } = createClient(request)
-
-    // Refresh session se necessário
-    const { data: { user } } = await supabase.auth.getUser()
-
-    // Se não houver usuário e a rota precisar de autenticação, redirecionar para login
-    const protectedPaths = ['/dashboard', '/profile', '/messages', '/communities/create']
-    const isProtectedPath = protectedPaths.some(path => request.nextUrl.pathname.startsWith(path))
+    // Simplificado para evitar problemas no Edge Runtime
+    // A autenticação será verificada nas páginas/API routes individualmente
     
-    if (isProtectedPath && !user) {
-      return NextResponse.redirect(new URL('/login', request.url))
-    }
-
-    // Se o usuário estiver logado e tentar acessar a página de login, redirecionar para home
-    if (user && request.nextUrl.pathname === '/login') {
-      return NextResponse.redirect(new URL('/', request.url))
-    }
-
-    return response
+    // Apenas redirecionar algumas rotas específicas sem verificar autenticação
+    const { pathname } = request.nextUrl
+    
+    // Permitir todas as rotas passarem - autenticação será verificada client-side
+    return NextResponse.next()
+    
   } catch (e) {
-    // Se houver erro na autenticação, deixar passar (não bloquear o site)
-    console.warn('Middleware auth error:', e)
-    return NextResponse.next({
-      request: {
-        headers: request.headers,
-      },
-    })
+    // Se houver erro, deixar passar
+    console.warn('Middleware error:', e)
+    return NextResponse.next()
   }
 }
 

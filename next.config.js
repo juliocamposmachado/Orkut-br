@@ -8,7 +8,7 @@ const nextConfig = {
   },
   images: { 
     unoptimized: true,
-    domains: ['images.pexels.com', 'woyyikaztjrhqzgvbhmn.supabase.co', 'static2.mytuner.mobi']
+    domains: ['images.pexels.com', 'nhguhmiopdzuckaswvmu.supabase.co', 'static2.mytuner.mobi']
   },
   // Improve build performance and fix runtime issues
   swcMinify: true,
@@ -60,7 +60,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: https: blob:",
               "font-src 'self' data: https://fonts.gstatic.com",
-              "connect-src 'self' https://woyyikaztjrhqzgvbhmn.supabase.co wss://woyyikaztjrhqzgvbhmn.supabase.co https://vercel.live wss://orkut-br.vercel.app wss://*.vercel.app https://stun.l.google.com:19302 https://stun1.l.google.com:19302 https://vitals.vercel-insights.com https://images.pexels.com https://generativelanguage.googleapis.com",
+              "connect-src 'self' https://nhguhmiopdzuckaswvmu.supabase.co wss://nhguhmiopdzuckaswvmu.supabase.co https://vercel.live wss://orkut-br.vercel.app wss://*.vercel.app https://stun.l.google.com:19302 https://stun1.l.google.com:19302 https://vitals.vercel-insights.com https://images.pexels.com https://generativelanguage.googleapis.com https://mytuner-radio.com https://static2.mytuner.mobi",
               "media-src 'self' blob: mediastream:",
               "worker-src 'self' blob:",
               "frame-src 'self' https://vercel.live",

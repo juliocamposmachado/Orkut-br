@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useCallback } from 'react'
-import { useAuth } from '@/contexts/local-auth-context'
+import { useAuth } from '@/contexts/enhanced-auth-context'
 import { useGooglePhotos } from '@/hooks/use-google-photos'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'

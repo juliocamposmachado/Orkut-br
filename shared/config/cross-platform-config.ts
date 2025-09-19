@@ -166,8 +166,8 @@ export const redirectUrls = {
     logout: 'orkut:///',
   },
   desktop: {
-    login: `${typeof window !== 'undefined' ? window.location.origin : 'https://orkut-br-oficial.vercel.app'}/auth/callback`,
-    logout: `${typeof window !== 'undefined' ? window.location.origin : 'https://orkut-br-oficial.vercel.app'}/`,
+    login: 'http://localhost:3000/auth/callback',
+    logout: 'http://localhost:3000/',
   },
 };
 

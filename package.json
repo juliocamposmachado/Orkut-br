@@ -24,10 +24,7 @@
     "dev:desktop": "cd desktop && npm run dev",
     "dev:mobile": "cd mobile && npm start",
     "db:seed-photos": "node scripts/seed-photos.js",
-    "db:setup-photos": "echo 'Para usar Supabase: execute supabase/migrations/20250911_create_photos_feed.sql no SQL Editor' && node scripts/seed-photos.js",
-    "db:test-mssql": "ts-node --project tsconfig.scripts.json scripts/test-mssql-connection.ts",
-    "db:create-mssql-tables": "ts-node --project tsconfig.scripts.json scripts/create-mssql-tables.ts",
-    "db:setup-mssql": "npm run db:test-mssql && npm run db:create-mssql-tables"
+    "db:setup-photos": "echo 'Para usar Supabase: execute supabase/migrations/20250911_create_photos_feed.sql no SQL Editor' && node scripts/seed-photos.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -65,7 +62,6 @@
     "@supabase/auth-ui-shared": "^0.1.8",
     "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.56.1",
-    "@types/mssql": "^9.1.5",
     "@types/node": "20.6.2",
     "@types/nodemailer": "^7.0.1",
     "@types/react": "18.2.22",
@@ -80,12 +76,10 @@
     "embla-carousel-react": "^8.3.0",
     "eslint": "8.49.0",
     "eslint-config-next": "13.5.1",
-    "form-data": "^4.0.4",
     "framer-motion": "^12.23.12",
     "googleapis": "^157.0.0",
     "input-otp": "^1.2.4",
     "lucide-react": "^0.446.0",
-    "mssql": "^11.0.1",
     "next": "13.5.1",
     "next-themes": "^0.3.0",
     "node-fetch": "^3.3.2",
@@ -115,7 +109,6 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/uuid": "^10.0.0",
-    "ts-node": "^10.9.2"
+    "@types/uuid": "^10.0.0"
   }
 }

@@ -79,7 +79,7 @@ export const WhatsAppCallButton: React.FC<WhatsAppCallButtonProps> = ({
 
   // Se deve mostrar múltiplos botões
   if (showBoth) {
-    const buttons: JSX.Element[] = [];
+    const buttons = [];
     
     if (hasValidVoiceLink) {
       buttons.push(
@@ -325,7 +325,7 @@ export const WhatsAppBadge: React.FC<WhatsAppBadgeProps> = ({
   }
 
   const getCallTypes = () => {
-    const types: string[] = [];
+    const types = [];
     if (hasValidVoiceLink) types.push('Voz');
     if (hasValidVideoLink) types.push('Vídeo');
     if (hasValidPhone) types.push('Mensagem');

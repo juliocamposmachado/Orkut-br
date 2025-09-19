@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic'
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/contexts/local-auth-context';
+import { useAuth } from '@/contexts/enhanced-auth-context'
 import { Navbar } from '@/components/layout/navbar';
 import { Footer } from '@/components/layout/footer';
 import { OrkutCard, OrkutCardContent, OrkutCardHeader } from '@/components/ui/orkut-card';
@@ -46,7 +46,6 @@ import Gallery from '@/components/Gallery'
 import UpdateGalleries from '@/components/UpdateGalleries'
 import { useSmartWhatsApp } from '@/hooks/useSmartWhatsApp'
 import UserClassifications from '@/components/profile/user-classifications'
-import { useOptimizedProfile } from '@/hooks/useOptimizedProfile'
 
 interface UserProfile {
   id: string;
@@ -117,27 +116,18 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
   const { user: currentUser, profile: currentUserProfile } = useAuth();
   const router = useRouter();
   
-  // ✅ USAR HOOK OTIMIZADO - substitui 15+ estados e funções!
-  const {
-    profile,
-    friendshipStatus,
-    friends,
-    recentConversations,
-    userPosts,
-    socialData,
-    loading,
-    error,
-    reload,
-    invalidateCache
-  } = useOptimizedProfile(username);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   // Hook inteligente que funciona para todos os usuários
   const whatsappConfig = useSmartWhatsApp(profile?.id, profile?.username, profile?.display_name);
   
-  // Estados que ainda precisamos manter (não relacionados ao banco)
-  const [friendshipStatusLocal, setFriendshipStatusLocal] = useState<string>(friendshipStatus);
+  const [friendshipStatus, setFriendshipStatus] = useState<string>('none');
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const [actionLoading, setActionLoading] = useState<string>('');
+  const [userPosts, setUserPosts] = useState<any[]>([]);
+  const [loadingPosts, setLoadingPosts] = useState(false);
   const [messageModalOpen, setMessageModalOpen] = useState(false);
   const [messageTarget, setMessageTarget] = useState<{
     id: string;
@@ -146,6 +136,10 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
     photo?: string;
     isOnline?: boolean;
   } | null>(null);
+  const [friends, setFriends] = useState<FriendItem[]>([]);
+  const [recentConversations, setRecentConversations] = useState<any[]>([]);
+  const [loadingConversations, setLoadingConversations] = useState(false);
+  const [socialData, setSocialData] = useState<any>({});
   
   // Exemplo estático de galerias para demo
   const [demoGalleries, setDemoGalleries] = useState<GalleryItem[]>([
@@ -533,11 +527,33 @@ const ProfileContent: React.FC<{ username: string }> = ({ username }) => {
     window.open(gmailUrl, '_blank', 'noopener,noreferrer');
   };
 
-  // ✅ UseEffects removidos - o hook otimizado já cuida de tudo automaticamente!
-  // Sincronizar friendshipStatus local com o do hook
   useEffect(() => {
-    setFriendshipStatusLocal(friendshipStatus);
-  }, [friendshipStatus]);
+    if (username) {
+      loadProfile();
+    }
+  }, [username]);
+  
+  // Carregar posts quando o perfil for carregado
+  useEffect(() => {
+    if (profile?.id || currentUser?.id) {
+      loadUserPosts();
+    }
+  }, [profile?.id, currentUser?.id]);
+
+  // Carregar amigos reais quando o perfil for carregado
+  useEffect(() => {
+    if (profile?.id && currentUser?.id) {
+      loadRealFriends();
+      loadRecentConversations();
+    }
+  }, [profile?.id, currentUser?.id]);
+  
+  // Carregar dados das redes sociais quando o perfil for carregado
+  useEffect(() => {
+    if (profile?.id) {
+      loadSocialData();
+    }
+  }, [profile?.id]);
   
   // Listener para novos posts (atualizar perfil quando posts são criados)
   useEffect(() => {

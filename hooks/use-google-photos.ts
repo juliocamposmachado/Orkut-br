@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { useAuth } from '@/contexts/local-auth-context'
+import { useAuth } from '@/contexts/enhanced-auth-context'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 

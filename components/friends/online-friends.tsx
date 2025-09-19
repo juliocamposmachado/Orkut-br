@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { useAuth } from '@/contexts/local-auth-context'
+import { useAuth } from '@/contexts/enhanced-auth-context'
 import { supabase } from '@/lib/supabase'
 import { OrkutCard, OrkutCardContent, OrkutCardHeader } from '@/components/ui/orkut-card'
 import { Button } from '@/components/ui/button'

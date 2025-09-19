@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useAuth } from '@/contexts/auth-context';
+import { useAuth } from '@/contexts/enhanced-auth-context'
 import { EmailVerificationBanner } from '@/components/auth/email-verification-banner'
 import { Navbar } from '@/components/layout/navbar'
 import { OrkyAssistant } from '@/components/voice/orky-assistant'
@@ -101,80 +101,25 @@ export default function HomePage() {
   const [gmailUsers, setGmailUsers] = useState<any[]>([])
   const [gmailUsersStats, setGmailUsersStats] = useState({ online: 0, total: 0 })
   const [loadingGmailUsers, setLoadingGmailUsers] = useState(true)
-  const [processingOAuth, setProcessingOAuth] = useState(false)
-
-  // useEffect para processar OAuth code
-  useEffect(() => {
-    const code = searchParams?.get('code')
-    if (code && !user && !processingOAuth) {
-      console.log('🔄 [OAUTH] Code encontrado na home page, processando...', { code: code.substring(0, 10) + '...' })
-      setProcessingOAuth(true)
-      
-      // Redirecionar para o callback real com o code
-      window.location.href = `/auth/callback?code=${code}`
-      return
-    }
-  }, [searchParams, user, processingOAuth])
 
   useEffect(() => {
-    console.log('🏠 [HOME PAGE] Estado atual:', {
-      loading,
-      hasUser: !!user,
-      hasProfile: !!profile,
-      userEmail: user?.email,
-      profileUsername: profile?.username,
-      processingOAuth,
-      timestamp: new Date().toISOString()
-    })
-    
     // Aguardar o loading completo antes de redirecionar
     if (loading) {
-      console.log('⏳ [HOME PAGE] Ainda carregando auth context, aguardando...')
       return // Não fazer nada enquanto carregando
     }
     
-    // Dar um tempo extra para o contexto processar o usuário após callback
-    const timeoutId = setTimeout(() => {
-      console.log('🔄 [HOME PAGE] Verificando estado final após timeout:', {
-        hasUser: !!user,
-        hasProfile: !!profile,
-        userEmail: user?.email
-      })
-      
-      // Se tem usuário mas não tem perfil, mostrar erro específico
-      if (user && !profile) {
-        console.log('⚠️ [HOME PAGE] Usuário sem perfil, tentando criar...')
-        toast.error('Erro ao carregar perfil. Redirecionando...', {
-          description: 'Seu perfil será criado automaticamente.'
-        })
-        
-        // Tentar criar perfil via contexto (que já tem lógica para isso)
-        // Se ainda não funcionar, redirecionar para uma página de setup
-        setTimeout(() => {
-          if (!profile) {
-            router.push('/setup-profile')
-          }
-        }, 2000)
-        return
-      }
-      
-      // Só redirecionar para login se realmente não tiver usuário
-      if (!user) {
-        console.log('🔄 [HOME PAGE] Nenhum usuário encontrado, redirecionando para login')
-        router.push('/login')
-      }
-    }, 1000) // Aguardar 1 segundo adicional
-    
-    // Se já tem usuário, cancelar timeout e carregar conteúdo
+    // Só redirecionar para login se realmente não tiver usuário após loading
+    if (!user) {
+      router.push('/login')
+      return
+    }
+
+    // Se tem usuário, carregar conteúdo
     if (user) {
-      console.log('✅ [HOME PAGE] Usuário já disponível, cancelando timeout e carregando conteúdo')
-      clearTimeout(timeoutId)
       loadFeed()
       loadCommunities()
       loadGmailUsers()
     }
-    
-    return () => clearTimeout(timeoutId)
   }, [user, loading, router])
 
   // useEffect para scroll automático para post específico
@@ -437,41 +382,17 @@ export default function HomePage() {
   }
 
   if (loading) {
-    console.log('⏳ [HOME PAGE] Mostrando tela de loading')
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
           <p className="text-purple-600">Carregando...</p>
-          <p className="text-sm text-purple-400 mt-2">Verificando autenticação...</p>
         </div>
       </div>
     )
   }
 
-  // Se não está carregando e não tem usuário, não renderizar nada (o useEffect vai redirecionar)
-  if (!user) {
-    console.log('❌ [HOME PAGE] Sem usuário, aguardando redirecionamento...')
-    return null
-  }
-  
-  // Se tem usuário mas não tem perfil, mostrar erro
-  if (!profile) {
-    console.log('⚠️ [HOME PAGE] Usuário sem perfil')
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-purple-600 mb-4">Erro ao carregar perfil</p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
-          >
-            Tentar novamente
-          </button>
-        </div>
-      </div>
-    )
-  }
+  if (!user || !profile) return null
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50">
@@ -691,7 +612,8 @@ export default function HomePage() {
             {/* MOBILE: Cards adicionais */}
             <div className="lg:hidden space-y-4">
               <OnlineFriends 
-                onOpenMessage={() => router.push('/mensagens')}
+                onOpenMessage={() => router.push('/mensagens')} 
+                onStartAudioCall={(user) => startAudioCall(user)}
               />
               
               <CommunityNotifications className="shadow-sm" />
@@ -702,7 +624,8 @@ export default function HomePage() {
           <div className="space-y-4 lg:space-y-6 lg:sticky lg:top-4 order-3">
             {/* 1. Amigos Online */}
             <OnlineFriends 
-              onOpenMessage={() => router.push('/mensagens')}
+              onOpenMessage={() => router.push('/mensagens')} 
+              onStartAudioCall={(user) => startAudioCall(user)}
             />
 
             {/* 2. Central de Chamadas */}

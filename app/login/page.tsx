@@ -9,10 +9,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { createClient } from '@/utils/supabase/client'
+import { useAuth } from '@/contexts/enhanced-auth-context';
 import { useSubscription } from '@/hooks/use-subscription';
 import { toast } from 'sonner';
-import { Eye, EyeOff, ChevronDown, ChevronUp, BarChart3, Database, Shield } from 'lucide-react';
+import { Eye, EyeOff, ChevronDown, ChevronUp, BarChart3 } from 'lucide-react';
+import { FcGoogle } from 'react-icons/fc';
 import { Crown } from 'lucide-react';
 import { Mic, Phone, Users, Heart } from 'lucide-react';
 // Ícones das tecnologias
@@ -27,6 +28,11 @@ import {
 } from 'react-icons/si';
 import { DiChrome, DiAndroid, DiApple } from 'react-icons/di';
 import { IoTerminal } from 'react-icons/io5';
+import { 
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 
 export default function LoginPage() {
   // Estados para login tradicional
@@ -35,55 +41,71 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   
-  // Estados para UI
+  // Estados para login Google e UI
+  const [isOpen, setIsOpen] = useState(false)
+  const [buttonText, setButtonText] = useState('Continuar com Google')
   const [showMoreInfo, setShowMoreInfo] = useState(false)
   
-  // Cliente do Supabase
-  const supabase = createClient()
+  const { signIn, signInWithGoogle } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  // Verificar se usuário já está logado e handle auth state changes
+  // Verificar erros de callback de autenticação
   useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          console.log('✅ Usuário já logado, redirecionando:', user.email)
-          router.push('/')
-          return
-        }
-      } catch (error) {
-        console.error('❌ Erro ao verificar usuário:', error)
+    const error = searchParams?.get('error')
+    if (error) {
+      let errorMessage = 'Erro no processo de autenticação.'
+      
+      switch (error) {
+        case 'auth_callback_error':
+          errorMessage = '❌ Erro na autenticação. Tente fazer login novamente.'
+          break
+        case 'missing_code':
+          errorMessage = '❌ Código de autenticação não encontrado. Tente novamente.'
+          break
+        case 'callback_error':
+          errorMessage = '❌ Erro no callback de autenticação. Tente novamente.'
+          break
+        default:
+          errorMessage = `❌ Erro: ${error}`
       }
+      
+      toast.error(errorMessage)
+      
+      // Limpar parâmetro de erro da URL
+      const newUrl = new URL(window.location.href)
+      newUrl.searchParams.delete('error')
+      router.replace(newUrl.pathname + newUrl.search)
     }
-    
-    // Check immediately
-    checkUser()
-    
-    // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('🔄 Auth state changed:', event, session?.user?.email)
-        
-        if (event === 'SIGNED_IN' && session?.user) {
-          console.log('✅ Usuário logado via OAuth, redirecionando...')
-          // Small delay to ensure session is properly set
-          setTimeout(() => {
-            router.push('/')
-          }, 500)
-        } else if (event === 'SIGNED_OUT') {
-          console.log('👋 Usuário deslogado')
-        }
-      }
-    )
-    
-    return () => {
-      subscription.unsubscribe()
+  }, [searchParams, router])
+
+  // Cooldown simples para evitar cliques repetidos
+  let lastGoogleClick = 0
+  const handleGoogleLogin = async () => {
+    const now = Date.now()
+    if (now - lastGoogleClick < 3000 || isLoading) {
+      // Ignorar cliques em sequência em menos de 3s
+      return
     }
-  }, [supabase, router])
+    lastGoogleClick = now
 
-
+    setIsLoading(true)
+    setButtonText('Verificando usuário...')
+    
+    try {
+      await signInWithGoogle()
+      setButtonText('Redirecionando para o Google...')
+      toast.success('🔍 Redirecionando para autenticação Google...')
+    } catch (error: any) {
+      console.error('Erro no handleGoogleLogin:', error)
+      const msg = /redirect_uri_mismatch/i.test(error?.message || '')
+        ? 'Erro de configuração do Google: URL de redirecionamento não autorizada. Avise o suporte.'
+        : (error.message || 'Erro ao conectar com Google. Tente novamente.')
+      toast.error(msg)
+      setIsLoading(false)
+      setButtonText('Continuar com Google')
+    }
+  }
 
   const handleDeveloperAccess = () => {
     toast.success('🛠️ Redirecionando para o Dashboard do Desenvolvedor!')
@@ -95,56 +117,13 @@ export default function LoginPage() {
     router.push('/dashboard/project/orkut')
   }
 
-  // Função para login com Google OAuth (Supabase)
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true)
-    try {
-      // Determine redirect URL - sempre usar o callback correto
-      const redirectTo = typeof window !== 'undefined'
-        ? `${window.location.origin}/auth/callback`
-        : 'https://orkut-br-oficial.vercel.app/auth/callback'
-        
-      console.log('🔄 Iniciando Google OAuth com redirectTo:', redirectTo)
-      
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'select_account'
-          }
-        }
-      })
-      
-      if (error) {
-        console.error('❌ Erro no OAuth:', error)
-        throw error
-      }
-      
-      toast.success('🎉 Redirecionando para o Google...')
-    } catch (error: any) {
-      console.error('❌ Erro no Google Sign In:', error)
-      toast.error(error.message || 'Erro ao conectar com Google')
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  // Função para login tradicional com email/senha (Supabase)
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email || !password) return
 
     setIsLoading(true)
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
-      
-      if (error) throw error
-      
+      await signIn(email, password)
       toast.success('Login realizado com sucesso!')
       router.push('/')
     } catch (error: any) {
@@ -152,11 +131,6 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false)
     }
-  }
-
-  // Função para cadastro (Supabase)
-  const handleSignUp = async () => {
-    router.push('/cadastro')
   }
 
   return (
@@ -216,137 +190,9 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Login Principal */}
+        {/* Botões Principais de Acesso */}
         <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl mb-6">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-center text-gray-800 flex items-center justify-center gap-2">
-              <Database className="h-5 w-5 text-purple-600" />
-              Login Seguro
-            </CardTitle>
-            <p className="text-center text-sm text-gray-600 mt-1">
-              🔒 Sistema de autenticação avançado com nova tecnologia
-            </p>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="signin" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="signin">Entrar</TabsTrigger>
-                <TabsTrigger value="signup">Cadastrar</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="signin" className="space-y-4 mt-4">
-                <form onSubmit={handleSignIn} className="space-y-4">
-                  <div>
-                    <Input
-                      type="email"
-                      placeholder="E-mail"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                      className="border-purple-300 focus:ring-purple-500"
-                    />
-                  </div>
-                  <div className="relative">
-                    <Input
-                      type={showPassword ? 'text' : 'password'}
-                      placeholder="Senha"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      className="border-purple-300 focus:ring-purple-500 pr-10"
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-1 top-1/2 transform -translate-y-1/2 p-1 h-auto"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4 text-gray-500" />
-                      ) : (
-                        <Eye className="h-4 w-4 text-gray-500" />
-                      )}
-                    </Button>
-                  </div>
-                  
-                  <div className="text-right">
-                    <button
-                      type="button"
-                      onClick={() => router.push('/reset-password')}
-                      className="text-sm text-purple-600 hover:text-purple-800 underline"
-                    >
-                      Esqueceu a senha?
-                    </button>
-                  </div>
-                  
-                  <Button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                  >
-                    {isLoading ? 'Entrando...' : 'Entrar'}
-                  </Button>
-                </form>
-                
-                {/* Divisor */}
-                <div className="flex items-center space-x-4 my-4">
-                  <hr className="flex-1 border-gray-300" />
-                  <span className="text-gray-500 text-xs font-medium">ou continue com</span>
-                  <hr className="flex-1 border-gray-300" />
-                </div>
-                
-                {/* Botão Google OAuth */}
-                <Button
-                  onClick={handleGoogleSignIn}
-                  disabled={isLoading}
-                  variant="outline"
-                  className="w-full border-2 border-red-300 text-red-600 hover:bg-red-50 hover:border-red-400 py-3 font-medium"
-                >
-                  <div className="flex items-center justify-center gap-3">
-                    <div className="w-5 h-5 bg-gradient-to-r from-blue-500 via-red-500 to-yellow-500 rounded-sm flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">G</span>
-                    </div>
-                    <span>{isLoading ? 'Conectando...' : 'Entrar com Google'}</span>
-                  </div>
-                </Button>
-              </TabsContent>
-
-              <TabsContent value="signup" className="space-y-4 mt-4">
-                <div className="text-center space-y-3">
-                  <p className="text-sm text-gray-600">Para criar uma conta nova:</p>
-                  <Button
-                    onClick={() => router.push('/cadastro')}
-                    className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600"
-                  >
-                    Ir para Página de Cadastro
-                  </Button>
-                </div>
-              </TabsContent>
-            </Tabs>
-            
-            {/* Seção sobre nova tecnologia */}
-            <div className="mt-6 pt-4 border-t border-gray-200">
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Shield className="h-4 w-4 text-purple-600" />
-                  <h4 className="text-sm font-bold text-purple-800">Nova Tecnologia de Banco de Dados</h4>
-                </div>
-                <p className="text-xs text-purple-700 leading-relaxed">
-                  Implementamos um sistema de autenticação avançado e seguro, 
-                  utilizando as mais modernas tecnologias de banco de dados. 
-                  Seus dados estão protegidos com criptografia de ponta.
-                </p>
-              </div>
-            </div>
-            
-            {/* Divisor */}
-            <div className="flex items-center space-x-4 my-6">
-              <hr className="flex-1 border-gray-300" />
-              <span className="text-gray-500 text-sm font-medium">ou</span>
-              <hr className="flex-1 border-gray-300" />
-            </div>
-            
+          <CardContent className="pt-6 space-y-4">
             {/* Botão Orkut BR Pro */}
             <Button
               onClick={() => {
@@ -354,30 +200,72 @@ export default function LoginPage() {
                 router.push('/subscription')
               }}
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-3 shadow-lg border-2 border-yellow-300"
+              className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-4 text-lg shadow-lg border-2 border-yellow-300"
             >
-              <Crown className="mr-2 text-xl" />
+              <Crown className="mr-3 text-2xl" />
               Assinar Orkut BR Pro
             </Button>
-            <p className="text-xs text-gray-600 text-center font-medium mt-2">
+            <p className="text-xs text-gray-600 text-center font-medium">
               ✨ Recursos exclusivos por apenas R$ 1,99/mês!
             </p>
-
-            {/* Botão desenvolvedor */}
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <Button
-                onClick={() => {
-                  toast.success('👤 Redirecionando para a página do desenvolvedor!')
-                  router.push('/sobre-desenvolvedor')
-                }}
-                disabled={isLoading}
-                variant="outline"
-                className="w-full border-blue-300 hover:bg-blue-50 text-blue-700 font-medium py-3"
-              >
-                <span className="mr-2 text-lg">👤</span>
-                Sobre o Desenvolvedor
-              </Button>
+            
+            {/* Divisor */}
+            <div className="flex items-center space-x-4 my-4">
+              <hr className="flex-1 border-gray-300" />
+              <span className="text-gray-500 text-sm font-medium">ou</span>
+              <hr className="flex-1 border-gray-300" />
             </div>
+            
+            {/* Botão Google */}
+            <Button
+              onClick={handleGoogleLogin}
+              disabled={isLoading}
+              className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium py-4 text-lg shadow-lg"
+            >
+              <FcGoogle className="mr-3 text-2xl" />
+              {buttonText}
+            </Button>
+            <p className="text-xs text-gray-500 mt-2 text-center">
+              Rápido, seguro e sem senhas para lembrar! 🚀
+            </p>
+            
+            {/* Seção Expansível - Info Técnica */}
+            <Collapsible open={isOpen} onOpenChange={setIsOpen} className="mt-4">
+              <CollapsibleTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  className="w-full p-3 text-sm text-blue-600 hover:bg-blue-50 transition-colors"
+                >
+                  <span className="mr-2">ℹ️</span>
+                  Sobre o nome técnico do Google
+                  {isOpen ? <ChevronUp className="ml-2 h-4 w-4" /> : <ChevronDown className="ml-2 h-4 w-4" />}
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="px-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm space-y-3">
+                  <p className="text-blue-700 font-medium">
+                    <strong>Sobre o nome técnico na tela de login:</strong>
+                  </p>
+                  <p className="text-blue-600 leading-relaxed">
+                    Utilizamos o <strong>Supabase</strong> como plataforma de banco de dados, 
+                    que gera automaticamente nomes técnicos não editáveis.
+                  </p>
+                  <p className="text-blue-600 leading-relaxed">
+                    Quando você clicar no botão Google, pode aparecer um nome como 
+                    <span className="font-mono bg-blue-100 px-1 rounded mx-1">
+                      "woyyikaztjrhqzgvbhmn.supabase.co"
+                    </span>
+                    - é o identificador automático da plataforma.
+                  </p>
+                  <p className="text-blue-700 font-medium">
+                    <strong>Pedimos desculpas pelo inconveniente!</strong>
+                  </p>
+                  <p className="text-blue-600">
+                    O sistema funciona perfeitamente, continue utilizando normalmente! 🚀
+                  </p>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           </CardContent>
         </Card>
 
@@ -608,10 +496,10 @@ export default function LoginPage() {
               
               <div className="bg-white/10 rounded-lg p-3 hover:bg-white/20 transition-colors">
                 <div className="flex justify-center mb-1">
-                  <Database className="text-xl text-indigo-400" />
+                  <FcGoogle className="text-xl" />
                 </div>
-                <p className="text-xs font-medium text-white">PasteDB</p>
-                <p className="text-xs text-purple-200">Database</p>
+                <p className="text-xs font-medium text-white">Google</p>
+                <p className="text-xs text-purple-200">Auth</p>
               </div>
               
               <div className="bg-white/10 rounded-lg p-3 hover:bg-white/20 transition-colors">
@@ -638,6 +526,104 @@ export default function LoginPage() {
             </div>
           </div>
 
+          {/* Card de Login Tradicional - OCULTO */}
+          <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-2xl mb-4 hidden">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-center text-gray-800">Login Tradicional</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="signin" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="signin">Entrar</TabsTrigger>
+                  <TabsTrigger value="signup">Cadastrar</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="signin" className="space-y-4 mt-4">
+                  <form onSubmit={handleSignIn} className="space-y-4">
+                    <div>
+                      <Input
+                        type="email"
+                        placeholder="E-mail"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                        className="border-purple-300 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div className="relative">
+                      <Input
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="Senha"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        className="border-purple-300 focus:ring-purple-500 pr-10"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="absolute right-1 top-1/2 transform -translate-y-1/2 p-1 h-auto"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4 text-gray-500" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-gray-500" />
+                        )}
+                      </Button>
+                    </div>
+                    
+                    <div className="text-right">
+                      <button
+                        type="button"
+                        onClick={() => router.push('/cadastro')}
+                        className="text-sm text-purple-600 hover:text-purple-800 underline"
+                      >
+                        Esqueceu a senha?
+                      </button>
+                    </div>
+                    
+                    <Button
+                      type="submit"
+                      disabled={isLoading}
+                      className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                    >
+                      {isLoading ? 'Entrando...' : 'Entrar'}
+                    </Button>
+                  </form>
+                </TabsContent>
+
+                <TabsContent value="signup" className="space-y-4 mt-4">
+                  <div className="text-center space-y-3">
+                    <p className="text-sm text-gray-600">Para criar uma conta nova:</p>
+                    <Button
+                      onClick={() => router.push('/cadastro')}
+                      className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600"
+                    >
+                      Ir para Página de Cadastro
+                    </Button>
+                  </div>
+                </TabsContent>
+              </Tabs>
+
+              {/* Botão desenvolvedor */}
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <Button
+                  onClick={() => {
+                    toast.success('👤 Redirecionando para a página do desenvolvedor!')
+                    router.push('/sobre-desenvolvedor')
+                  }}
+                  disabled={isLoading}
+                  variant="outline"
+                  className="w-full border-blue-300 hover:bg-blue-50 text-blue-700 font-medium py-3"
+                >
+                  <span className="mr-2 text-lg">👤</span>
+                  Sobre o Desenvolvedor
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Tributo */}
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 text-sm">

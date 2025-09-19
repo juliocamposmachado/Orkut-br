@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useAuth } from '@/contexts/local-auth-context'
+import { useAuth } from '@/contexts/enhanced-auth-context'
 import { useWebRTC } from '@/contexts/webrtc-context'
 import { useCallNotifications } from '@/hooks/use-call-notifications'
 import { Button } from '@/components/ui/button'

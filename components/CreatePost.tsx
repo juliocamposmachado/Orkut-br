@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { useAuth } from '@/contexts/local-auth-context';
+import { useAuth } from '@/contexts/enhanced-auth-context'
 import { OrkutCard, OrkutCardContent, OrkutCardHeader } from '@/components/ui/orkut-card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'

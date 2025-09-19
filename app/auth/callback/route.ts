@@ -7,97 +7,42 @@ export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
-  console.log('='.repeat(80))
-  console.log('🔄 [CALLBACK] Iniciando processamento do callback...')
-  console.log('🔄 [CALLBACK] Request URL:', request.url)
-  console.log('🔄 [CALLBACK] Timestamp:', new Date().toISOString())
-  console.log('🔄 [CALLBACK] Environment:', process.env.NODE_ENV)
-  console.log('🔄 [CALLBACK] Vercel Env:', process.env.VERCEL_ENV)
-  console.log('🔄 [CALLBACK] Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-  console.log('='.repeat(80))
-  
   try {
     // Extrair URL e parâmetros de forma segura
     const url = new URL(request.url)
     const code = url.searchParams.get('code')
-    const error_description = url.searchParams.get('error_description')
-    const error_code = url.searchParams.get('error')
     
-    console.log('📋 [CALLBACK] Parâmetros recebidos:', {
-      hasCode: !!code,
-      codeLength: code?.length || 0,
-      error_code,
-      error_description,
-      allParams: Object.fromEntries(url.searchParams.entries())
-    })
-    
-    // Definir origem sempre como produção para OAuth funcionar
-    const origin = process.env.NEXT_PUBLIC_SITE_URL || 'https://orkut-br-oficial.vercel.app'
-      
-    console.log('🏠 [CALLBACK] Origin URL:', origin)
-
-    // Verificar se há erro no callback
-    if (error_code) {
-      console.error('❌ [CALLBACK] Erro recebido do provedor OAuth:', {
-        code: error_code,
-        description: error_description
-      })
-      return NextResponse.redirect(`${origin}/login?error=oauth_provider_error&details=${encodeURIComponent(error_description || error_code)}`)
-    }
+    // Definir origem baseada no ambiente
+    const origin = process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:3000'
+      : (process.env.NEXT_PUBLIC_SITE_URL || 'https://orkut-br-oficial.vercel.app')
 
     if (code) {
-      console.log('✅ [CALLBACK] Código de autenticação encontrado, processando...')
-      
       const cookieStore = cookies()
       const supabase = createClient(cookieStore)
+      const { error } = await supabase.auth.exchangeCodeForSession(code)
       
-      console.log('🔄 [CALLBACK] Trocando código por sessão...')
-      const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-      
-      console.log('📋 [CALLBACK] Resultado da troca:', {
-        hasData: !!data,
-        hasError: !!error,
-        hasSession: !!data?.session,
-        hasUser: !!data?.user,
-        userId: data?.user?.id,
-        userEmail: data?.user?.email,
-        errorMessage: error?.message
-      })
-      
-      if (!error && data?.session && data?.user) {
-        console.log('✅ [CALLBACK] Sessão criada com sucesso!')
-        console.log('✅ [CALLBACK] Usuário logado:', {
-          id: data.user.id,
-          email: data.user.email,
-          confirmed_at: data.user.email_confirmed_at
-        })
-        
-        // Aguardar um pouco para garantir que a sessão está salva nos cookies
-        console.log('⏳ [CALLBACK] Aguardando persistência da sessão...')
-        await new Promise(resolve => setTimeout(resolve, 500))
-        
-        console.log('🏠 [CALLBACK] Redirecionando para home...')
+      if (!error) {
+        // Redirecionar para a página inicial após login bem-sucedido
         return NextResponse.redirect(`${origin}/`)
       } else {
-        console.error('❌ [CALLBACK] Erro na troca do código:', {
-          error: error?.message,
-          code: error?.status,
-          hasSession: !!data?.session,
-          hasUser: !!data?.user
-        })
-        return NextResponse.redirect(`${origin}/login?error=session_exchange_failed&details=${encodeURIComponent(error?.message || 'Falha na criação da sessão')}`)
+        console.error('Erro na troca do código de autenticação:', error)
+        // Em caso de erro, redirecionar para login com parâmetro de erro
+        return NextResponse.redirect(`${origin}/login?error=auth_callback_error`)
       }
     } else {
-      console.error('❌ [CALLBACK] Código de autenticação não encontrado no callback')
-      return NextResponse.redirect(`${origin}/login?error=missing_auth_code`)
+      console.error('Código de autenticação não encontrado no callback')
+      // Sem código, redirecionar para login
+      return NextResponse.redirect(`${origin}/login?error=missing_code`)
     }
   } catch (error) {
-    console.error('❌ [CALLBACK] Erro inesperado no callback:', error)
-    console.error('❌ [CALLBACK] Stack trace:', (error as Error).stack)
+    console.error('Erro no callback de autenticação:', error)
     
-    // Definir origem para fallback - sempre produção
-    const origin = process.env.NEXT_PUBLIC_SITE_URL || 'https://orkut-br-oficial.vercel.app'
+    // Definir origem para fallback
+    const origin = process.env.NODE_ENV === 'development' 
+      ? 'http://localhost:3000'
+      : (process.env.NEXT_PUBLIC_SITE_URL || 'https://orkut-br-oficial.vercel.app')
       
-    return NextResponse.redirect(`${origin}/login?error=callback_exception&details=${encodeURIComponent((error as Error).message)}`)
+    return NextResponse.redirect(`${origin}/login?error=callback_error`)
   }
 }

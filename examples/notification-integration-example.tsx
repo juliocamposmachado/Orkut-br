@@ -4,7 +4,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useAuth } from '@/contexts/local-auth-context'
+import { useAuth } from '@/contexts/enhanced-auth-context'
 import { supabase } from '@/lib/supabase'
 import { notificationService } from '@/lib/notification-service'
 import { Heart, MessageCircle, Share } from 'lucide-react'

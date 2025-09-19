@@ -94,79 +94,48 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [])
 
   const initSupabaseAuth = async () => {
-    console.log('🚀 [AUTH] Iniciando inicialização do Supabase auth...')
-    
-    let cleanup: (() => void) | undefined
-    
     try {
       // Get initial session
       const { data: { session }, error } = await supabase.auth.getSession()
       
-      console.log('📋 [AUTH] Sessão inicial obtida:', { 
-        session: !!session, 
-        error: !!error, 
-        userId: session?.user?.id,
-        email: session?.user?.email 
-      })
-      
       if (error) {
-        console.error('❌ [AUTH] Erro ao obter sessão inicial:', error)
-        setLoading(false)
+        console.error('Error getting session:', error)
         return
       }
 
-      // Listen for auth changes BEFORE processing initial user
-      console.log('🎧 [AUTH] Configurando listener de eventos de auth...')
+      if (session?.user) {
+        await handleSupabaseUser(session.user)
+      }
+
+      // Listen for auth changes
       const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-        console.log('🔄 [AUTH] Estado de autenticação mudou:', event, { 
-          session: !!session, 
-          userId: session?.user?.id,
-          email: session?.user?.email,
-          timestamp: new Date().toISOString()
-        })
+        console.log('Auth state changed:', event)
         
-        if (event === 'SIGNED_IN' && session?.user) {
-          console.log('✅ [AUTH] Usuário fez login, processando...')
-          setLoading(true) // Set loading while processing user
+        if (event === 'INITIAL_SESSION') {
+          // Para sessão inicial, aguardar processamento completo antes de marcar como não-loading
+          if (session?.user) {
+            await handleSupabaseUser(session.user)
+            setLoading(false)
+          } else {
+            setUser(null)
+            setProfile(null)
+            setLoading(false)
+          }
+        } else if (session?.user) {
+          // Para outros eventos, processar normalmente
           await handleSupabaseUser(session.user)
-          setLoading(false)
-        } else if (event === 'SIGNED_OUT') {
-          console.log('🚪 [AUTH] Usuário fez logout')
+        } else {
           setUser(null)
           setProfile(null)
-          setLoading(false)
-        } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-          console.log('🔄 [AUTH] Token refreshado, atualizando usuário')
-          await handleSupabaseUser(session.user)
         }
       })
-      
-      cleanup = () => {
-        console.log('🧹 [AUTH] Limpando subscription')
-        subscription.unsubscribe()
-      }
 
-      // Se há sessão inicial, processar usuário
-      if (session?.user) {
-        console.log('✅ [AUTH] Processando usuário da sessão inicial...')
-        await handleSupabaseUser(session.user)
-      } else {
-        console.log('ℹ️ [AUTH] Nenhum usuário na sessão inicial')
-        setUser(null)
-        setProfile(null)
-      }
-
-      console.log('✅ [AUTH] Inicialização concluída, definindo loading como false')
-      setLoading(false)
-      
-      return cleanup
+      return () => subscription.unsubscribe()
     } catch (error) {
-      console.error('❌ [AUTH] Erro na inicialização do Supabase auth:', error)
-      console.log('🔄 [AUTH] Tentando modo fallback...')
-      setLoading(false)
-      
-      if (cleanup) cleanup()
+      console.error('Error initializing Supabase auth:', error)
       await initFallbackAuth()
+    } finally {
+      setTimeout(() => setLoading(false), 1000)
     }
   }
 
@@ -203,7 +172,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       if (data) {
         // Tentar várias fontes para a foto do Google
-        let googlePhoto: string | null = null
+        let googlePhoto = null
         
         // Verificar múltiplas fontes de foto
         const photoSources = [
@@ -409,62 +378,65 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signInWithGoogle = async () => {
     console.log('🔍 [DEBUG] signInWithGoogle chamada')
     console.log('🔍 [DEBUG] isSupabaseConfigured:', isSupabaseConfigured())
-    console.log('🔍 [DEBUG] Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-    console.log('🔍 [DEBUG] Ambiente:', process.env.NODE_ENV)
     
     // Mostrar toast indicando que está verificando
     toast.info('🔍 Verificando se você já tem conta...')
     
+    // Determinar a URL de redirect correta
     const getRedirectUrl = () => {
-      // Sempre usar a origem atual, independente do ambiente
-      const callbackUrl = `${window.location.origin}/auth/callback`
-      console.log('🔍 [DEBUG] Usando callback dinâmico:', callbackUrl)
-      return callbackUrl
+      // Verificar se estamos no browser e usar window.location
+      if (typeof window !== 'undefined') {
+        const currentUrl = window.location.origin
+        // Se estiver em localhost, sempre usar localhost
+        if (currentUrl.includes('localhost')) {
+          console.log('🔍 [DEBUG] Detectado localhost, usando:', `${currentUrl}/`)
+          return `${currentUrl}/`
+        }
+      }
+      
+      // Fallback: verificar NODE_ENV
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔍 [DEBUG] NODE_ENV development, usando localhost')
+        return 'http://localhost:3000/'
+      }
+      
+      // Em produção, usar a URL configurada nas variáveis de ambiente
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://orkut-br-oficial.vercel.app/'
+      const finalUrl = siteUrl.endsWith('/') ? siteUrl : `${siteUrl}/`
+      console.log('🔍 [DEBUG] Usando URL de produção:', finalUrl)
+      return finalUrl
     }
     
     const redirectUrl = getRedirectUrl()
-    console.log('🔍 [DEBUG] Redirect URL (callback):', redirectUrl)
+    console.log('🔍 [DEBUG] Redirect URL:', redirectUrl)
     
     if (isSupabaseConfigured()) {
       console.log('🔍 [DEBUG] Iniciando signInWithOAuth...')
       
-      try {
-        const { data, error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: redirectUrl,
-            scopes: 'email profile openid',
-            queryParams: {
-              access_type: 'offline',
-              prompt: 'select_account', // Mudou de 'consent' para 'select_account'
-            }
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectUrl,
+          scopes: 'email profile openid https://www.googleapis.com/auth/drive.file',
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
           }
-        })
-
-        console.log('🔍 [DEBUG] signInWithOAuth response:', { data, error })
-
-        if (error) {
-          console.error('❌ [ERROR] Error signing in with Google:', error)
-          console.error('❌ [ERROR] Error details:', {
-            message: error.message,
-            status: error.status,
-            code: error.code
-          })
-          throw new Error(`Erro ao fazer login com Google: ${error.message}`)
         }
+      })
 
-        console.log('✅ [SUCCESS] Google OAuth iniciado com sucesso')
-        console.log('✅ [SUCCESS] Data:', data)
-        // O redirecionamento será tratado automaticamente pelo Supabase
-      } catch (oauthError) {
-        console.error('❌ [ERROR] Erro inesperado no OAuth:', oauthError)
-        throw oauthError
+      console.log('🔍 [DEBUG] signInWithOAuth response:', { data, error })
+
+      if (error) {
+        console.error('❌ [ERROR] Error signing in with Google:', error)
+        throw new Error(`Erro ao fazer login com Google: ${error.message}`)
       }
+
+      console.log('✅ [SUCCESS] Google OAuth iniciado com sucesso')
+      // The redirect will be handled automatically by Supabase
     } else {
       console.error('❌ [ERROR] Supabase não configurado')
-      console.error('❌ [ERROR] NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
-      console.error('❌ [ERROR] NEXT_PUBLIC_SUPABASE_ANON_KEY:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '[CONFIGURADA]' : '[NÃO CONFIGURADA]')
-      throw new Error('Login com Google não disponível - Supabase não configurado')
+      throw new Error('Login com Google não disponível no modo offline')
     }
   }
 
@@ -547,7 +519,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     
     try {
       // Tentar obter foto do Google para salvar no banco na criação
-      let googlePhoto: string | null = null
+      let googlePhoto = null
       
       // Verificar múltiplas fontes de foto do Google
       const photoSources = [

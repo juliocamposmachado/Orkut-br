@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { PostCard, Post } from "./PostCard"
 import { CreatePost } from './CreatePost'
 import SmartMusicCard from './SmartMusicCard'
-import { useAuth } from '@/contexts/local-auth-context';
+import { useAuth } from '@/contexts/enhanced-auth-context'
 import { OrkutCard, OrkutCardContent } from '@/components/ui/orkut-card'
 import { Button } from '@/components/ui/button'
 import { RefreshCw, Users, MessageCircle, Heart } from 'lucide-react'

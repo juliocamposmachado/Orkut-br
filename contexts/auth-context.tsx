@@ -33,46 +33,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {
-    // Durante build time ou renderização no servidor, retornar defaults seguros
-    if (typeof window === 'undefined') {
-      console.warn('[useAuth] Contexto não disponível durante SSR, usando defaults')
-      return {
-        user: null,
-        profile: null,
-        loading: false,
-        signIn: async () => {
-          throw new Error('Auth não disponível durante renderização servidor')
-        },
-        signUp: async () => {
-          throw new Error('Auth não disponível durante renderização servidor')
-        },
-        signOut: async () => {
-          throw new Error('Auth não disponível durante renderização servidor')
-        },
-        updateProfile: async () => {
-          throw new Error('Auth não disponível durante renderização servidor')
-        }
-      }
-    }
-    console.error('[useAuth] Contexto não disponível - verifique se o componente está dentro de um AuthProvider')
-    // Retornar defaults seguros também no cliente se o provider não estiver configurado
-    return {
-      user: null,
-      profile: null,
-      loading: false,
-      signIn: async () => {
-        throw new Error('Auth Provider não configurado')
-      },
-      signUp: async () => {
-        throw new Error('Auth Provider não configurado')
-      },
-      signOut: async () => {
-        throw new Error('Auth Provider não configurado')
-      },
-      updateProfile: async () => {
-        throw new Error('Auth Provider não configurado')
-      }
-    }
+    throw new Error('useAuth must be used within an AuthProvider')
   }
   return context
 }
@@ -87,99 +48,60 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    let mounted = true
-    
-    // Para simplificar e evitar erros, vamos assumir usuário deslogado por padrão
-    const initializeAuth = async () => {
-      try {
-        console.log('🔑 [AUTH] Inicializando sistema de autenticação...')
-        
-        // Tentar obter sessão atual
-        const { data: { session }, error } = await supabase.auth.getSession()
-        
-        if (error) {
-          console.warn('⚠️ [AUTH] Erro ao obter sessão, assumindo deslogado:', error.message)
-          if (mounted) {
-            setUser(null)
-            setProfile(null)
-            setLoading(false)
-          }
-          return
-        }
-        
-        if (session?.user && mounted) {
-          console.log('✅ [AUTH] Usuário encontrado:', session.user.email)
-          setUser(session.user)
-          // Criar perfil mínimo imediatamente
-          setProfile({
-            id: session.user.id,
-            username: session.user.email?.split('@')[0] || `user_${session.user.id.slice(-8)}`,
-            display_name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Usuário',
-            created_at: new Date().toISOString(),
-            photo_url: session.user.user_metadata?.avatar_url || null,
-            bio: null,
-            location: null,
-            birthday: null,
-            relationship: null,
-            fans_count: 0
-          })
-        } else {
-          console.log('😴 [AUTH] Nenhum usuário logado')
-          if (mounted) {
-            setUser(null)
-            setProfile(null)
-          }
-        }
-        
-        if (mounted) {
-          setLoading(false)
-        }
-        
-      } catch (error) {
-        console.error('❌ [AUTH] Erro na inicialização:', error)
-        if (mounted) {
-          setUser(null)
-          setProfile(null)
-          setLoading(false)
-        }
+    // Safety timeout to prevent infinite loading
+    const safetyTimeout = setTimeout(() => {
+      console.warn('Safety timeout triggered - forcing loading to stop')
+      setLoading(false)
+      
+      // If we have a user but no profile, create a minimal one
+      if (user && !profile) {
+        setProfile({
+          id: user.id,
+          username: `user_${user.id.slice(-8)}`,
+          display_name: 'Usuário',
+          created_at: new Date().toISOString(),
+          photo_url: null,
+          bio: null,
+          location: null,
+          birthday: null,
+          relationship: null,
+          fans_count: 0
+        })
       }
-    }
-    
-    // Inicializar imediatamente
-    initializeAuth()
-    
-    // Listener para mudanças de autenticação (simplificado)
+    }, 10000) // 10 seconds timeout
+
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null)
+      if (session?.user) {
+        loadProfile(session.user.id)
+      } else {
+        setLoading(false)
+        clearTimeout(safetyTimeout)
+      }
+    }).catch((error) => {
+      console.error('Error getting session:', error)
+      setLoading(false)
+      clearTimeout(safetyTimeout)
+    })
+
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (!mounted) return
-        
-        console.log('🔄 [AUTH] Mudança de estado:', event)
-        
+        setUser(session?.user ?? null)
         if (session?.user) {
-          setUser(session.user)
-          setProfile({
-            id: session.user.id,
-            username: session.user.email?.split('@')[0] || `user_${session.user.id.slice(-8)}`,
-            display_name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Usuário',
-            created_at: new Date().toISOString(),
-            photo_url: session.user.user_metadata?.avatar_url || null,
-            bio: null,
-            location: null,
-            birthday: null,
-            relationship: null,
-            fans_count: 0
-          })
+          await loadProfile(session.user.id)
         } else {
-          setUser(null)
           setProfile(null)
+          setLoading(false)
         }
-        setLoading(false)
+        clearTimeout(safetyTimeout)
       }
     )
 
     return () => {
-      mounted = false
       subscription.unsubscribe()
+      clearTimeout(safetyTimeout)
     }
   }, [])
 

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { useAuth } from '@/contexts/auth-context'
+import { useAuth } from '@/contexts/enhanced-auth-context'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { WebRTCManager, type WebRTCCallConfig } from '@/lib/webrtc-manager'
@@ -34,19 +34,186 @@ export function useCallNotifications() {
       return
     }
 
-    console.log('✅ useCallNotifications: Modo simplificado ativado (sem polling)')
-    // MODO SIMPLIFICADO - SEM LISTENERS REAIS
+    console.log('🔔 Configurando listener para notificações de chamadas...', user.id)
+    console.log('📊 Estado atual antes da configuração:', { incomingCall: !!incomingCall, isRinging, isInCall })
 
-    // Limpar estados
+    // Limpar estados anteriores sempre que reconectar
     setIncomingCall(null)
     setIsRinging(false)
     setIsInCall(false)
+
+    let channelRef: any = null
+    let signalingChannelRef: any = null
+    const startTime = Date.now() // Tempo de início da sessão para filtrar apenas notificações novas
     
-    // Sem listeners no modo simplificado
-    console.log('🗋 Modo simplificado: sem listeners de chamadas')
-    
+    console.log('⏰ Sessão iniciada em:', new Date(startTime).toLocaleString())
+
+    const setupListener = async () => {
+      // PRIMEIRO: Marcar todas as notificações de chamada antigas como lidas
+      try {
+        console.log('🧹 Limpando notificações antigas de chamadas...')
+        const { error } = await supabase
+          .from('notifications')
+          .update({ read: true })
+          .eq('profile_id', user.id)
+          .eq('type', 'incoming_call')
+          .eq('read', false)
+        
+        if (error) {
+          console.warn('⚠️ Erro ao limpar notificações antigas:', error)
+        } else {
+          console.log('✅ Notificações antigas de chamadas marcadas como lidas')
+        }
+      } catch (error) {
+        console.warn('⚠️ Erro na limpeza inicial:', error)
+      }
+
+      // SEGUNDO: Configurar listener apenas para notificações FUTURAS
+      channelRef = supabase
+        .channel(`call_notifications_${user.id}_${startTime}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'notifications',
+            filter: `profile_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('🔔 Nova notificação recebida:', payload)
+            
+            const notification = payload.new
+            console.log('📋 Notification type:', notification?.type)
+            
+            // Verificar se é uma notificação de chamada RECENTE
+            if (notification?.type === 'incoming_call') {
+              const callData = notification.payload
+              const notificationTime = new Date(notification.created_at).getTime()
+              const now = Date.now()
+              const timeDiff = (now - notificationTime) / 1000 // segundos
+              
+              console.log('📞 CHAMADA DETECTADA! Dados:', callData)
+              console.log('⏰ Tempo da notificação:', timeDiff, 'segundos atrás')
+              console.log('⏰ Sessão iniciada em:', new Date(startTime))
+              console.log('⏰ Notificação criada em:', new Date(notificationTime))
+              console.log('📊 Estado atual antes do processamento:', { incomingCall: !!incomingCall, isRinging, isInCall })
+              
+              // CRITÉRIO MELHORADO: Aceitar notificações até 30 segundos
+              // E sempre processar notificações desta sessão
+              if (notificationTime >= startTime && timeDiff <= 30) {
+                console.log('✅ Notificação NOVA E RECENTE - processando chamada')
+                
+                const incomingCallData = {
+                  callId: callData.call_id,
+                  callType: callData.call_type,
+                  fromUser: callData.from_user,
+                  offer: callData.offer,
+                  timestamp: callData.timestamp || new Date().toISOString()
+                }
+                
+                console.log('📱 Configurando estado da chamada:', incomingCallData)
+                setIncomingCall(incomingCallData)
+                setIsRinging(true)
+                
+                console.log('📊 Estado após configuração:', { incomingCall: true, isRinging: true })
+                
+                // Mostrar toast de notificação
+                toast(`📞 Chamada ${callData.call_type === 'video' ? 'de vídeo' : 'de áudio'} de ${callData.from_user.display_name}`, {
+                  duration: 15000,
+                  action: {
+                    label: 'Atender',
+                    onClick: () => {
+                      console.log('👆 Usuário clicou para atender via toast')
+                    }
+                  }
+                })
+                
+                // Auto-rejeitar após 30 segundos se não atender
+                setTimeout(() => {
+                  setIncomingCall((currentCall) => {
+                    if (currentCall?.callId === callData.call_id) {
+                      console.log('⏰ Chamada expirou - rejeitando automaticamente')
+                      setIsRinging(false)
+                      toast.info(`📱 Chamada perdida de ${callData.from_user.display_name}`, {
+                        duration: 8000,
+                        action: {
+                          label: 'Ver Histórico',
+                          onClick: () => {
+                            console.log('📋 Mostrando histórico de chamadas')
+                            window.dispatchEvent(new CustomEvent('showMissedCallsHistory'))
+                          }
+                        }
+                      })
+                      return null
+                    }
+                    return currentCall
+                  })
+                }, 30000)
+                
+              } else if (notificationTime < startTime) {
+                console.log('⚠️ Notificação ANTERIOR à sessão (' + timeDiff + 's) - ignorando')
+              } else if (timeDiff > 30) {
+                console.log('⚠️ Notificação TARDIA (' + timeDiff + 's) - mostrando como perdida')
+                // Para notificações tardias mas recentes, mostrar como perdida
+                if (timeDiff <= 120) {
+                  toast.info(`📱 Chamada perdida de ${callData.from_user.display_name}`, {
+                    duration: 5000,
+                    action: {
+                      label: 'Ver Histórico',
+                      onClick: () => {
+                        console.log('📋 Mostrando histórico de chamadas')
+                        window.dispatchEvent(new CustomEvent('showMissedCallsHistory'))
+                      }
+                    }
+                  })
+                }
+              }
+            } else {
+              console.log('ℹ️ Notificação não é de chamada:', notification?.type)
+            }
+          }
+        )
+        .subscribe((status, error) => {
+          if (error) {
+            console.error('❌ Erro na subscrição de notificações:', error)
+          } else {
+            console.log('✅ Subscrito para notificações de chamada. Status:', status)
+          }
+        })
+      
+      // TERCEIRO: Configurar listener para sinalização WebRTC
+      signalingChannelRef = supabase
+        .channel(`webrtc_signaling_${user.id}`)
+        .on('broadcast', { event: 'webrtc_signaling' }, (payload) => {
+          console.log('📡 Sinal WebRTC recebido:', payload)
+          handleWebRTCSignaling(payload.payload)
+        })
+        .subscribe((status, error) => {
+          if (error) {
+            console.error('❌ Erro na subscrição de sinalização WebRTC:', error)
+          } else {
+            console.log('✅ Subscrito para sinalização WebRTC. Status:', status)
+          }
+        })
+    }
+
+    // Executar configuração após pequeno delay
+    const timeoutId = setTimeout(setupListener, 500)
+
     return () => {
-      console.log('🧧 Limpeza simplificada de useCallNotifications')
+      console.log('🧧 Limpando listeners de notificações de chamada')
+      clearTimeout(timeoutId)
+      if (channelRef) {
+        console.log('🧧 Removendo canal de notificações')
+        supabase.removeChannel(channelRef)
+      }
+      if (signalingChannelRef) {
+        console.log('🧧 Removendo canal de sinalização WebRTC')
+        supabase.removeChannel(signalingChannelRef)
+      }
+      // Limpar estados ao desmontar
+      setIncomingCall(null)
+      setIsRinging(false)
     }
   }, [user])
 
@@ -98,22 +265,18 @@ export function useCallNotifications() {
       }
       
       // Marcar notificação como lida
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        await fetch('/api/call-notification', {
-          method: 'PUT',
-          headers: { 
-            'Content-Type': 'application/json',
-            ...(session?.access_token && { 'Authorization': `Bearer ${session.access_token}` })
-          },
-          body: JSON.stringify({
-            callId: callData.callId,
-            action: 'accept'
-          })
+      const { data: { session } } = await supabase.auth.getSession()
+      await fetch('/api/call-notification', {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(session?.access_token && { 'Authorization': `Bearer ${session.access_token}` })
+        },
+        body: JSON.stringify({
+          callId: callData.callId,
+          action: 'accept'
         })
-      } catch (sessionError) {
-        console.warn('Erro ao obter sessão para marcar notificação:', sessionError)
-      }
+      })
       
       toast.success('Chamada aceita! Conectando...')
       
@@ -128,28 +291,23 @@ export function useCallNotifications() {
     
     try {
       // Enviar resposta de rejeição via API
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        const response = await fetch('/api/call-notification', {
-          method: 'PUT',
-          headers: { 
-            'Content-Type': 'application/json',
-            ...(session?.access_token && { 'Authorization': `Bearer ${session.access_token}` })
-          },
-          body: JSON.stringify({
-            callId,
-            action: 'reject'
-          })
+      const { data: { session } } = await supabase.auth.getSession()
+      const response = await fetch('/api/call-notification', {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(session?.access_token && { 'Authorization': `Bearer ${session.access_token}` })
+        },
+        body: JSON.stringify({
+          callId,
+          action: 'reject'
         })
-        
-        if (!response.ok) {
-          console.warn('Falha ao rejeitar chamada via API')
-        }
-      } catch (sessionError) {
-        console.warn('Erro ao obter sessão para rejeitar chamada:', sessionError)
+      })
+
+      if (!response.ok) {
+        console.warn('Falha ao rejeitar chamada via API')
       }
 
-      
       setIncomingCall(null)
       setIsRinging(false)
       toast.info('Chamada rejeitada')
@@ -195,8 +353,7 @@ export function useCallNotifications() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.access_token) {
-        console.warn('Não autenticado para enviar sinal WebRTC')
-        return
+        throw new Error('Não autenticado')
       }
       
       const response = await fetch('/api/call-signaling', {
@@ -270,31 +427,26 @@ export function useCallNotifications() {
       }
       
       // Enviar notificação de chamada tradicional
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        if (!session?.access_token) {
-          throw new Error('Não autenticado')
-        }
-        
-        const response = await fetch('/api/call-notification', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`
-          },
-          body: JSON.stringify({
-            targetUserId,
-            callType,
-            offer
-          })
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.access_token) {
+        throw new Error('Não autenticado')
+      }
+      
+      const response = await fetch('/api/call-notification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({
+          targetUserId,
+          callType,
+          offer
         })
-        
-        if (!response.ok) {
-          throw new Error('Falha ao enviar notificação')
-        }
-      } catch (notificationError) {
-        console.warn('Erro ao enviar notificação de chamada:', notificationError)
-        // Continua mesmo com erro na notificação
+      })
+      
+      if (!response.ok) {
+        throw new Error('Falha ao enviar notificação')
       }
       
       setIsInCall(true)

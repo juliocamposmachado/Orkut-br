@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
         console.warn('⚠️ [Save Feed] Token inválido, salvando como anônimo:', authError?.message)
         isAnonymous = true
       } else {
-        user = authenticatedUser || null
+        user = authenticatedUser
         console.log('✅ [Save Feed] Usuário autenticado:', user.email)
       }
     } else {
@@ -133,9 +133,9 @@ export async function POST(request: NextRequest) {
 
     // Preparar dados para inserção
     const photoFeedData = {
-      user_id: (user as any)?.id || null,
-      user_name: (user as any)?.user_metadata?.name || (user as any)?.email?.split('@')[0] || 'Usuário Anônimo',
-      user_avatar: (user as any)?.user_metadata?.avatar_url || null,
+      user_id: user?.id || null,
+      user_name: user?.user_metadata?.name || user?.email?.split('@')[0] || 'Usuário Anônimo',
+      user_avatar: user?.user_metadata?.avatar_url || null,
       
       // Dados da imagem
       imgur_id: body.imgur_id,

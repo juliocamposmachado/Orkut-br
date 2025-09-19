@@ -95,7 +95,7 @@ export default function RichLinkPreview({
             url,
             title: `Imagem ${imgurId} - Imgur`,
             description: 'Imagem hospedada no Imgur',
-            image: config.directUrl ? config.directUrl(imgurId) : undefined,
+            image: config.directUrl!(imgurId),
             site_name: config.siteName,
             type: 'image'
           }
@@ -222,7 +222,7 @@ export default function RichLinkPreview({
           compact ? "w-20 h-20" : "w-full h-48"
         )}>
           <Image
-            src={metadata.image || '/placeholder.jpg'}
+            src={metadata.image}
             alt={metadata.title || 'Preview'}
             fill
             className="object-cover"

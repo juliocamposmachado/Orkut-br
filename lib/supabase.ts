@@ -1,255 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { getOrkutDB, type OrkutPasteDBAdapter } from './orkut-pastedb-adapter'
 
-// Configuração do sistema de banco de dados HÍBRIDO
-// USANDO SUPABASE (AUTH) + DPASTE (DADOS)
-const USE_PASTEDB_FOR_DATA = true  // ✅ Habilitado - usar DPaste.org para dados
-const USE_SUPABASE_FOR_AUTH = true // ✅ Habilitado - usar Supabase para autenticação
+// Configurar Supabase apenas se as variáveis estiverem disponíveis
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
 
-// 🚀 ADAPTADOR PASTEDB - Cliente revolucionário que intercepta calls do Supabase
-const createPasteDBClient = (): SupabaseClient => {
-  const orkutDB = getOrkutDB()
-  
-  // Interceptar e redirecionar operações para PasteDB
-  const createMockChain = (tableName: string, chainData: any = {}) => {
-    const executeQuery = async () => {
-      try {
-        let data = []
-        let count = 0
-        
-        if (tableName === 'posts') {
-          data = await orkutDB.getFeedPosts(chainData.limit || 20)
-          count = data.length
-        } else if (tableName === 'communities') {
-          data = await orkutDB.getCommunities(chainData.limit || 50)
-          count = data.length
-        } else if (tableName === 'profiles') {
-          // Para profiles, retornar array vazio se não há query específica
-          data = []
-          count = 0
-        } else if (tableName === 'notifications') {
-          // TODO: PAUSADO TEMPORARIAMENTE - Reativar quando estabilizado
-          // const { getMockCallHistory } = await import('./seed-call-history')
-          // data = getMockCallHistory(chainData.eq?.value || 'user_001')
-          console.log('📞 [PAUSADO] Sistema de notifications temporariamente desabilitado')
-          data = []
-          count = 0
-        } else if (tableName === 'post_reports') {
-          // Mock de dados de relatórios para página de transparência
-          data = []
-          count = 0
-        } else if (tableName === 'banned_users') {
-          // Mock de dados de usuários banidos para página de transparência
-          data = []
-          count = 0
-        } else {
-          // Para outras tabelas, retornar vazio
-          data = []
-          count = 0
-        }
-        
-        // Se options têm count: 'exact', retornar apenas count
-        if (chainData.columns && typeof chainData.columns === 'object' && chainData.columns.count === 'exact') {
-          return { data: null, error: null, count }
-        }
-        
-        return { data, error: null, count }
-      } catch (error) {
-        return { data: [], error: { message: `PasteDB error: ${error}` }, count: 0 }
-      }
-    }
-
-    return {
-      select: (columns?: string, options?: any) => createMockChain(tableName, { ...chainData, columns }),
-      eq: (column: string, value: any) => {
-        const newChain = createMockChain(tableName, { ...chainData, eq: { column, value } })
-        return {
-          ...newChain,
-          single: async () => {
-            try {
-              if (tableName === 'profiles') {
-                const profile = await orkutDB.getProfile(value)
-                return { data: profile, error: null }
-              }
-              if (tableName === 'posts' && column === 'id') {
-                const post = await orkutDB.getPost(value)
-                return { data: post, error: null }
-              }
-              return { data: null, error: null }
-            } catch (error) {
-              return { data: null, error: { message: `PasteDB error: ${error}` } }
-            }
-          }
-        }
-      },
-      order: (column: string, options?: any) => createMockChain(tableName, { ...chainData, order: { column, options } }),
-      range: (from: number, to: number) => createMockChain(tableName, { ...chainData, range: { from, to } }),
-      limit: (count: number) => createMockChain(tableName, { ...chainData, limit: count }),
-      like: (column: string, pattern: string) => createMockChain(tableName, { ...chainData, like: { column, pattern } }),
-      in: (column: string, values: any[]) => createMockChain(tableName, { ...chainData, in: { column, values } }),
-      then: async (callback: Function) => {
-        const result = await executeQuery()
-        if (callback) callback(result)
-        return result
-      },
-      // Fazer com que seja awaitable
-      catch: (callback: Function) => {
-        return executeQuery().catch(callback)
-      }
-    }
-  }
-  
-  // Wrapper de insert que pode chamar métodos do chain
-  const createInsertChain = (tableName: string, values: any) => ({
-    select: () => ({
-      single: async () => {
-        try {
-          let result = null
-          if (tableName === 'profiles') {
-            const success = await orkutDB.createProfile(values)
-            result = success ? values : null
-          } else if (tableName === 'posts') {
-            result = await orkutDB.createPost(values)
-          }
-          return { data: result, error: result ? null : { message: 'Insert failed' } }
-        } catch (error) {
-          return { data: null, error: { message: `PasteDB insert error: ${error}` } }
-        }
-      }
-    })
-  })
-  
-  // Wrapper do from que inclui o insert
-  const createFromChain = (tableName: string) => ({
-    ...createMockChain(tableName),
-    insert: (values: any) => createInsertChain(tableName, values),
-    update: (values: any) => ({
-      eq: (column: string, value: any) => ({
-        then: async (callback: Function) => {
-          try {
-            let success = false
-            if (tableName === 'profiles') {
-              success = await orkutDB.updateProfile(value, values)
-            }
-            callback({ data: success ? [values] : [], error: success ? null : { message: 'Update failed' } })
-          } catch (error) {
-            callback({ data: [], error: { message: `PasteDB update error: ${error}` } })
-          }
-        }
-      })
-    }),
-    delete: () => createMockChain(tableName),
-    upsert: (values: any) => createMockChain(tableName)
-  })
-  
-  // Criar cliente Supabase real para autenticação com verificações de segurança
-  let realSupabaseClient = null
-  try {
-    if (supabaseUrl && supabaseAnonKey && 
-        !supabaseUrl.includes('placeholder') && 
-        !supabaseUrl.includes('your_') &&
-        supabaseUrl.startsWith('https://')) {
-      realSupabaseClient = createClient(supabaseUrl, supabaseAnonKey)
-    }
-  } catch (error) {
-    console.warn('⚠️ Erro ao criar cliente Supabase:', error)
-    realSupabaseClient = null
-  }
-  
-  // Criar auth wrapper seguro
-  const safeAuth = realSupabaseClient ? {
-    getSession: async () => {
-      try {
-        return await realSupabaseClient.auth.getSession()
-      } catch (error) {
-        console.warn('⚠️ Erro ao obter sessão:', error)
-        return { data: { session: null }, error: null }
-      }
-    },
-    signInWithPassword: async (credentials: any) => {
-      try {
-        return await realSupabaseClient.auth.signInWithPassword(credentials)
-      } catch (error) {
-        console.warn('⚠️ Erro no signIn:', error)
-        return { data: { user: null, session: null }, error: { message: 'Erro de autenticação' } }
-      }
-    },
-    signInWithOAuth: async (options: any) => {
-      try {
-        return await realSupabaseClient.auth.signInWithOAuth(options)
-      } catch (error) {
-        console.warn('⚠️ Erro no OAuth:', error)
-        return { data: { user: null, session: null }, error: { message: 'Erro OAuth' } }
-      }
-    },
-    signUp: async (credentials: any) => {
-      try {
-        return await realSupabaseClient.auth.signUp(credentials)
-      } catch (error) {
-        console.warn('⚠️ Erro no signUp:', error)
-        return { data: { user: null, session: null }, error: { message: 'Erro no cadastro' } }
-      }
-    },
-    signOut: async () => {
-      try {
-        return await realSupabaseClient.auth.signOut()
-      } catch (error) {
-        console.warn('⚠️ Erro no signOut:', error)
-        return { error: null }
-      }
-    },
-    onAuthStateChange: (callback: any) => {
-      try {
-        return realSupabaseClient.auth.onAuthStateChange(callback)
-      } catch (error) {
-        console.warn('⚠️ Erro no onAuthStateChange:', error)
-        return { data: { subscription: { unsubscribe: () => {} } } }
-      }
-    },
-    getUser: async () => {
-      try {
-        return await realSupabaseClient.auth.getUser()
-      } catch (error) {
-        console.warn('⚠️ Erro ao obter usuário:', error)
-        return { data: { user: null }, error: null }
-      }
-    }
-  } : {
-    getSession: () => Promise.resolve({ data: { session: null }, error: null }),
-    signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Auth não configurado' } }),
-    signInWithOAuth: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Auth não configurado' } }),
-    signUp: () => Promise.resolve({ data: { user: null, session: null }, error: { message: 'Auth não configurado' } }),
-    signOut: () => Promise.resolve({ error: null }),
-    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-    getUser: () => Promise.resolve({ data: { user: null }, error: null })
-  }
-  
-  return {
-    from: (tableName: string) => createFromChain(tableName),
-    // USAR AUTH WRAPPER SEGURO
-    auth: safeAuth,
-    storage: {
-      from: () => ({
-        upload: () => Promise.resolve({ data: null, error: { message: 'Storage not implemented in PasteDB' } }),
-        getPublicUrl: () => ({ data: { publicUrl: '' } }),
-        download: () => Promise.resolve({ data: null, error: { message: 'Storage not implemented in PasteDB' } }),
-        remove: () => Promise.resolve({ data: null, error: null })
-      })
-    },
-    channel: () => ({
-      on: () => ({}),
-      subscribe: () => ({}),
-      unsubscribe: () => ({})
-    }),
-    removeChannel: () => {},
-    rpc: () => Promise.resolve({ data: null, error: { message: 'RPC not implemented in PasteDB' } })
-  } as any
-}
-
-// Cliente mock original para fallback
+// Cliente mock para quando Supabase não está configurado
 const createMockClient = (): SupabaseClient => {
   const mockFunction = () => Promise.resolve({ data: null, error: { message: 'Supabase não configurado' } })
   const mockSuccessFunction = () => Promise.resolve({ data: [], error: null })
@@ -301,35 +57,17 @@ const createMockClient = (): SupabaseClient => {
   } as any
 }
 
-// 🚀 SISTEMA HÍBRIDO: Supabase para Auth + PasteDB para Dados
-let supabaseInstance: SupabaseClient | null = null
-
+// Só criar cliente se as variáveis estiverem configuradas corretamente
 const createSupabaseClient = (): SupabaseClient => {
-  // Retornar instância existente se já foi criada (evitar múltiplas instâncias)
-  if (supabaseInstance) {
-    return supabaseInstance
-  }
-  
-  // PRIMEIRO: Verificar se Supabase está configurado corretamente
   if (!supabaseUrl || !supabaseAnonKey || 
       supabaseUrl.includes('placeholder') || 
       supabaseUrl.includes('your_') ||
       !supabaseUrl.startsWith('https://')) {
-    console.warn('⚠️ [SUPABASE] Não configurado - usando cliente mock')
-    supabaseInstance = createMockClient()
-    return supabaseInstance
+    console.warn('Supabase não configurado - usando cliente mock')
+    return createMockClient()
   }
   
-  // Se PasteDB estiver habilitado para dados, usar o adaptador híbrido
-  if (USE_PASTEDB_FOR_DATA && USE_SUPABASE_FOR_AUTH) {
-    console.log('🚀 [SUPABASE] Usando sistema híbrido: Supabase Auth + PasteDB Dados!')
-    supabaseInstance = createPasteDBClient()
-    return supabaseInstance
-  }
-  
-  // Fallback para Supabase tradicional (100% Supabase)
-  console.log('🔵 [SUPABASE] Usando Supabase tradicional completo!')
-  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
+  return createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
@@ -340,45 +78,9 @@ const createSupabaseClient = (): SupabaseClient => {
       },
     },
   })
-  return supabaseInstance
 }
 
 export const supabase = createSupabaseClient()
-
-// Exportar também o adaptador PasteDB para uso direto
-export const pasteDB = USE_PASTEDB_FOR_DATA ? getOrkutDB() : null
-
-// Função para alternar entre backends
-export const switchToSupabase = () => {
-  console.log('🔄 Alternando para backend Supabase...')
-  // TODO: Implementar troca dinâmica de backend
-}
-
-export const switchToPasteDB = () => {
-  console.log('🚀 Alternando para backend PasteDB...')
-  // TODO: Implementar troca dinâmica de backend
-}
-
-// Função para verificar qual backend está ativo
-export const getActiveBackend = () => {
-  return USE_PASTEDB_FOR_DATA ? 'Híbrido (Supabase Auth + PasteDB Data)' : 'Supabase Completo'
-}
-
-// Função para inicializar sistema (chamada na inicialização da app)
-export const initializeDatabase = async () => {
-  if (USE_PASTEDB_FOR_DATA && pasteDB) {
-    try {
-      await pasteDB.initialize()
-      console.log('✅ PasteDB inicializado com sucesso para dados!')
-    } catch (error) {
-      console.error('❌ Erro ao inicializar PasteDB:', error)
-    }
-  }
-  
-  if (USE_SUPABASE_FOR_AUTH) {
-    console.log('✅ Supabase configurado para autenticação!')
-  }
-}
 
 export type Database = {
   public: {

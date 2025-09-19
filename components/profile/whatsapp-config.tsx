@@ -27,7 +27,7 @@ import {
   WifiOff,
   RefreshCw
 } from 'lucide-react';
-import { useAuth } from '@/contexts/local-auth-context';
+import { useAuth } from '@/contexts/enhanced-auth-context';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { useOfflineSync } from '@/hooks/useOfflineSync';

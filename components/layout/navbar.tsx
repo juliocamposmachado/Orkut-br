@@ -37,7 +37,7 @@ import {
   BookOpen,
   Video
 } from 'lucide-react'
-import { useAuth } from '@/contexts/local-auth-context';
+import { useAuth } from '@/contexts/enhanced-auth-context'
 import { useVoice } from '@/contexts/voice-context'
 import { useSubscription } from '@/hooks/use-subscription'
 import { NotificationsDropdown } from '@/components/notifications/notifications-dropdown'

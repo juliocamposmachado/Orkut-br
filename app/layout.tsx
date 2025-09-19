@@ -1,13 +1,8 @@
-// Forçar renderização dinâmica para todo o app
-export const dynamic = 'force-dynamic'
-export const revalidate = 0
-
 import './globals.css';
 import './globals-responsive.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import { AuthProvider } from '@/contexts/auth-context';
-import { PasteDBAuthProvider } from '@/contexts/pastedb-auth-context';
+import { AuthProvider } from '@/contexts/enhanced-auth-context';
 import { VoiceProvider } from '@/contexts/voice-context';
 import { OnlineStatusProvider } from '@/contexts/OnlineStatusContext';
 import { WebRTCProvider } from '@/contexts/webrtc-context';
@@ -29,9 +24,13 @@ import '@/lib/polyfills';
 
 const inter = Inter({ subsets: ['latin'] });
 
-// Função para determinar a URL base dinamicamente - sempre produção para OAuth
+// Função para determinar a URL base dinamicamente
 const getBaseUrl = () => {
-  // Sempre usar a URL de produção para evitar problemas de OAuth
+  // Em desenvolvimento, usar localhost
+  if (process.env.NODE_ENV === 'development') {
+    return 'http://localhost:3000'
+  }
+  // Em produção, usar a URL configurada ou padrão
   return process.env.NEXT_PUBLIC_SITE_URL || 'https://orkut-br-oficial.vercel.app'
 }
 
@@ -157,7 +156,7 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Orkut BR" />
+        <meta name="apple-mobile-web-app-title" content="Orkut 2025" />
         
         {/* Developer and Company Info */}
         <meta name="author" content="Julio Campos Machado" />
@@ -172,30 +171,28 @@ export default function RootLayout({
         <StructuredData />
         <EdgeCompatibility />
         <ThemeProvider>
-          <PasteDBAuthProvider>
-            <AuthProvider>
-              <NotificationProvider>
-                <RadioProvider>
-                  <OnlineStatusProvider>
-                    <WebRTCProvider>
-                      <VoiceProvider>
-                        <CallProviderWrapper>
-                          <FriendsProvider>
-                            {children}
-                            {/* Sistema de chamadas - notificações, modais e controles */}
-                            <CallManager />
-                            {/* WebRTC diagnostics moved to developer dashboard */}
-                            {/* <EventListenerMonitor /> */}
-                            <Toaster />
-                          </FriendsProvider>
-                        </CallProviderWrapper>
-                      </VoiceProvider>
-                    </WebRTCProvider>
-                  </OnlineStatusProvider>
-                </RadioProvider>
-              </NotificationProvider>
-            </AuthProvider>
-          </PasteDBAuthProvider>
+          <AuthProvider>
+            <NotificationProvider>
+              <RadioProvider>
+                <OnlineStatusProvider>
+                  <WebRTCProvider>
+                    <VoiceProvider>
+                      <CallProviderWrapper>
+                        <FriendsProvider>
+                          {children}
+                          {/* Sistema de chamadas - notificações, modais e controles */}
+                          <CallManager />
+                          {/* WebRTC diagnostics moved to developer dashboard */}
+                          {/* <EventListenerMonitor /> */}
+                          <Toaster />
+                        </FriendsProvider>
+                      </CallProviderWrapper>
+                    </VoiceProvider>
+                  </WebRTCProvider>
+                </OnlineStatusProvider>
+              </RadioProvider>
+            </NotificationProvider>
+          </AuthProvider>
         </ThemeProvider>
         {/* Overlay de pausa por inatividade */}
         <IdleOverlay timeout={1800000} />

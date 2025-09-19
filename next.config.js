@@ -8,7 +8,7 @@ const nextConfig = {
   },
   images: { 
     unoptimized: true,
-    domains: ['images.pexels.com', 'nhguhmiopdzuckaswvmu.supabase.co', 'static2.mytuner.mobi']
+    domains: ['images.pexels.com', 'woyyikaztjrhqzgvbhmn.supabase.co', 'static2.mytuner.mobi']
   },
   // Improve build performance and fix runtime issues
   swcMinify: true,
@@ -18,9 +18,7 @@ const nextConfig = {
     // Enable server actions
     serverActions: true,
     // Configure server actions body size limit (Next.js 14+)
-    serverActionsBodySizeLimit: '10mb',
-    // Disable static optimization for auth-dependent pages
-    forceSwcTransforms: true
+    serverActionsBodySizeLimit: '10mb'
   },
   webpack: (config, { isServer, webpack }) => {
     // Fix potential browser API issues on server
@@ -44,8 +42,9 @@ const nextConfig = {
     return config;
   },
   env: {
-    // Sempre usar URL de produção para evitar problemas de OAuth
-    NEXT_PUBLIC_SOCKET_URL: process.env.NEXT_PUBLIC_SITE_URL || 'https://orkut-br-oficial.vercel.app',
+    NEXT_PUBLIC_SOCKET_URL: process.env.NODE_ENV === 'production' 
+      ? 'https://orkut-br.vercel.app' 
+      : 'http://localhost:3000',
     NEXT_PUBLIC_GEMINI_API_KEY: process.env.NEXT_PUBLIC_GEMINI_API_KEY,
   },
   async headers() {
@@ -61,7 +60,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: https: blob:",
               "font-src 'self' data: https://fonts.gstatic.com",
-              "connect-src 'self' https://nhguhmiopdzuckaswvmu.supabase.co wss://nhguhmiopdzuckaswvmu.supabase.co https://vercel.live wss://orkut-br-oficial.vercel.app wss://*.vercel.app https://stun.l.google.com:19302 https://stun1.l.google.com:19302 https://vitals.vercel-insights.com https://images.pexels.com https://generativelanguage.googleapis.com",
+              "connect-src 'self' https://woyyikaztjrhqzgvbhmn.supabase.co wss://woyyikaztjrhqzgvbhmn.supabase.co https://vercel.live wss://orkut-br.vercel.app wss://*.vercel.app https://stun.l.google.com:19302 https://stun1.l.google.com:19302 https://vitals.vercel-insights.com https://images.pexels.com https://generativelanguage.googleapis.com",
               "media-src 'self' blob: mediastream:",
               "worker-src 'self' blob:",
               "frame-src 'self' https://vercel.live",

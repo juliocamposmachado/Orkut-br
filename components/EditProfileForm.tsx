@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/contexts/local-auth-context'
+import { useAuth } from '@/contexts/enhanced-auth-context'
 import { usePhoneValidation } from './WhatsAppButton';
 import { ImageUpload } from './ImageUpload';
 import { User, Mail, Phone, MessageCircle, Shield, Check, X, Loader, Camera } from 'lucide-react';

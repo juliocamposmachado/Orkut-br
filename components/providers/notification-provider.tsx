@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect } from 'react'
 import { useRealtimeNotifications } from '@/hooks/use-realtime-notifications'
-import { useAuth } from '@/contexts/local-auth-context'
+import { useAuth } from '@/contexts/enhanced-auth-context'
 
 interface NotificationContextType {
   isConnected: boolean

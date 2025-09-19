@@ -1,7 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { useAuth } from '@/contexts/auth-context'
+import { useAuth } from '@/contexts/enhanced-auth-context'
 import { supabase } from '@/lib/supabase'
 
 interface OnlineUser {
@@ -31,13 +31,8 @@ const updateUserPresence = async (
 ) => {
   try {
     // Usar nossa API REST confiável
-    let authToken: string | null = null;
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      authToken = session?.access_token || null;
-    } catch (sessionError) {
-      console.warn('Erro ao obter sessão:', sessionError);
-    }
+    const { data: { session } } = await supabase.auth.getSession();
+    const authToken = session?.access_token;
     
     const response = await fetch('/api/user_presence', {
       method: 'POST',
@@ -82,40 +77,101 @@ const loadOnlineUsers = async (): Promise<OnlineUser[]> => {
 export const OnlineStatusProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, profile } = useAuth();
   const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
-  const [isConnected, setIsConnected] = useState(true); // Sempre conectado no modo simplificado
+  const [isConnected, setIsConnected] = useState(false);
   const [currentStatus, setCurrentStatus] = useState<'online' | 'away' | 'busy' | 'offline'>('online');
 
-  // 🎯 MODO SIMPLIFICADO - SEM POLLING, SEM REQUESTS
+  // 🎆 GAMBIARRA ÉPICA: Sistema sem WebSocket!
   useEffect(() => {
     if (!user) return;
     
-    console.log('✅ OnlineStatusProvider: Modo simplificado ativado (sem polling)');
+    console.log('🎯 GAMBIARRA ÉPICA ATIVADA: Sistema de presença sem WebSocket!');
+    
+    // Marcar como online imediatamente
+    updateUserPresence(user.id, true, 'online');
     setIsConnected(true);
     
-    // Dados mock para demonstração (sem requests reais)
-    const mockUsers: OnlineUser[] = [
-      {
-        userId: 'demo1',
-        userName: 'Mariana Santos',
-        isOnline: true,
-        lastSeen: new Date(),
-        status: 'online'
-      },
-      {
-        userId: 'demo2', 
-        userName: 'Carlos Eduardo',
-        isOnline: true,
-        lastSeen: new Date(Date.now() - 5 * 60 * 1000),
-        status: 'away'
-      }
-    ];
+    // POLLING ÉPICO: Verificar usuários online a cada 30 segundos
+    const pollInterval = setInterval(async () => {
+      const users = await loadOnlineUsers();
+      setOnlineUsers(users);
+    }, 30000);
     
-    setOnlineUsers(mockUsers);
+    // HEARTBEAT ÉPICO: Manter-se online a cada 2 minutos
+    const heartbeatInterval = setInterval(() => {
+      updateUserPresence(user.id, true, currentStatus);
+    }, 120000);
+    
+    // Carregar lista inicial
+    loadOnlineUsers().then(setOnlineUsers);
+    
+    console.log('✅ Sistema ÉPICO iniciado: Polling (30s) + Heartbeat (2min)!');
     
     return () => {
-      console.log('🧧 OnlineStatusProvider: Limpeza simplificada');
+      clearInterval(pollInterval);
+      clearInterval(heartbeatInterval);
+      // Marcar como offline ao sair
+      updateUserPresence(user.id, false, 'offline');
     };
-  }, [user]);
+  }, [user, currentStatus]);
+
+  // 💤 Auto-away quando inativo (5 minutos)
+  useEffect(() => {
+    if (!user) return;
+    
+    let awayTimer: NodeJS.Timeout;
+
+    const resetTimer = () => {
+      clearTimeout(awayTimer);
+      
+      if (currentStatus === 'away') {
+        setCurrentStatus('online');
+        updateUserPresence(user.id, true, 'online');
+      }
+
+      awayTimer = setTimeout(() => {
+        if (currentStatus === 'online') {
+          setCurrentStatus('away');
+          updateUserPresence(user.id, true, 'away');
+        }
+      }, 5 * 60 * 1000); // 5 minutos
+    };
+
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+    
+    events.forEach(event => {
+      document.addEventListener(event, resetTimer, { passive: true });
+    });
+
+    resetTimer();
+
+    return () => {
+      clearTimeout(awayTimer);
+      events.forEach(event => {
+        document.removeEventListener(event, resetTimer);
+      });
+    };
+  }, [user, currentStatus]);
+
+  // 👁️ Detectar quando aba perde foco
+  useEffect(() => {
+    if (!user) return;
+    
+    const handleVisibilityChange = () => {
+      if (document.hidden && currentStatus === 'online') {
+        setCurrentStatus('away');
+        updateUserPresence(user.id, true, 'away');
+      } else if (!document.hidden && currentStatus === 'away') {
+        setCurrentStatus('online');
+        updateUserPresence(user.id, true, 'online');
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [user, currentStatus]);
 
   const isUserOnline = useCallback((userId: string): boolean => {
     const onlineUser = onlineUsers.find(u => u.userId === userId);

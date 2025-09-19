@@ -5,33 +5,15 @@
  */
 
 // Performance API polyfill
-if (typeof window !== 'undefined') {
-  if (!window.performance) {
-    window.performance = {} as any;
-  }
-  
-  if (!window.performance.now) {
-    let start = Date.now();
-    window.performance.now = function() {
-      return Date.now() - start;
-    };
-  }
-  
-  // Mark polyfill
-  if (!window.performance.mark) {
-    window.performance.mark = function(markName: string) {
-      // Noop fallback - return minimal PerformanceMark
-      return { name: markName, entryType: 'mark', startTime: performance.now(), duration: 0 } as PerformanceMark;
-    };
-  }
-  
-  // Measure polyfill
-  if (!window.performance.measure) {
-    window.performance.measure = function(measureName: string, startMark?: string, endMark?: string) {
-      // Noop fallback - return minimal PerformanceMeasure
-      return { name: measureName, entryType: 'measure', startTime: performance.now(), duration: 0 } as PerformanceMeasure;
-    };
-  }
+if (typeof window !== 'undefined' && !window.performance) {
+  window.performance = {} as any;
+}
+
+if (typeof window !== 'undefined' && !window.performance.now) {
+  let start = Date.now();
+  window.performance.now = function() {
+    return Date.now() - start;
+  };
 }
 
 // Scheduler polyfill for React
@@ -41,49 +23,6 @@ if (typeof window !== 'undefined' && !(window as any).scheduler) {
       return Promise.resolve().then(callback);
     }
   };
-}
-
-// IntersectionObserver polyfill
-if (typeof window !== 'undefined' && !('IntersectionObserver' in window)) {
-  console.log('⚠️ IntersectionObserver not supported, using fallback');
-  (window as any).IntersectionObserver = class {
-    constructor(callback: any, options: any = {}) {
-      // Fallback implementation
-    }
-    observe() {}
-    unobserve() {}
-    disconnect() {}
-  };
-}
-
-// ResizeObserver polyfill
-if (typeof window !== 'undefined' && !('ResizeObserver' in window)) {
-  console.log('⚠️ ResizeObserver not supported, using fallback');
-  (window as any).ResizeObserver = class {
-    constructor(callback: any) {
-      // Fallback implementation
-    }
-    observe() {}
-    unobserve() {}
-    disconnect() {}
-  };
-}
-
-// Fix for undefined global variables that can cause errors
-if (typeof window !== 'undefined') {
-  // Fix potential React DevTools issues
-  if (!(window as any).__REACT_DEVTOOLS_GLOBAL_HOOK__) {
-    (window as any).__REACT_DEVTOOLS_GLOBAL_HOOK__ = {
-      onCommitFiberRoot: () => {},
-      onCommitFiberUnmount: () => {},
-      isDisabled: true
-    };
-  }
-  
-  // Fix for potential Next.js issues
-  if (!(window as any).__NEXT_DATA__) {
-    (window as any).__NEXT_DATA__ = { props: {}, page: '/', query: {}, buildId: 'development' };
-  }
 }
 
 // Additional polyfills for better compatibility

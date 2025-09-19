@@ -2,14 +2,128 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 
-// Simplified theme system - only light theme
-type Theme = 'light'
+type Theme = 'light' | 'dark' | 'blue' | 'green' | 'purple' | 'pink' | 'orange' | 'red' | 'teal' | 'indigo' | 'yellow' | 'slate'
+
+type WallpaperType = 'solid' | 'gradient' | 'pattern' | 'image'
+
+interface WallpaperConfig {
+  type: WallpaperType
+  value: string // CSS value or image URL
+  name: string
+  preview?: string
+}
+
+interface VisualTheme {
+  id: string
+  name: string
+  description: string
+  colorTheme: Theme
+  wallpaper: WallpaperConfig
+  isDark?: boolean
+}
 
 interface ThemeContextType {
   theme: Theme
-  isDark: boolean
+  toggleTheme: () => void
   setTheme: (theme: Theme) => void
+  isDark: boolean
+  // New visual customization
+  currentVisualTheme: VisualTheme
+  setVisualTheme: (theme: VisualTheme) => void
+  wallpaper: WallpaperConfig
+  setWallpaper: (wallpaper: WallpaperConfig) => void
+  resetToDefault: () => void
 }
+
+// Predefined wallpapers similar to Google Chrome
+const defaultWallpapers: WallpaperConfig[] = [
+  {
+    type: 'solid',
+    value: '#ffffff',
+    name: 'Branco Puro',
+    preview: '#ffffff'
+  },
+  {
+    type: 'solid',
+    value: '#000000',
+    name: 'Preto',
+    preview: '#000000'
+  },
+  {
+    type: 'gradient',
+    value: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+    name: 'Roxo Místico',
+    preview: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+  },
+  {
+    type: 'gradient',
+    value: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+    name: 'Rosa Pôr do Sol',
+    preview: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+  },
+  {
+    type: 'gradient',
+    value: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+    name: 'Azul Oceano',
+    preview: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
+  },
+  {
+    type: 'gradient',
+    value: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+    name: 'Verde Esmeralda',
+    preview: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)'
+  },
+  {
+    type: 'gradient',
+    value: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+    name: 'Laranja Vibrante',
+    preview: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
+  },
+  {
+    type: 'pattern',
+    value: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)',
+    name: 'Bolinhas',
+    preview: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)'
+  }
+]
+
+// Predefined visual themes
+const defaultVisualThemes: VisualTheme[] = [
+  {
+    id: 'orkut-classic',
+    name: 'Orkut Clássico',
+    description: 'O visual nostálgico do Orkut original',
+    colorTheme: 'purple',
+    wallpaper: {
+      type: 'gradient',
+      value: 'linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%)',
+      name: 'Gradiente Orkut'
+    }
+  },
+  {
+    id: 'dark-modern',
+    name: 'Escuro Moderno',
+    description: 'Visual escuro e elegante',
+    colorTheme: 'dark',
+    wallpaper: {
+      type: 'gradient',
+      value: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
+      name: 'Gradiente Escuro'
+    },
+    isDark: true
+  },
+  {
+    id: 'ocean-blue',
+    name: 'Azul Oceano',
+    description: 'Inspirado nas profundezas do mar',
+    colorTheme: 'blue',
+    wallpaper: {
+      type: 'gradient',
+      value: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      name: 'Oceano Profundo'
+    }
+  }
+]
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
@@ -25,35 +139,257 @@ interface ThemeProviderProps {
   children: ReactNode
 }
 
-export function ThemeProvider({ children }: ThemeProviderProps) {
-  const [theme] = useState<Theme>('light')
-  const [mounted, setMounted] = useState(false)
+// Funções para integração com API
+const saveThemeToDatabase = async (themeData: {
+  color_theme: Theme
+  visual_theme: VisualTheme
+  wallpaper: WallpaperConfig
+  is_dark_mode: boolean
+}) => {
+  try {
+    const response = await fetch('/api/theme-preferences', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(themeData),
+    })
+    
+    if (response.ok) {
+      console.log('💾 Tema salvo no banco de dados')
+    } else {
+      console.warn('Erro ao salvar tema no banco:', await response.text())
+    }
+  } catch (error) {
+    console.warn('Erro na API de tema:', error)
+  }
+}
 
-  // Basic mounting to prevent hydration issues
+const loadThemeFromDatabase = async () => {
+  try {
+    const response = await fetch('/api/theme-preferences')
+    if (response.ok) {
+      const data = await response.json()
+      return {
+        colorTheme: data.color_theme,
+        visualTheme: data.visual_theme,
+        wallpaper: data.wallpaper,
+        isDarkMode: data.is_dark_mode
+      }
+    }
+  } catch (error) {
+    console.warn('Erro ao carregar tema do banco:', error)
+  }
+  return null
+}
+
+const resetThemeInDatabase = async () => {
+  try {
+    const response = await fetch('/api/theme-preferences', {
+      method: 'DELETE',
+    })
+    
+    if (response.ok) {
+      console.log('🔄 Tema resetado no banco de dados')
+    } else {
+      console.warn('Erro ao resetar tema no banco:', await response.text())
+    }
+  } catch (error) {
+    console.warn('Erro na API de reset de tema:', error)
+  }
+}
+
+export function ThemeProvider({ children }: ThemeProviderProps) {
+  const [theme, setThemeState] = useState<Theme>('light')
+  const [mounted, setMounted] = useState(false)
+  const [currentVisualTheme, setCurrentVisualTheme] = useState<VisualTheme>(defaultVisualThemes[0])
+  const [wallpaper, setWallpaperState] = useState<WallpaperConfig>(defaultWallpapers[0])
+
+  // Evitar hidration mismatch
   useEffect(() => {
     setMounted(true)
     
-    // Apply light theme to document
+    // Carregar configurações salvas do localStorage
     if (typeof window !== 'undefined') {
-      const root = window.document.documentElement
-      root.classList.add('light')
-      root.setAttribute('data-theme', 'light')
-      console.log('🎨 Tema aplicado: light')
+      // Carregar tema de cores
+      const savedTheme = localStorage.getItem('orkut_theme') as Theme
+      if (savedTheme) {
+        setThemeState(savedTheme)
+        applyTheme(savedTheme)
+      } else {
+        // Usar tema padrão light (não detectar mais o tema do navegador)
+        const defaultTheme: Theme = 'light'
+        setThemeState(defaultTheme)
+        applyTheme(defaultTheme)
+      }
+
+      // Carregar tema visual completo
+      const savedVisualTheme = localStorage.getItem('orkut_visual_theme')
+      if (savedVisualTheme) {
+        try {
+          const parsedTheme = JSON.parse(savedVisualTheme) as VisualTheme
+          setCurrentVisualTheme(parsedTheme)
+          applyVisualTheme(parsedTheme)
+        } catch (e) {
+          console.warn('Erro ao carregar tema visual salvo:', e)
+        }
+      }
+
+      // Carregar wallpaper
+      const savedWallpaper = localStorage.getItem('orkut_wallpaper')
+      if (savedWallpaper) {
+        try {
+          const parsedWallpaper = JSON.parse(savedWallpaper) as WallpaperConfig
+          setWallpaperState(parsedWallpaper)
+          applyWallpaper(parsedWallpaper)
+        } catch (e) {
+          console.warn('Erro ao carregar wallpaper salvo:', e)
+        }
+      }
     }
   }, [])
 
-  const setTheme = () => {
-    // Only supports light theme - no operation needed
-    console.log('📝 Tema fixo: light')
+  // Removido: listener para mudanças na preferência do sistema
+  // O tema agora é controlado exclusivamente pelo usuário nas configurações
+
+  const applyTheme = (newTheme: Theme) => {
+    if (typeof window !== 'undefined') {
+      const root = window.document.documentElement
+      
+      // Remover classes anteriores
+      const allThemes = ['light', 'dark', 'blue', 'green', 'purple', 'pink', 'orange', 'red', 'teal', 'indigo', 'yellow', 'slate']
+      root.classList.remove(...allThemes)
+      
+      // Adicionar nova classe
+      root.classList.add(newTheme)
+      
+      // Definir atributo data-theme para compatibilidade adicional
+      root.setAttribute('data-theme', newTheme)
+      
+      console.log(`🎨 Tema aplicado: ${newTheme}`)
+    }
+  }
+
+  const applyWallpaper = (wallpaperConfig: WallpaperConfig) => {
+    if (typeof window !== 'undefined') {
+      const root = window.document.documentElement
+      
+      // Aplicar wallpaper como CSS custom property
+      if (wallpaperConfig.type === 'image') {
+        root.style.setProperty('--orkut-wallpaper', `url(${wallpaperConfig.value})`)
+        root.style.setProperty('--orkut-wallpaper-type', 'image')
+      } else {
+        root.style.setProperty('--orkut-wallpaper', wallpaperConfig.value)
+        root.style.setProperty('--orkut-wallpaper-type', wallpaperConfig.type)
+      }
+      
+      // Aplicar data attribute para CSS específico do tipo
+      root.setAttribute('data-wallpaper-type', wallpaperConfig.type)
+      
+      console.log(`🖼️ Wallpaper aplicado: ${wallpaperConfig.name} (${wallpaperConfig.type})`)
+    }
+  }
+
+  const applyVisualTheme = (visualTheme: VisualTheme) => {
+    applyTheme(visualTheme.colorTheme)
+    applyWallpaper(visualTheme.wallpaper)
+    console.log(`🎭 Tema visual aplicado: ${visualTheme.name}`)
+  }
+
+  const setTheme = (newTheme: Theme) => {
+    setThemeState(newTheme)
+    applyTheme(newTheme)
+    
+    // Salvar no localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('orkut_theme', newTheme)
+      console.log(`💾 Tema salvo no localStorage: ${newTheme}`)
+    }
+  }
+
+  const setVisualTheme = (newVisualTheme: VisualTheme) => {
+    setCurrentVisualTheme(newVisualTheme)
+    setThemeState(newVisualTheme.colorTheme)
+    setWallpaperState(newVisualTheme.wallpaper)
+    applyVisualTheme(newVisualTheme)
+    
+    // Salvar no localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('orkut_visual_theme', JSON.stringify(newVisualTheme))
+      localStorage.setItem('orkut_theme', newVisualTheme.colorTheme)
+      localStorage.setItem('orkut_wallpaper', JSON.stringify(newVisualTheme.wallpaper))
+      console.log(`💾 Tema visual salvo: ${newVisualTheme.name}`)
+    }
+    
+    // Salvar no banco de dados via API
+    saveThemeToDatabase({
+      color_theme: newVisualTheme.colorTheme,
+      visual_theme: newVisualTheme,
+      wallpaper: newVisualTheme.wallpaper,
+      is_dark_mode: newVisualTheme.isDark || false
+    })
+  }
+
+  const setWallpaper = (newWallpaper: WallpaperConfig) => {
+    setWallpaperState(newWallpaper)
+    applyWallpaper(newWallpaper)
+    
+    // Salvar no localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('orkut_wallpaper', JSON.stringify(newWallpaper))
+      console.log(`💾 Wallpaper salvo: ${newWallpaper.name}`)
+    }
+    
+    // Atualizar tema atual com novo wallpaper
+    const updatedVisualTheme = {
+      ...currentVisualTheme,
+      wallpaper: newWallpaper
+    }
+    
+    // Salvar no banco de dados via API
+    saveThemeToDatabase({
+      color_theme: theme,
+      visual_theme: updatedVisualTheme,
+      wallpaper: newWallpaper,
+      is_dark_mode: currentVisualTheme.isDark || false
+    })
+  }
+
+  const resetToDefault = () => {
+    const defaultVisualTheme = defaultVisualThemes[0]
+    setVisualTheme(defaultVisualTheme)
+    
+    // Limpar localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('orkut_visual_theme')
+      localStorage.removeItem('orkut_wallpaper')
+      console.log('🔄 Configurações resetadas para o padrão')
+    }
+    
+    // Resetar no banco de dados via API
+    resetThemeInDatabase()
+  }
+
+  const toggleTheme = () => {
+    // Cicla apenas entre light e dark para compatibilidade com toggle simples
+    const newTheme: Theme = theme === 'light' ? 'dark' : 'light'
+    setTheme(newTheme)
   }
 
   const value: ThemeContextType = {
-    theme: 'light',
-    isDark: false,
-    setTheme
+    theme: mounted ? theme : 'light', // Evitar hidration issues
+    toggleTheme,
+    setTheme,
+    isDark: mounted ? (currentVisualTheme.isDark || theme === 'dark') : false,
+    // New visual customization
+    currentVisualTheme: mounted ? currentVisualTheme : defaultVisualThemes[0],
+    setVisualTheme,
+    wallpaper: mounted ? wallpaper : defaultWallpapers[0],
+    setWallpaper,
+    resetToDefault
   }
 
-  // Prevent hydration mismatch
+  // Não renderizar até estar montado para evitar hidration mismatch
   if (!mounted) {
     return <>{children}</>
   }

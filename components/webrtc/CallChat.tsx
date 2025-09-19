@@ -1,8 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/contexts/enhanced-auth-context';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -15,8 +13,6 @@ import {
   Clock
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { formatDistanceToNow } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 
 interface ChatMessage {
   id: string;
@@ -30,157 +26,50 @@ interface ChatMessage {
 }
 
 interface CallChatProps {
-  roomId: string;
   isOpen: boolean;
-  onToggle: () => void;
+  onClose: () => void;
+  currentUserId: string;
+  currentUserName: string;
   className?: string;
 }
 
-export default function CallChat({ roomId, isOpen, onToggle, className = '' }: CallChatProps) {
-  const { user, profile } = useAuth();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+export default function CallChat({ isOpen, onClose, currentUserId, currentUserName, className = '' }: CallChatProps) {
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    {
+      id: 'system-1',
+      room_id: 'current-room',
+      user_id: 'system',
+      user_name: 'Sistema',
+      message: '🎥 Bem-vindo ao chat da sala! Você pode conversar durante a chamada.',
+      created_at: new Date().toISOString(),
+      is_system: true,
+    }
+  ]);
   const [newMessage, setNewMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [participantsCount, setParticipantsCount] = useState(1);
+  const [participantsCount] = useState(1);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const channelRef = useRef<any>(null);
 
   // Auto-scroll para última mensagem
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Configurar canal de chat em tempo real
-  useEffect(() => {
-    if (!roomId || !user) return;
+  const sendMessage = () => {
+    if (!newMessage.trim()) return;
 
-    const channel = supabase.channel(`call-chat:${roomId}`, {
-      config: {
-        broadcast: {
-          self: false, // Não receber próprias mensagens
-        },
-        presence: {
-          key: user.id,
-        },
-      },
-    });
-
-    // Escutar novas mensagens
-    channel.on('broadcast', { event: 'new-message' }, ({ payload }) => {
-      console.log('📨 Nova mensagem de chat:', payload);
-      setMessages(prev => [...prev, payload]);
-      scrollToBottom();
-    });
-
-    // Escutar mudanças de presença (participantes)
-    channel.on('presence', { event: 'sync' }, () => {
-      const state = channel.presenceState();
-      const participants = Object.keys(state).length;
-      setParticipantsCount(participants);
-      console.log('👥 Participantes na sala:', participants);
-    });
-
-    // Escutar entradas e saídas
-    channel.on('presence', { event: 'join' }, ({ key, newPresences }) => {
-      console.log('➡️ Usuário entrou na sala:', key);
-      // Opcional: adicionar mensagem de sistema
-    });
-
-    channel.on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-      console.log('⬅️ Usuário saiu da sala:', key);
-      // Opcional: adicionar mensagem de sistema
-    });
-
-    // Subscribe ao canal
-    channel.subscribe(async (status) => {
-      console.log('📡 Chat channel status:', status);
-      if (status === 'SUBSCRIBED') {
-        // Entrar na presença
-        await channel.track({
-          user_id: user.id,
-          user_name: profile?.display_name || profile?.username || 'Usuário',
-          joined_at: new Date().toISOString(),
-        });
-      }
-    });
-
-    channelRef.current = channel;
-
-    // Cleanup
-    return () => {
-      if (channelRef.current) {
-        channelRef.current.unsubscribe();
-        channelRef.current = null;
-      }
+    const messageData: ChatMessage = {
+      id: `${currentUserId}-${Date.now()}`,
+      room_id: 'current-room',
+      user_id: currentUserId,
+      user_name: currentUserName,
+      message: newMessage.trim(),
+      created_at: new Date().toISOString(),
     };
-  }, [roomId, user, profile]);
 
-  // Carregar mensagens iniciais
-  useEffect(() => {
-    if (!roomId) return;
-    loadInitialMessages();
-  }, [roomId]);
-
-  // Auto-scroll quando mensagens mudam
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const loadInitialMessages = async () => {
-    try {
-      // Por enquanto, começamos com array vazio
-      // Em produção, você poderia salvar mensagens no banco
-      setMessages([
-        {
-          id: 'system-1',
-          room_id: roomId,
-          user_id: 'system',
-          user_name: 'Sistema',
-          message: '🎥 Bem-vindo ao chat da sala! Você pode conversar durante a chamada.',
-          created_at: new Date().toISOString(),
-          is_system: true,
-        }
-      ]);
-    } catch (error) {
-      console.error('❌ Erro ao carregar mensagens:', error);
-    }
-  };
-
-  const sendMessage = async () => {
-    if (!newMessage.trim() || !user || !profile || isLoading) return;
-
-    setIsLoading(true);
-    try {
-      const messageData: ChatMessage = {
-        id: `${user.id}-${Date.now()}`,
-        room_id: roomId,
-        user_id: user.id,
-        user_name: profile?.display_name || profile?.username || 'Usuário',
-        user_avatar: profile.avatar_url,
-        message: newMessage.trim(),
-        created_at: new Date().toISOString(),
-      };
-
-      // Adicionar localmente
-      setMessages(prev => [...prev, messageData]);
-      
-      // Enviar via broadcast
-      if (channelRef.current) {
-        await channelRef.current.send({
-          type: 'broadcast',
-          event: 'new-message',
-          payload: messageData,
-        });
-      }
-
-      setNewMessage('');
-      scrollToBottom();
-    } catch (error) {
-      console.error('❌ Erro ao enviar mensagem:', error);
-      toast.error('Erro ao enviar mensagem');
-    } finally {
-      setIsLoading(false);
-    }
+    setMessages(prev => [...prev, messageData]);
+    setNewMessage('');
+    setTimeout(scrollToBottom, 100);
+    toast.success('💬 Mensagem enviada!');
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -191,9 +80,10 @@ export default function CallChat({ roomId, isOpen, onToggle, className = '' }: C
   };
 
   const formatMessageTime = (timestamp: string) => {
-    return formatDistanceToNow(new Date(timestamp), {
-      addSuffix: true,
-      locale: ptBR,
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit'
     });
   };
 

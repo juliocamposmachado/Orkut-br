@@ -29,7 +29,8 @@
     "db:seed-local": "node -e \"require('./scripts/seed-complete-database.js').seedLocalBackup()\"",
     "build:static": "powershell -ExecutionPolicy Bypass -File ./scripts/build-clean.ps1",
     "test:build": "powershell -ExecutionPolicy Bypass -File ./scripts/test-build-deploy.ps1",
-    "pre-deploy": "npm run db:seed-local && npm run test:build"
+    "pre-deploy": "npm run db:seed-local && npm run test:build",
+    "git:update": "powershell -ExecutionPolicy Bypass -File ./scripts/git-update-clean.ps1"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

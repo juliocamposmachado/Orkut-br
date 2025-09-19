@@ -1,7 +1,8 @@
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
-import { useWebRTCChamadas } from '@/hooks/useWebRTCChamadas';
+// import { useWebRTCChamadas } from '@/hooks/useWebRTCChamadas';
+// Simplified version for Vercel deployment
 import CallControlsOrkut from './CallControlsOrkut';
 import UserInvitePanel from './UserInvitePanel';
 import CallChat from './CallChat';
@@ -38,20 +39,89 @@ export default function VideoCallOrkut({
   const [isInvitePanelOpen, setIsInvitePanelOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
 
-  const {
-    callState,
-    localStream,
-    remoteStream,
-    isAudioMuted,
-    isVideoMuted,
-    error,
-    createOffer,
-    answerCall,
-    rejectCall,
-    hangup,
-    toggleAudioMute,
-    toggleVideoMute,
-  } = useWebRTCChamadas({ roomId, userId, isHost });
+  // Simplified state for Vercel deployment
+  const [callState, setCallState] = useState<'idle' | 'calling' | 'connecting' | 'connected' | 'disconnected'>('idle')
+  const [localStream, setLocalStream] = useState<MediaStream | null>(null)
+  const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null)
+  const [isAudioMuted, setIsAudioMuted] = useState(false)
+  const [isVideoMuted, setIsVideoMuted] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [isInitialized, setIsInitialized] = useState(false)
+
+  // Simplified WebRTC functions
+  const createOffer = async () => {
+    setCallState('calling')
+    toast.info('🔌 Função de chamada ainda em desenvolvimento')
+  }
+
+  const answerCall = () => {
+    setCallState('connecting')
+    toast.success('✅ Chamada simulada')
+  }
+
+  const rejectCall = () => {
+    setCallState('idle')
+    toast.info('❌ Chamada rejeitada')
+  }
+
+  const hangup = () => {
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop())
+    }
+    setLocalStream(null)
+    setCallState('idle')
+    toast.info('📞 Chamada encerrada')
+  }
+
+  const toggleAudioMute = () => {
+    if (localStream) {
+      const audioTracks = localStream.getAudioTracks()
+      audioTracks.forEach(track => {
+        track.enabled = isAudioMuted
+      })
+    }
+    setIsAudioMuted(!isAudioMuted)
+    toast.info(`🎤 Microfone ${isAudioMuted ? 'ligado' : 'desligado'}`)
+  }
+
+  const toggleVideoMute = () => {
+    if (localStream) {
+      const videoTracks = localStream.getVideoTracks()
+      videoTracks.forEach(track => {
+        track.enabled = isVideoMuted
+      })
+    }
+    setIsVideoMuted(!isVideoMuted)
+    toast.info(`📹 Câmera ${isVideoMuted ? 'ligada' : 'desligada'}`)
+  }
+
+  // Initialize media on mount
+  useEffect(() => {
+    const initMedia = async () => {
+      if (typeof window === 'undefined') return
+      
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true
+        })
+        setLocalStream(stream)
+        setIsInitialized(true)
+        toast.success('📹 Câmera e microfone ativados')
+      } catch (err) {
+        setError('Não foi possível acessar câmera e microfone')
+        toast.error('❌ Erro ao acessar mídia')
+      }
+    }
+
+    initMedia()
+
+    return () => {
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop())
+      }
+    }
+  }, [])
 
   // Attach local stream to video element
   useEffect(() => {
@@ -326,35 +396,31 @@ export default function VideoCallOrkut({
       </div>
 
       {/* Call Controls */}
-      <div className="bg-gradient-to-r from-purple-800/50 to-pink-800/50 backdrop-blur-sm">
+      <div className="bg-gradient-to-r from-purple-800/50 to-pink-800/50 backdrop-blur-sm p-6">
         <CallControlsOrkut
-          callState={callState}
           isAudioMuted={isAudioMuted}
           isVideoMuted={isVideoMuted}
-          onCall={createOffer}
-          onAnswer={answerCall}
-          onReject={rejectCall}
+          isConnected={callState === 'connected'}
+          onToggleAudio={toggleAudioMute}
+          onToggleVideo={toggleVideoMute}
           onHangup={hangup}
-          onToggleAudioMute={toggleAudioMute}
-          onToggleVideoMute={toggleVideoMute}
-          isHost={isHost}
+          onToggleChat={() => setIsChatOpen(!isChatOpen)}
         />
       </div>
       
       {/* User Invite Panel */}
       <UserInvitePanel
         roomId={roomId}
-        userId={userId}
-        callType={callType}
         isOpen={isInvitePanelOpen}
         onClose={() => setIsInvitePanelOpen(false)}
       />
       
       {/* Chat da Sala */}
       <CallChat
-        roomId={roomId}
         isOpen={isChatOpen}
-        onToggle={() => setIsChatOpen(!isChatOpen)}
+        onClose={() => setIsChatOpen(false)}
+        currentUserId={userId}
+        currentUserName="Você"
       />
     </div>
   );

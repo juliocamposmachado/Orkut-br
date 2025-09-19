@@ -6,6 +6,9 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Vercel optimizations
+  poweredByHeader: false,
+  compress: true,
   images: { 
     unoptimized: true,
     domains: [

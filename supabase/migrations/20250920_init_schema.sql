@@ -319,214 +319,228 @@ alter table public.notifications enable row level security;
 alter table public.invitations enable row level security;
 alter table public.conversations enable row level security;
 
+-- Drop existing policies first (safe approach)
+do $$
+declare
+  r record;
+begin
+  for r in (
+    select schemaname, tablename, policyname
+    from pg_policies
+    where schemaname = 'public'
+  ) loop
+    execute 'drop policy if exists ' || quote_ident(r.policyname) || ' on ' || quote_ident(r.schemaname) || '.' || quote_ident(r.tablename);
+  end loop;
+end$$;
+
 -- profiles
-create policy if not exists profiles_read_all
+create policy profiles_read_all
   on public.profiles for select
   using (true);
 
-create policy if not exists profiles_self_insert
+create policy profiles_self_insert
   on public.profiles for insert
   with check (id = auth.uid());
 
-create policy if not exists profiles_self_update
+create policy profiles_self_update
   on public.profiles for update
   using (id = auth.uid())
   with check (id = auth.uid());
 
 -- posts
-create policy if not exists posts_read_all
+create policy posts_read_all
   on public.posts for select
   using (true);
 
-create policy if not exists posts_insert_own
+create policy posts_insert_own
   on public.posts for insert
   with check (author = auth.uid());
 
-create policy if not exists posts_update_delete_own
+create policy posts_update_delete_own
   on public.posts for all
   using (author = auth.uid());
 
 -- comments
-create policy if not exists comments_read_all
+create policy comments_read_all
   on public.comments for select
   using (true);
 
-create policy if not exists comments_insert_own
+create policy comments_insert_own
   on public.comments for insert
   with check (profile_id = auth.uid());
 
-create policy if not exists comments_update_delete_own
+create policy comments_update_delete_own
   on public.comments for all
   using (profile_id = auth.uid());
 
 -- likes
-create policy if not exists likes_read_all
+create policy likes_read_all
   on public.likes for select
   using (true);
 
-create policy if not exists likes_insert_own
+create policy likes_insert_own
   on public.likes for insert
   with check (profile_id = auth.uid());
 
-create policy if not exists likes_delete_own
+create policy likes_delete_own
   on public.likes for delete
   using (profile_id = auth.uid());
 
 -- photos
-create policy if not exists photos_read_all
+create policy photos_read_all
   on public.photos for select
   using (true);
 
-create policy if not exists photos_crud_own
+create policy photos_crud_own
   on public.photos for all
   using (profile_id = auth.uid())
   with check (profile_id = auth.uid());
 
 -- friendships
-create policy if not exists friendships_read_involving_me
+create policy friendships_read_involving_me
   on public.friendships for select
   using (requester_id = auth.uid() or addressee_id = auth.uid());
 
-create policy if not exists friendships_insert_self_as_requester
+create policy friendships_insert_self_as_requester
   on public.friendships for insert
   with check (requester_id = auth.uid());
 
-create policy if not exists friendships_update_involving_me
+create policy friendships_update_involving_me
   on public.friendships for update
   using (requester_id = auth.uid() or addressee_id = auth.uid());
 
 -- messages
-create policy if not exists messages_read_participant
+create policy messages_read_participant
   on public.messages for select
   using (from_profile_id = auth.uid() or to_profile_id = auth.uid());
 
-create policy if not exists messages_send_from_me
+create policy messages_send_from_me
   on public.messages for insert
   with check (from_profile_id = auth.uid());
 
 -- scraps
-create policy if not exists scraps_read_participant
+create policy scraps_read_participant
   on public.scraps for select
   using (from_profile_id = auth.uid() or to_profile_id = auth.uid());
 
-create policy if not exists scraps_insert_from_me
+create policy scraps_insert_from_me
   on public.scraps for insert
   with check (from_profile_id = auth.uid());
 
 -- recent_activities
-create policy if not exists recent_activities_read_all
+create policy recent_activities_read_all
   on public.recent_activities for select
   using (true);
 
-create policy if not exists recent_activities_insert_own
+create policy recent_activities_insert_own
   on public.recent_activities for insert
   with check (profile_id = auth.uid());
 
 -- global_feed
-create policy if not exists global_feed_read_all
+create policy global_feed_read_all
   on public.global_feed for select
   using (true);
 
-create policy if not exists global_feed_insert_owner
+create policy global_feed_insert_owner
   on public.global_feed for insert
   with check (author = auth.uid());
 
 -- communities
-create policy if not exists communities_read_all
+create policy communities_read_all
   on public.communities for select
   using (true);
 
-create policy if not exists communities_insert_owner
+create policy communities_insert_owner
   on public.communities for insert
   with check (owner = auth.uid());
 
-create policy if not exists communities_update_owner
+create policy communities_update_owner
   on public.communities for update
   using (owner = auth.uid())
   with check (owner = auth.uid());
 
 -- community_members
-create policy if not exists community_members_read_all
+create policy community_members_read_all
   on public.community_members for select
   using (true);
 
-create policy if not exists community_members_join_self
+create policy community_members_join_self
   on public.community_members for insert
   with check (profile_id = auth.uid());
 
-create policy if not exists community_members_leave_self
+create policy community_members_leave_self
   on public.community_members for delete
   using (profile_id = auth.uid());
 
 -- community_posts
-create policy if not exists community_posts_read_all
+create policy community_posts_read_all
   on public.community_posts for select
   using (true);
 
-create policy if not exists community_posts_insert_own
+create policy community_posts_insert_own
   on public.community_posts for insert
   with check (author_id = auth.uid());
 
-create policy if not exists community_posts_update_delete_own
+create policy community_posts_update_delete_own
   on public.community_posts for all
   using (author_id = auth.uid());
 
 -- calls
-create policy if not exists calls_read_participants
+create policy calls_read_participants
   on public.calls for select
   using (caller = auth.uid() or callee = auth.uid());
 
-create policy if not exists calls_insert_caller
+create policy calls_insert_caller
   on public.calls for insert
   with check (caller = auth.uid());
 
-create policy if not exists calls_update_participants
+create policy calls_update_participants
   on public.calls for update
   using (caller = auth.uid() or callee = auth.uid());
 
 -- call_signals
-create policy if not exists call_signals_read_participants
+create policy call_signals_read_participants
   on public.call_signals for select
   using (from_user_id = auth.uid() or to_user_id = auth.uid());
 
-create policy if not exists call_signals_insert_from_me
+create policy call_signals_insert_from_me
   on public.call_signals for insert
   with check (from_user_id = auth.uid());
 
 -- user_presence
-create policy if not exists user_presence_read_all
+create policy user_presence_read_all
   on public.user_presence for select
   using (true);
 
-create policy if not exists user_presence_upsert_self
+create policy user_presence_upsert_self
   on public.user_presence for all
   using (user_id = auth.uid())
   with check (user_id = auth.uid());
 
 -- notifications
-create policy if not exists notifications_read_mine
+create policy notifications_read_mine
   on public.notifications for select
   using (profile_id = auth.uid());
 
-create policy if not exists notifications_insert_mine
+create policy notifications_insert_mine
   on public.notifications for insert
   with check (profile_id = auth.uid());
 
 -- invitations
-create policy if not exists invitations_read_mine
+create policy invitations_read_mine
   on public.invitations for select
   using (inviter_id = auth.uid());
 
-create policy if not exists invitations_insert_mine
+create policy invitations_insert_mine
   on public.invitations for insert
   with check (inviter_id = auth.uid());
 
 -- conversations
-create policy if not exists conversations_read_participant
+create policy conversations_read_participant
   on public.conversations for select
   using (participant1_id = auth.uid() or participant2_id = auth.uid());
 
-create policy if not exists conversations_insert_self
+create policy conversations_insert_self
   on public.conversations for insert
   with check (participant1_id = auth.uid() or participant2_id = auth.uid());
 

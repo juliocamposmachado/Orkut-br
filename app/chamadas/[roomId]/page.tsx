@@ -3,7 +3,24 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/contexts/enhanced-auth-context';
-import VideoCallOrkut from '@/components/webrtc/VideoCallOrkut';
+import dynamic from 'next/dynamic';
+
+// Carrega VideoCallOrkut dinamicamente para evitar erros de SSR/Build
+const VideoCallOrkut = dynamic(
+  () => import('@/components/webrtc/VideoCallOrkut'),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-pink-900 flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-6"></div>
+          <p className="text-xl font-medium mb-2">Carregando sala de vídeo...</p>
+          <p className="text-white/60">Inicializando componentes WebRTC</p>
+        </div>
+      </div>
+    )
+  }
+);
 
 export default function RoomPage() {
   const params = useParams();

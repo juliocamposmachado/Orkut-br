@@ -9,7 +9,8 @@
   "build": {
     "env": {
       "NODE_ENV": "production",
-      "NEXT_TELEMETRY_DISABLED": "1"
+      "NEXT_TELEMETRY_DISABLED": "1",
+      "FORCE_REBUILD": "2025-09-20-01"
     }
   },
   "env": {

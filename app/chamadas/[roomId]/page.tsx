@@ -7,7 +7,7 @@ import dynamic from 'next/dynamic';
 
 // Carrega VideoCallOrkut dinamicamente para evitar erros de SSR/Build
 const VideoCallOrkut = dynamic(
-  () => import('@/components/webrtc/VideoCallOrkut'),
+  () => import('@/components/webrtc/VideoCallOrkut').then(mod => ({ default: mod.default })),
   { 
     ssr: false,
     loading: () => (

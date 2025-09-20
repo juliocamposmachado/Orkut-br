@@ -6,7 +6,7 @@ import { Video } from 'lucide-react';
 
 // Carrega o componente de chamadas apenas no client-side
 const ChamadasContent = dynamic(
-  () => import('@/components/webrtc/ChamadasContent'),
+  () => import('@/components/webrtc/ChamadasContent').then(mod => ({ default: mod.default })),
   { 
     ssr: false,
     loading: () => (

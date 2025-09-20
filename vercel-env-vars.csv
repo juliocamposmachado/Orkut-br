@@ -14,8 +14,8 @@ NEXTAUTH_SECRET,your_secure_nextauth_secret_here_change_this,production
 NEXTAUTH_URL,https://orkut-br-oficial.vercel.app,production
 NEXT_PUBLIC_SITE_URL,https://orkut-br-oficial.vercel.app,production
 NEXT_PUBLIC_APP_URL,https://orkut-br-oficial.vercel.app,production
-GOOGLE_CLIENT_ID,741817672471-tim1p773te8t6cldnhasfasu7bofblk9.apps.googleusercontent.com,production
-GOOGLE_CLIENT_SECRET,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,production
+GOOGLE_CLIENT_ID,your_google_client_id_here,production
+GOOGLE_CLIENT_SECRET,your_google_client_secret_here,production
 GOOGLE_REDIRECT_URI,https://czxiqrsnunksjvicukgh.supabase.co/auth/v1/callback,production
 NODE_ENV,production,production
 NEXT_TELEMETRY_DISABLED,1,production

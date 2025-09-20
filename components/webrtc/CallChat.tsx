@@ -88,15 +88,7 @@ export default function CallChat({ isOpen, onClose, currentUserId, currentUserNa
   };
 
   if (!isOpen) {
-    return (
-      <Button
-        onClick={onToggle}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg"
-        size="lg"
-      >
-        <MessageCircle className="w-6 h-6" />
-      </Button>
-    );
+    return null;
   }
 
   return (
@@ -115,7 +107,7 @@ export default function CallChat({ isOpen, onClose, currentUserId, currentUserNa
           </Badge>
           
           <Button
-            onClick={onToggle}
+            onClick={onClose}
             variant="ghost"
             size="sm"
             className="text-white hover:bg-white/20 w-8 h-8 p-0"
@@ -132,7 +124,7 @@ export default function CallChat({ isOpen, onClose, currentUserId, currentUserNa
             <div
               key={message.id}
               className={`flex flex-col ${
-                message.user_id === user?.id ? 'items-end' : 'items-start'
+                message.user_id === currentUserId ? 'items-end' : 'items-start'
               }`}
             >
               {message.is_system ? (
@@ -145,12 +137,12 @@ export default function CallChat({ isOpen, onClose, currentUserId, currentUserNa
                 <>
                   <div
                     className={`max-w-[80%] px-3 py-2 rounded-2xl ${
-                      message.user_id === user?.id
+                      message.user_id === currentUserId
                         ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
                         : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
                     }`}
                   >
-                    {message.user_id !== user?.id && (
+                    {message.user_id !== currentUserId && (
                       <div className="text-xs font-medium mb-1 opacity-70">
                         {message.user_name}
                       </div>
@@ -178,13 +170,13 @@ export default function CallChat({ isOpen, onClose, currentUserId, currentUserNa
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Digite sua mensagem..."
-            disabled={isLoading}
+            disabled={false}
             className="flex-1 text-sm"
           />
           
           <Button
             onClick={sendMessage}
-            disabled={!newMessage.trim() || isLoading}
+            disabled={!newMessage.trim()}
             size="sm"
             className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-3"
           >

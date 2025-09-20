@@ -13,7 +13,7 @@ const nextConfig = {
     unoptimized: true,
     domains: [
       'images.pexels.com', 
-      'nhguhmiopdzuckaswvmu.supabase.co', 
+      'czxiqrsnunksjvicukgh.supabase.co',
       'static2.mytuner.mobi',
       'i.imgur.com',
       'imgur.com',
@@ -73,7 +73,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "img-src 'self' data: https: blob: https://images.pexels.com https://mytuner-radio.com https://static2.mytuner.mobi",
               "font-src 'self' data: https://fonts.gstatic.com",
-              "connect-src 'self' https://nhguhmiopdzuckaswvmu.supabase.co wss://nhguhmiopdzuckaswvmu.supabase.co https://vercel.live https://vercel.com wss://orkut-br-oficial.vercel.app wss://*.vercel.app https://stun.l.google.com:19302 https://stun1.l.google.com:19302 https://vitals.vercel-insights.com https://images.pexels.com https://generativelanguage.googleapis.com https://*.googleapis.com https://mytuner-radio.com https://static2.mytuner.mobi",
+              "connect-src 'self' https://czxiqrsnunksjvicukgh.supabase.co wss://czxiqrsnunksjvicukgh.supabase.co https://vercel.live https://vercel.com wss://orkut-br-oficial.vercel.app wss://*.vercel.app https://stun.l.google.com:19302 https://stun1.l.google.com:19302 https://vitals.vercel-insights.com https://images.pexels.com https://generativelanguage.googleapis.com https://*.googleapis.com https://mytuner-radio.com https://static2.mytuner.mobi",
               "media-src 'self' blob: mediastream: https://mytuner-radio.com https://static2.mytuner.mobi",
               "worker-src 'self' blob:",
               "frame-src 'self' https://vercel.live",

@@ -56,7 +56,7 @@ const nextConfig = {
   },
   env: {
     NEXT_PUBLIC_SOCKET_URL: process.env.NODE_ENV === 'production' 
-      ? 'https://orkut-br.vercel.app' 
+      ? 'https://orkut-br-oficial.vercel.app' 
       : 'http://localhost:3000',
     NEXT_PUBLIC_GEMINI_API_KEY: process.env.NEXT_PUBLIC_GEMINI_API_KEY,
   },

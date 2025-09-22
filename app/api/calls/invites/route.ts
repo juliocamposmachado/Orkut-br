@@ -1,10 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// Verificar se as variáveis de ambiente estão disponíveis
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+// Função para criar cliente Supabase com verificações
+function createSupabaseClient() {
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Supabase não está configurado corretamente')
+  }
+  
+  return createClient(supabaseUrl, supabaseKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+}
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -12,6 +25,14 @@ export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   try {
+    // Verificar se Supabase está configurado
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json({ 
+        error: 'Service not configured' 
+      }, { status: 503 });
+    }
+
+    const supabase = createSupabaseClient();
     const body = await request.json();
     const { roomId, invitedUserId, inviterUserId, callType, message } = body;
 
@@ -125,6 +146,14 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    // Verificar se Supabase está configurado
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json({ 
+        error: 'Service not configured' 
+      }, { status: 503 });
+    }
+
+    const supabase = createSupabaseClient();
     const { searchParams } = request.nextUrl;
     const roomId = searchParams.get('roomId');
     const userId = searchParams.get('userId');
@@ -179,6 +208,14 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
+    // Verificar se Supabase está configurado
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json({ 
+        error: 'Service not configured' 
+      }, { status: 503 });
+    }
+
+    const supabase = createSupabaseClient();
     const body = await request.json();
     const { inviteId, status, userId } = body;
 

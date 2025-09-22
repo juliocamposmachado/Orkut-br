@@ -84,7 +84,7 @@ export function OnlineFriends({ onOpenMessage }: OnlineFriendsProps) {
                 username: friend.username,
                 display_name: friend.display_name,
                 photo_url: friend.photo_url,
-                isOnline: true // Simular que todos estão online por enquanto
+                isOnline: true // Todos os amigos são considerados online
               }
             })
           }

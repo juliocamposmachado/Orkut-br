@@ -4,7 +4,6 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { AuthProvider } from '@/contexts/enhanced-auth-context';
 import { VoiceProvider } from '@/contexts/voice-context';
-import { OnlineStatusProvider } from '@/contexts/OnlineStatusContext';
 import { WebRTCProvider } from '@/contexts/webrtc-context';
 import { RadioProvider } from '@/contexts/RadioContext';
 import { FriendsProvider } from '@/contexts/FriendsContext';
@@ -174,7 +173,6 @@ export default function RootLayout({
           <AuthProvider>
             <NotificationProvider>
               <RadioProvider>
-                <OnlineStatusProvider>
                   <WebRTCProvider>
                     <VoiceProvider>
                       <CallProviderWrapper>
@@ -189,7 +187,6 @@ export default function RootLayout({
                       </CallProviderWrapper>
                     </VoiceProvider>
                   </WebRTCProvider>
-                </OnlineStatusProvider>
               </RadioProvider>
             </NotificationProvider>
           </AuthProvider>

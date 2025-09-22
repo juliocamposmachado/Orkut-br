@@ -425,3 +425,7 @@ export default function VideoCallOrkut({
     </div>
   );
 }
+
+// Named export for compatibility
+export { VideoCallOrkut };
+export const VideoCallOrkutComponent = VideoCallOrkut;

@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createSupabaseClient, isSupabaseConfigured, getUnconfiguredResponse } from '@/lib/supabase-api';
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
@@ -12,6 +7,22 @@ export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   try {
+    // Verificar se Supabase está configurado
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json({
+        ...getUnconfiguredResponse('Call Users API'),
+        users: []
+      }, { status: 503 });
+    }
+
+    const supabase = createSupabaseClient();
+    if (!supabase) {
+      return NextResponse.json({
+        error: 'Service unavailable',
+        users: []
+      }, { status: 503 });
+    }
+
     const { searchParams } = request.nextUrl;
     const currentUserId = searchParams.get('userId');
     const search = searchParams.get('search') || '';

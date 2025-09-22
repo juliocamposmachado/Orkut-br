@@ -23,7 +23,6 @@ import {
   Mic
 } from 'lucide-react'
 
-import { useUserPresence } from '@/hooks/useUserPresence'
 import { useCallSystem } from '@/hooks/useCallSystem'
 import { CallInterface } from '@/components/calls/CallInterface'
 import { CallNotification } from '@/components/calls/CallNotification'
@@ -42,7 +41,6 @@ export default function TestChamadasPage() {
   })
   
   // Hooks principais
-  const presence = useUserPresence(currentUserId)
   const callSystem = useCallSystem(currentUserId)
 
   // Configurar efeitos para chamadas recebidas
@@ -150,8 +148,8 @@ export default function TestChamadasPage() {
     setCurrentUserId(userId)
   }
 
-  const onlineUsers = presence.getOnlineUsers()
-  const availableUsers = presence.getAvailableUsers()
+  // Lista simulada de usuários online para teste
+  const onlineUsers = Object.values(testUsers).filter(user => user.id !== currentUserId)
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -228,17 +226,8 @@ export default function TestChamadasPage() {
             <div className="space-y-2">
               <Label>Status da Conexão</Label>
               <div className="flex items-center space-x-2">
-                {presence.isOnline ? (
-                  <>
-                    <Wifi className="w-4 h-4 text-green-500" />
-                    <Badge className="bg-green-500">Online</Badge>
-                  </>
-                ) : (
-                  <>
-                    <WifiOff className="w-4 h-4 text-red-500" />
-                    <Badge variant="destructive">Offline</Badge>
-                  </>
-                )}
+                <Wifi className="w-4 h-4 text-green-500" />
+                <Badge className="bg-green-500">Online</Badge>
               </div>
             </div>
           </div>
@@ -346,7 +335,7 @@ export default function TestChamadasPage() {
                 </p>
               ) : (
                 onlineUsers.map(user => (
-                  <div key={user.userId} className="flex items-center justify-between">
+                  <div key={user.id} className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
                       <Avatar className="w-8 h-8">
                         <AvatarImage src={user.photo_url || undefined} />
@@ -356,44 +345,35 @@ export default function TestChamadasPage() {
                       </Avatar>
                       <div>
                         <p className="text-sm font-medium">
-                          {user.display_name || user.userId}
+                          {user.display_name || user.id}
                         </p>
                         <p className="text-xs text-gray-500">
-                          @{user.username || user.userId}
+                          @{user.username || user.id}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <Badge
-                        variant={
-                          user.currentActivity === 'active' ? 'default' :
-                          user.currentActivity === 'away' ? 'secondary' :
-                          user.currentActivity === 'in-call' ? 'destructive' :
-                          'secondary'
-                        }
-                      >
-                        {user.currentActivity}
+                      <Badge variant="default">
+                        Online
                       </Badge>
-                      {user.isAvailableForCalls && user.userId !== currentUserId && (
-                        <div className="flex space-x-1">
-                          <CallButtons
-                            targetUserId={user.userId}
-                            onAudioCall={(userId) => {
-                              setTargetUserId(userId)
-                              setCallType('audio')
-                              handleStartCall()
-                            }}
-                            onVideoCall={(userId) => {
-                              setTargetUserId(userId)
-                              setCallType('video')
-                              handleStartCall()
-                            }}
-                            disabled={callSystem.callState.isCallActive || callSystem.callState.isOutgoingCall}
-                            size="sm"
-                            variant="compact"
-                          />
-                        </div>
-                      )}
+                      <div className="flex space-x-1">
+                        <CallButtons
+                          targetUserId={user.id}
+                          onAudioCall={(userId) => {
+                            setTargetUserId(userId)
+                            setCallType('audio')
+                            handleStartCall()
+                          }}
+                          onVideoCall={(userId) => {
+                            setTargetUserId(userId)
+                            setCallType('video')
+                            handleStartCall()
+                          }}
+                          disabled={callSystem.callState.isCallActive || callSystem.callState.isOutgoingCall}
+                          size="sm"
+                          variant="compact"
+                        />
+                      </div>
                     </div>
                   </div>
                 ))
@@ -441,9 +421,7 @@ export default function TestChamadasPage() {
         <CardContent>
           <div className="text-xs space-y-1 font-mono bg-gray-50 p-3 rounded">
             <div>Current User: {currentUserId}</div>
-            <div>Presence Online: {presence.isOnline ? 'Yes' : 'No'}</div>
             <div>Online Users: {onlineUsers.length}</div>
-            <div>Available Users: {availableUsers.length}</div>
             <div>Call Type: {callSystem.callState.callType || 'None'}</div>
             <div>Call Active: {callSystem.callState.isCallActive ? 'Yes' : 'No'}</div>
             <div>Call Incoming: {callSystem.callState.isIncomingCall ? 'Yes' : 'No'}</div>

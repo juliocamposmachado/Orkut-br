@@ -39,74 +39,14 @@ export function OnlineStatusToggle({ isOwnProfile, profileId, className }: Onlin
 
   const markAsOnline = async () => {
     if (!user) return
-    
-    try {
-      // Obter token de autenticação
-      const { data: { session } } = await supabase.auth.getSession()
-      const authToken = session?.access_token
-      
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-      }
-      
-      if (authToken) {
-        headers['Authorization'] = `Bearer ${authToken}`
-      }
-      
-      const response = await fetch('/api/user_presence', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          action: 'mark_online'
-        })
-      })
-      
-      const result = await response.json()
-      
-      if (response.ok && result.success) {
-        console.log('✅ Usuário marcado como online')
-      } else {
-        console.warn('⚠️ Erro ao marcar como online:', result.error || 'Erro desconhecido')
-      }
-    } catch (error) {
-      console.warn('⚠️ Erro ao marcar como online:', error)
-    }
+    console.log('✅ Usuário marcado como online (simulado)')
+    // Sistema de presença foi removido - apenas log local
   }
 
   const markAsOffline = async () => {
     if (!user) return
-    
-    try {
-      // Obter token de autenticação
-      const { data: { session } } = await supabase.auth.getSession()
-      const authToken = session?.access_token
-      
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-      }
-      
-      if (authToken) {
-        headers['Authorization'] = `Bearer ${authToken}`
-      }
-      
-      const response = await fetch('/api/user_presence', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          action: 'mark_offline'
-        })
-      })
-      
-      const result = await response.json()
-      
-      if (response.ok && result.success) {
-        console.log('✅ Usuário marcado como offline')
-      } else {
-        console.warn('⚠️ Erro ao marcar como offline:', result.error || 'Erro desconhecido')
-      }
-    } catch (error) {
-      console.warn('⚠️ Erro ao marcar como offline:', error)
-    }
+    console.log('✅ Usuário marcado como offline (simulado)')
+    // Sistema de presença foi removido - apenas log local
   }
 
   const toggleOnlineStatus = async () => {

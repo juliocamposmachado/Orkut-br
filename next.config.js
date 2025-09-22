@@ -6,6 +6,11 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Otimizar build para produção sem Supabase configurado
+  generateBuildId: async () => {
+    // Gerar ID único baseado em timestamp para evitar cache issues
+    return `build-${Date.now()}`
+  },
   // Vercel optimizations
   poweredByHeader: false,
   compress: true,

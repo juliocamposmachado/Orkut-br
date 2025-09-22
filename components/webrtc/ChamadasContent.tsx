@@ -277,3 +277,7 @@ export default function ChamadasContent() {
     </div>
   );
 }
+
+// Named export for compatibility
+export { ChamadasContent };
+export const ChamadasContentComponent = ChamadasContent;

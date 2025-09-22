@@ -1,19 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-// Configuração do Supabase para API Routes
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// Verificar se as variáveis de ambiente estão disponíveis
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-const supabase = createClient(supabaseUrl, supabaseKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
+// Função para criar cliente Supabase com verificações
+function createSupabaseClient() {
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Supabase não está configurado corretamente')
   }
-})
+  
+  return createClient(supabaseUrl, supabaseKey, {
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false
+    }
+  })
+}
 
 export async function GET(request: NextRequest) {
   try {
+    // Verificar se Supabase está configurado
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json(
+        { 
+          error: 'Blog não configurado',
+          details: 'Supabase não está configurado. Configure as variáveis NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY.',
+          posts: []
+        },
+        { status: 503 }
+      )
+    }
+
+    const supabase = createSupabaseClient()
     const { searchParams } = new URL(request.url)
     
     const page = parseInt(searchParams.get('page') || '1')
@@ -106,6 +126,18 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('Erro ao buscar posts do blog:', error)
     
+    // Verificar se é erro de configuração do Supabase
+    if (error?.message?.includes('Supabase não está configurado')) {
+      return NextResponse.json(
+        { 
+          error: 'Blog não configurado',
+          details: 'Supabase não está configurado corretamente.',
+          posts: []
+        },
+        { status: 503 }
+      )
+    }
+    
     // Detectar se a tabela não existe
     if (error?.message?.includes('relation "blog_posts" does not exist') || 
         error?.code === '42P01') {
@@ -113,14 +145,15 @@ export async function GET(request: NextRequest) {
         { 
           error: 'Blog não configurado',
           details: 'A tabela blog_posts não existe. Execute a migration no Supabase.',
-          migration_needed: true
+          migration_needed: true,
+          posts: []
         },
         { status: 503 }
       )
     }
     
     return NextResponse.json(
-      { error: 'Erro interno do servidor' },
+      { error: 'Erro interno do servidor', posts: [] },
       { status: 500 }
     )
   }
@@ -128,6 +161,19 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Verificar se Supabase está configurado
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json(
+        { 
+          error: 'Blog não configurado',
+          details: 'Supabase não está configurado. Configure as variáveis NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY.'
+        },
+        { status: 503 }
+      )
+    }
+
+    const supabase = createSupabaseClient()
+
     // Verificar autenticação via header Authorization
     const authHeader = request.headers.get('authorization')
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -140,7 +186,7 @@ export async function POST(request: NextRequest) {
     const token = authHeader.replace('Bearer ', '')
     
     // Criar cliente temporário para verificar o token
-    const tempSupabase = createClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    const tempSupabase = createClient(supabaseUrl!, supabaseKey, {
       auth: {
         autoRefreshToken: false,
         persistSession: false

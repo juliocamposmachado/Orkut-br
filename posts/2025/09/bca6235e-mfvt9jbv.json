@@ -1,0 +1,26 @@
+{
+  "id": "bca6235e-mfvt9jbv",
+  "userId": "1",
+  "userName": "Julio Machado",
+  "userAvatar": null,
+  "content": "🎉 HISTÓRICO! Primeiro post do sistema de feed via GitHub no Orkut! 🚀 Esta é uma revolução na forma como armazenamos e servimos conteúdo. Agora temos: ✅ Feed ultra-rápido via CDN ✅ Backup automático no Git ✅ Versionamento completo ✅ Escalabilidade infinita O Orkut está de volta com tecnologia de ponta! 💪",
+  "imageUrl": null,
+  "createdAt": "2025-09-23T00:22:30.427Z",
+  "likes": 0,
+  "comments": 0,
+  "shares": 0,
+  "isPublic": true,
+  "communityId": null,
+  "communityName": null,
+  "tags": [
+    "orkut",
+    "github",
+    "inovacao",
+    "tecnologia",
+    "feed"
+  ],
+  "metadata": {
+    "source": "orkut-web",
+    "version": "1.0"
+  }
+}

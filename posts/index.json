@@ -1,0 +1,19 @@
+{
+  "posts": [
+    {
+      "id": "bca6235e-mfvt9jbv",
+      "userId": "1",
+      "userName": "Julio Machado",
+      "content": "🎉 HISTÓRICO! Primeiro post do sistema de feed via GitHub no Orkut! 🚀 Esta é uma revolução na forma como armazenamos e servimos conteúdo. Agora temos: ✅ Feed ultra-rápido via CDN ✅ Backup automático ...",
+      "createdAt": "2025-09-23T00:22:30.427Z",
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "hasImage": false,
+      "communityId": null,
+      "filePath": "posts/2025/09/bca6235e-mfvt9jbv.json"
+    }
+  ],
+  "lastUpdated": "2025-09-23T00:22:30.427Z",
+  "totalPosts": 1
+}

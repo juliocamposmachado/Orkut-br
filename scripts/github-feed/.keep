@@ -1,0 +1,5 @@
+# GitHub feed storage scripts for Orkut static site
+#
+# publishPost.mjs: cria um post em JSON no repositório alvo e atualiza o índice
+# fetchLatest.mjs: lê o índice e retorna os últimos posts
+

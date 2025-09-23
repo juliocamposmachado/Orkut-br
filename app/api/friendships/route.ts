@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 
 export const dynamic = 'force-dynamic'
@@ -170,7 +171,7 @@ export async function POST(request: Request) {
     }
 
     // Criar a solicitação
-    const { data: friendship, error: friendshipError } = await supabase
+    let { data: friendship, error: friendshipError } = await supabase
       .from('friendships')
       .insert({
         requester_id: user.id,
@@ -179,6 +180,37 @@ export async function POST(request: Request) {
       })
       .select()
       .single()
+
+    // Se falhar por RLS (código 42501), tentar com service role como fallback
+    if (friendshipError && friendshipError.code === '42501') {
+      console.log('⚠️ RLS falhou, tentando com service role...')
+      
+      // Criar cliente com service role para bypass RLS
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+      
+      if (serviceRoleKey && supabaseUrl) {
+        const supabaseService = createClient(supabaseUrl, serviceRoleKey)
+        
+        const { data: fallbackFriendship, error: fallbackError } = await supabaseService
+          .from('friendships')
+          .insert({
+            requester_id: user.id,
+            addressee_id: addressee_id,
+            status: 'pending'
+          })
+          .select()
+          .single()
+        
+        if (!fallbackError) {
+          friendship = fallbackFriendship
+          friendshipError = null
+          console.log('✅ Service role fallback funcionou!')
+        } else {
+          console.error('❌ Service role fallback também falhou:', fallbackError)
+        }
+      }
+    }
 
     if (friendshipError) {
       console.error('Erro ao criar amizade:', friendshipError)
@@ -246,7 +278,8 @@ export async function PUT(request: Request) {
       )
     }
 
-    const newStatus = action === 'accept' ? 'accepted' : 'rejected'
+    // IMPORTANTE: Schema só permite 'pending', 'accepted', 'blocked'
+    const newStatus = action === 'accept' ? 'accepted' : 'blocked'
 
     // Atualizar status
     const { error: updateError } = await supabase

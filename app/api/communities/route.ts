@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { githubDB } from '@/lib/github-db'
 
 // Cliente Supabase para servidor
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -100,7 +99,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    // Construir query com novos campos
+    // Construir query com campos existentes
     let query = supabase
       .from('communities')
       .select(`
@@ -111,17 +110,8 @@ export async function GET(request: NextRequest) {
         photo_url,
         members_count,
         owner,
-        visibility,
-        join_approval_required,
-        max_members,
-        rules,
-        welcome_message,
-        tags,
-        is_active,
-        created_at,
-        updated_at
+        created_at
       `, { count: 'exact' })
-      .eq('is_active', true)
       .order('members_count', { ascending: false })
       .range(offset, offset + limit - 1)
 
@@ -243,20 +233,14 @@ export async function POST(request: NextRequest) {
       }, { status: 409 })
     }
 
-    // Criar a comunidade com novos campos
+    // Criar a comunidade com campos existentes
     const communityData = {
       name: name.trim(),
       description: description.trim(),
       category,
       photo_url: photo_url || `https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=300&fit=crop&q=80&auto=format`,
       owner: user.id,
-      members_count: 1,
-      visibility: privacy || 'public',
-      join_approval_required: privacy === 'restricted' || privacy === 'private',
-      rules: rules || 'Seja respeitoso e mantenha as discussões relevantes ao tema da comunidade.',
-      welcome_message: `Bem-vindo à comunidade ${name.trim()}!`,
-      tags: [],
-      is_active: true
+      members_count: 1
     }
     
     // For debugging: try to set owner after creation if it fails

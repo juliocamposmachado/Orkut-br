@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/vercel-build.js && next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "deploy": "vercel --prod",

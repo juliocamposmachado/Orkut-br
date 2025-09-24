@@ -80,13 +80,17 @@ export default function CommunitiesPage() {
 
   const loadCommunities = async () => {
     try {
-      const response = await fetch('/api/communities')
+      // Usar API do GitHub para comunidades
+      const response = await fetch('/api/communities-github')
       const result = await response.json()
       
       if (result.success) {
         setCommunities(result.communities || [])
         if (result.demo) {
-          console.warn('Usando dados demo para comunidades')
+          console.warn('Usando dados demo para comunidades (GitHub não configurado)')
+        }
+        if (result.source === 'github') {
+          console.log('Comunidades carregadas do GitHub com sucesso')
         }
       } else {
         console.error('Erro ao carregar comunidades:', result.error)

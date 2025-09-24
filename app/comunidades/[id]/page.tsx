@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useAuth } from '@/contexts/enhanced-auth-context'
+import { useCommunityAuth } from '@/hooks/use-community-auth'
 import { Navbar } from '@/components/layout/navbar'
 import { OrkyAssistant } from '@/components/voice/orky-assistant'
 import { OrkutCard, OrkutCardContent, OrkutCardHeader } from '@/components/ui/orkut-card'
@@ -80,6 +81,17 @@ export default function CommunityPage() {
   const router = useRouter()
   const params = useParams()
   const communityId = params?.id as string
+  
+  // Initialize community auth hook
+  const {
+    isAuthenticating,
+    joinCommunity: communityAuthJoin,
+    leaveCommunity: communityAuthLeave,
+    createPost: communityAuthCreatePost
+  } = useCommunityAuth({ 
+    communityId: parseInt(communityId), 
+    userId: user?.id 
+  })
   
   const [community, setCommunity] = useState<Community | null>(null)
   const [posts, setPosts] = useState<CommunityPost[]>([])
@@ -200,94 +212,36 @@ export default function CommunityPage() {
     }
   }
 
-  const joinCommunity = async () => {
+  const handleJoinCommunity = async () => {
     if (!user || isMember) return
 
-    try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const token = session?.access_token
+    const result = await communityAuthJoin()
+    
+    if (result.success) {
+      setIsMember(true)
+      setMemberRole('member')
       
-      if (!token) {
-        toast.error('Você precisa estar logado para entrar na comunidade')
-        return
-      }
-
-      const response = await fetch(`/api/communities/${communityId}/members`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
-      })
-      
-      const result = await response.json()
-      
-      if (result.success) {
-        setIsMember(true)
-        setMemberRole('member')
-        toast.success(result.message || 'Você entrou na comunidade!')
-        
-        // Reload data
-        loadCommunity()
-        loadMembers()
-      } else {
-        throw new Error(result.error || 'Erro ao entrar na comunidade')
-      }
-    } catch (error: any) {
-      console.error('Error joining community:', error)
-      toast.error(error.message || 'Erro ao entrar na comunidade')
+      // Reload data
+      loadCommunity()
+      loadMembers()
     }
   }
 
-  const createPost = async () => {
+  const handleCreatePost = async () => {
     if (!user || !newPost.trim() || !isMember) {
       toast.error('Você precisa estar logado e ser membro da comunidade para postar')
       return
     }
 
     setIsPosting(true)
-    try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const token = session?.access_token
-      
-      if (!token) {
-        toast.error('Você precisa estar logado para criar posts')
-        return
-      }
-
-      console.log('Criando post via API:', {
-        communityId,
-        content: newPost.trim(),
-        author: user.id
-      })
-
-      const response = await fetch(`/api/communities/${communityId}/posts`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          content: newPost.trim()
-        })
-      })
-      
-      const result = await response.json()
-      
-      if (result.success) {
-        console.log('Post criado com sucesso:', result.post)
-        setNewPost('')
-        toast.success(result.message || 'Post criado com sucesso!')
-        loadPosts() // Recarregar posts
-      } else {
-        throw new Error(result.error || 'Erro ao criar post')
-      }
-    } catch (error: any) {
-      console.error('Error creating post:', error)
-      toast.error(error.message || 'Erro ao criar post')
-    } finally {
-      setIsPosting(false)
+    const result = await communityAuthCreatePost(newPost.trim())
+    
+    if (result.success) {
+      setNewPost('')
+      loadPosts() // Recarregar posts
     }
+    
+    setIsPosting(false)
   }
 
   if (loading || loadingCommunity) {
@@ -378,11 +332,12 @@ export default function CommunityPage() {
                   <div className="flex flex-col space-y-2 mt-4 lg:mt-0">
                     {!isMember ? (
                       <Button 
-                        onClick={joinCommunity}
+                        onClick={handleJoinCommunity}
+                        disabled={isAuthenticating}
                         className="bg-purple-500 hover:bg-purple-600"
                       >
                         <UserPlus className="h-4 w-4 mr-2" />
-                        Entrar na Comunidade
+                        {isAuthenticating ? 'Entrando...' : 'Entrar na Comunidade'}
                       </Button>
                     ) : (
                       <div className="flex space-x-2">
@@ -535,7 +490,7 @@ export default function CommunityPage() {
                             {newPost.length}/1000 caracteres
                           </p>
                           <Button
-                            onClick={createPost}
+                            onClick={handleCreatePost}
                             disabled={!newPost.trim() || isPosting}
                             className="bg-purple-500 hover:bg-purple-600"
                           >
@@ -560,11 +515,12 @@ export default function CommunityPage() {
                           Você precisa ser membro para ver e criar posts nesta comunidade.
                         </p>
                         <Button 
-                          onClick={joinCommunity}
+                          onClick={handleJoinCommunity}
+                          disabled={isAuthenticating}
                           className="bg-purple-500 hover:bg-purple-600"
                         >
                           <UserPlus className="h-4 w-4 mr-2" />
-                          Entrar na Comunidade
+                          {isAuthenticating ? 'Entrando...' : 'Entrar na Comunidade'}
                         </Button>
                       </div>
                     </OrkutCardContent>

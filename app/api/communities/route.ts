@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { githubDB } from '@/lib/github-db'
 
 // Cliente Supabase para servidor
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL

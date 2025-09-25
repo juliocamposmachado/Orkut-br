@@ -80,24 +80,37 @@ export default function CommunitiesPage() {
 
   const loadCommunities = async () => {
     try {
-      // Usar API do GitHub para comunidades
-      const response = await fetch('/api/communities-github')
+      console.log('🏠 Carregando comunidades EXCLUSIVAMENTE do GitHub...')
+      
+      // Usar API unificada que usa APENAS GitHub
+      const response = await fetch('/api/communities')
       const result = await response.json()
       
       if (result.success) {
         setCommunities(result.communities || [])
+        console.log(`✅ ${result.communities?.length || 0} comunidades carregadas`)
+        
         if (result.demo) {
-          console.warn('Usando dados demo para comunidades (GitHub não configurado)')
+          console.warn('⚠️ Usando dados demo - GitHub não configurado')
         }
+        
         if (result.source === 'github') {
-          console.log('Comunidades carregadas do GitHub com sucesso')
+          console.log('📡 Comunidades carregadas do GitHub real')
+        }
+        
+        if (result.source === 'github-demo') {
+          console.log('🎭 Usando dados demo do GitHub')
+        }
+        
+        if (result.message) {
+          console.info('💬 Mensagem da API:', result.message)
         }
       } else {
-        console.error('Erro ao carregar comunidades:', result.error)
+        console.error('❌ Erro ao carregar comunidades:', result.error)
         setCommunities([])
       }
     } catch (error) {
-      console.error('Error loading communities:', error)
+      console.error('❌ Erro de conexão ao carregar comunidades:', error)
       setCommunities([])
     } finally {
       setLoadingCommunities(false)

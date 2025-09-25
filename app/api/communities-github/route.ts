@@ -129,10 +129,29 @@ class GitHubCommunitiesAPI {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
     const category = searchParams.get('category')
     const search = searchParams.get('search')
     const limit = parseInt(searchParams.get('limit') || '50')
     const offset = parseInt(searchParams.get('offset') || '0')
+
+    // Buscar uma única comunidade por ID, se fornecido
+    if (id) {
+      if (!githubDB.isConfigured()) {
+        const { communities } = githubDB.getDemoCommunities()
+        const community = communities.find(c => c.id === id)
+        if (!community) {
+          return NextResponse.json({ error: 'Comunidade não encontrada (demo)' }, { status: 404 })
+        }
+        return NextResponse.json({ success: true, community, demo: true, source: 'github-fallback' })
+      }
+
+      const community = await githubDB.getCommunity(id)
+      if (!community) {
+        return NextResponse.json({ error: 'Comunidade não encontrada' }, { status: 404 })
+      }
+      return NextResponse.json({ success: true, community, source: 'github' })
+    }
 
     // Verificar se GitHub está configurado
     if (!githubDB.isConfigured()) {

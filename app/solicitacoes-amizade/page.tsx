@@ -110,104 +110,37 @@ export default function FriendRequestsPage() {
     setActionLoading(`accept-${request.id}`)
     
     try {
-      console.log('🔄 Aceitando pedido de amizade no banco de dados...')
-      console.log('📊 Dados da solicitação:', {
+      console.log('🔄 Aceitando pedido de amizade via API...')
+      console.log('📆 Dados da solicitação:', {
         requestId: request.id,
         fromUserId: request.from_user.id,
         toUserId: user?.id,
         fromUserName: request.from_user.display_name
       })
       
-      // PASSO 1: Verificar se já existe uma relação de amizade pendente
-      if (supabase && user) {
-        try {
-          console.log('🔄 Verificando se já existe uma amizade na tabela friendships...')
-          
-          const { data: existingFriendship, error: queryError } = await supabase
-            .from('friendships')
-            .select('*')
-            .or(`and(requester_id.eq.${request.from_user.id},addressee_id.eq.${user.id})`)
-            .maybeSingle()
-          
-          if (queryError) {
-            console.error('❌ Erro ao verificar amizade existente:', queryError)
-            throw queryError
-          }
-          
-          let friendshipId
-          
-          if (existingFriendship) {
-            // Atualizar amizade existente
-            console.log('✅ Amizade existente encontrada, atualizando status para accepted')
-            
-            const { data: updateResult, error: updateError } = await supabase
-              .from('friendships')
-              .update({ status: 'accepted' })
-              .eq('id', existingFriendship.id)
-              .select()
-            
-            if (updateError) {
-              console.error('❌ Erro ao atualizar amizade existente:', updateError)
-              throw updateError
-            }
-            
-            console.log('✅ Amizade atualizada com sucesso!', updateResult)
-            friendshipId = existingFriendship.id
-          } else {
-            // Inserir nova amizade
-            console.log('🔄 Amizade não encontrada, inserindo nova...')
-            
-            const insertData = {
-              requester_id: request.from_user.id,
-              addressee_id: user.id,
-              status: 'accepted' as const
-            }
-            
-            console.log('📦 Dados para inserção:', insertData)
-            
-            const { data: insertResult, error: insertError } = await supabase
-              .from('friendships')
-              .insert(insertData)
-              .select()
-            
-            if (insertError) {
-              console.error('❌ Erro detalhado ao inserir amizade:', {
-                error: insertError,
-                code: insertError.code,
-                message: insertError.message,
-                details: insertError.details,
-                hint: insertError.hint
-              })
-              throw insertError
-            }
-            
-            console.log('✅ Amizade inserida no banco de dados com sucesso!', insertResult)
-            friendshipId = insertResult?.[0]?.id
-          }
-          
-          // PASSO 2: Marcar notificação como lida
-          const { error: notificationError } = await supabase
-            .from('notifications')
-            .update({ read: true })
-            .eq('id', request.id)
-            .eq('profile_id', user.id)
-          
-          if (notificationError) {
-            console.warn('⚠️ Erro ao marcar notificação como lida:', notificationError)
-          } else {
-            console.log('✅ Notificação marcada como lida')
-          }
-          
-        } catch (dbError) {
-          console.error('❌ Erro na operação do banco:', dbError)
-          toast.error('Erro ao salvar amizade no banco de dados')
-          return // Não continua se houver erro no banco
-        }
-      } else {
-        console.warn('⚠️ Supabase não disponível, usando modo simulação')
-        // Simular processamento se não há Supabase
-        await new Promise(resolve => setTimeout(resolve, 1000))
+      // Usar nossa API dedicada que contorna problemas de RLS
+      const apiResponse = await fetch('/api/friendships/accept', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          requesterId: request.from_user.id,
+          addresseeId: user?.id,
+          notificationId: request.id,
+          fromUser: request.from_user,
+          currentUser: profile
+        })
+      })
+
+      const apiResult = await apiResponse.json()
+      
+      if (!apiResponse.ok) {
+        console.error('❌ API retornou erro:', apiResult)
+        throw new Error(apiResult.error || 'Erro na API')
       }
+      
+      console.log('✅ API processou com sucesso:', apiResult)
       
       // PASSO 3: Atualizar status local do pedido
       setFriendRequests(prev => 
